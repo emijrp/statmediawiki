@@ -23,16 +23,20 @@ import time
 import md5
 
 #variables
-statsdir="statsmediawiki"
-#limpiamos directorio
-os.system("rm -r %s" % statsdir)
+statsdir="statmediawiki"
+#limpiamos directorio, realmente no debería limpiarlo, por si el usuario tenía ahí otra cosa
+#os.system("rm -r %s" % statsdir)
+sleep=0.5
 
 indexfilename="index.html"
 sitename="WikiHaskell"
 siteurl=url="http://osl.uca.es/wikihaskell"
-subdir="/index.php"
+subdir="/index.php" # "/index.php"
+dbname="wikihaskelldb"
+tableprefix="" #generalmente vacío
 fechainicio=datetime.datetime(year=2009, month=9, day=15, hour=0, minute=0, second=0)
-fechafin=datetime.datetime(year=2010, month=1, day=16, hour=0, minute=0, second=0)
+#fechainicio=datetime.datetime(year=2007, month=1, day=1, hour=0, minute=0, second=0)
+fechafin=datetime.datetime(year=2010, month=1, day=31, hour=0, minute=0, second=0)
 fechaincremento=datetime.timedelta(days=1)
 
 xtics24hours='"00" 0, "01" 1, "02" 2, "03" 3, "04" 4, "05" 5, "06" 6, "07" 7, "08" 8, "09" 9, "10" 10, "11" 11, "12" 12, "13" 13, "14" 14, "15" 15, "16" 16, "17" 17, "18" 18, "19" 19, "20" 20, "21" 21, "22" 22, "23" 23'
@@ -88,7 +92,7 @@ estilo para los párrafos, tablas...
 */
 		</style>
 	</head>
-	<body><h1>StatsMediaWiki: %s %s</h1>
+	<body><h1>StatMediaWiki: %s %s</h1>
 	""" % (sitename, title)
 
 def footer():
@@ -170,25 +174,24 @@ def generateCloud(revisions, user=""):
 	return output, cloudfilename
 
 #inicialización
-#eliminar directorio anterior
 os.system("mkdir %s" % statsdir)
 
 #conexión a la db
-conn = MySQLdb.connect(host='localhost', db='wikihaskelldb', read_default_file='~/.my.cnf', use_unicode=False)
+conn = MySQLdb.connect(host='localhost', db=dbname, read_default_file='~/.my.cnf', use_unicode=False)
 cursor = conn.cursor()
 
 #estadísticas globales
-cursor.execute("select count(*) from user where 1")
+cursor.execute("select count(*) from %suser where 1" % tableprefix)
 numberofusers=cursor.fetchall()[0][0]
-cursor.execute("select count(*) from revision where 1")
+cursor.execute("select count(*) from %srevision where 1" % tableprefix)
 numberofedits=cursor.fetchall()[0][0]
-cursor.execute("select count(*) from revision where rev_page in (select page_id from page where page_namespace=0)")
+cursor.execute("select count(*) from %srevision where rev_page in (select page_id from %spage where page_namespace=0)" % (tableprefix, tableprefix))
 numberofeditsinarticles=cursor.fetchall()[0][0]
-cursor.execute("select count(*) from page where 1")
+cursor.execute("select count(*) from %spage where 1" % tableprefix)
 numberofpages=cursor.fetchall()[0][0]
-cursor.execute("select count(*) from page where page_namespace=0 and page_is_redirect=0")
+cursor.execute("select count(*) from %spage where page_namespace=0 and page_is_redirect=0" % tableprefix)
 numberofarticles=cursor.fetchall()[0][0]
-cursor.execute("select count(*) from image where 1")
+cursor.execute("select count(*) from %simage where 1" % tableprefix)
 numberoffiles=cursor.fetchall()[0][0]
 generated=datetime.datetime.now().isoformat()
 period="%s - %s" % (fechainicio.isoformat(), fechafin.isoformat())
@@ -208,7 +211,7 @@ for k, v in namespaces.items():
 
 #pages
 pages={}
-cursor.execute("select page_id, page_namespace, page_title, page_is_redirect from page")
+cursor.execute("select page_id, page_namespace, page_title, page_is_redirect from %spage" % tableprefix)
 result=cursor.fetchall()
 for row in result:
 	pages[row[0]]={"page_namespace": int(row[1]), "page_title": unicode(row[2], "utf-8"), "page_is_redirect": int(row[3])}
@@ -216,7 +219,7 @@ print "Loaded %s pages" % len(pages.items())
 
 #revisions
 revisions={}
-cursor.execute("select rev_id, rev_page, rev_user_text, rev_timestamp, rev_comment, old_text from revision, text where old_id=rev_text_id")
+cursor.execute("select rev_id, rev_page, rev_user_text, rev_timestamp, rev_comment, old_text from %srevision, %stext where old_id=rev_text_id" % (tableprefix, tableprefix))
 result=cursor.fetchall()
 for row in result:
 	revisions[row[0]]={"rev_id": row[0], "rev_page":row[1], "rev_user_text": unicode(row[2], "utf-8"), 
@@ -239,8 +242,8 @@ for rev_page, hist in revisionsperpage.items():
 #users
 users={}
 useruploads={}
-cursor.execute("select user_name, user_id from user where 1")
-cursor.execute("select distinct rev_user_text, rev_user from revision where 1")
+cursor.execute("select user_name, user_id from %suser where 1" % tableprefix)
+cursor.execute("select distinct rev_user_text, rev_user from %srevision where 1" % tableprefix)
 result=cursor.fetchall()
 for row in result:
 	username=unicode(row[0], "utf-8")
@@ -287,7 +290,7 @@ for rev_id, rev_props in revisions.items():
 		mosteditedpages[rev_page]=1
 
 #user uploads
-cursor.execute("select img_user_text, img_name from image where 1")
+cursor.execute("select img_user_text, img_name from %simage where 1" % tableprefix)
 result=cursor.fetchall()
 for row in result:
 	username=unicode(row[0], "utf-8")
@@ -509,7 +512,7 @@ for user, user_id in users.items():
 		plot2 = Gnuplot.PlotItems.Data(userbytesinarticles_list2, with_="lines", title=plottitle2.encode("utf-8"))
 		gp.plot(plot1, plot2)
 		gp.hardcopy(filename="%s/user_%s.png" % (statsdir, user_id),terminal="png")
-		time.sleep(0.3) #para servidores quisquillosos como el nuestro
+		time.sleep(sleep) #para servidores quisquillosos como el nuestro
 		#le creamos su subpagina
 		
 		
@@ -696,7 +699,7 @@ output+=footer()
 """
 
 #ranking ediciones globales
-cursor.execute("select user_name, user_editcount from user where 1 order by user_editcount desc")
+cursor.execute("select user_name, user_editcount from %suser where 1 order by user_editcount desc" % tableprefix)
 result=cursor.fetchall()
 output+=u"<h2>Ranking de usuarios por número de ediciones globales</h2>"
 output+=u"<center>\n<table style='text-align: center;font-size: 90%;' border=1px>\n<tr><th>#</th><th>Usuario</th><th>Ediciones</th><th>Detalles</th></tr>\n"
@@ -714,7 +717,7 @@ output+=u"</table>\n</center>\n"
 for user_name in user_names:
 	fecha=fechainicio
 	output+=u"<h3 id='%s'>Detalles de \"%s\"</h3>\n" % (user_name, user_name)
-	cursor.execute("select rev_id, rev_timestamp from revision where rev_user_text='%s'" % user_name.encode("utf-8"))
+	cursor.execute("select rev_id, rev_timestamp from %srevision where rev_user_text='%s'" % (user_name.encode("utf-8"), tableprefix))
 	result=cursor.fetchall()
 	user_revs={}
 	while fecha!=fechafin:
