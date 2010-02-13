@@ -1,0 +1,7 @@
+This is the to-do wishlist ;-)
+
+* Get for every single page in the wiki the same statistic that we generate for the whole site.
+* Generate info for categories: tags cloud, statistics for every category and a graph using Graphviz [1] or a similar system.
+* Generate deepr statistics, suggestions are welcome!
+
+[1] http://www.graphviz.org/Gallery.php
