@@ -57,6 +57,7 @@ def header(title=""):
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>StatMediaWiki: %s %s</title>
 		<style>
 		body {
 			margin-left: 42px;
@@ -93,7 +94,7 @@ estilo para los párrafos, tablas...
 		</style>
 	</head>
 	<body><h1>StatMediaWiki: %s %s</h1>
-	""" % (sitename, title)
+	""" % (sitename, title, sitename, title)
 
 def footer():
 	return u"<hr/>\n<center>Generated with <a href='http://statmediawiki.forja.rediris.es/'>StatMediaWiki</a></center>"
@@ -191,6 +192,10 @@ cursor.execute("select count(*) from %spage where 1" % tableprefix)
 numberofpages=cursor.fetchall()[0][0]
 cursor.execute("select count(*) from %spage where page_namespace=0 and page_is_redirect=0" % tableprefix)
 numberofarticles=cursor.fetchall()[0][0]
+cursor.execute("select sum(page_len) from %spage where 1" % tableprefix)
+numberofbytes=cursor.fetchall()[0][0]
+cursor.execute("select sum(page_len) from %spage where page_namespace=0 and page_is_redirect=0" % tableprefix)
+numberofbytesinarticles=cursor.fetchall()[0][0]
 cursor.execute("select count(*) from %simage where 1" % tableprefix)
 numberoffiles=cursor.fetchall()[0][0]
 generated=datetime.datetime.now().isoformat()
@@ -312,11 +317,13 @@ output+=u"""<dl>
 <dd>%s (Articles: %s)</dd>
 <dt>Total edits:</dt>
 <dd>%s (In articles: %s)</dd>
+<dt>Total bytes:</dt>
+<dd>%s (In articles: %s)</dd>
 <dt>Total files:</dt>
 <dd><a href="%s%s/Special:Imagelist">%s</a></dd>
 <dt>Users:</dt>
 <dd><a href="users.html">%s</a></dd>
-</dl>""" % (url, sitename, generated, period, numberofpages, numberofarticles, numberofedits, numberofeditsinarticles, url, subdir, numberoffiles, numberofusers)
+</dl>""" % (url, sitename, generated, period, numberofpages, numberofarticles, numberofedits, numberofeditsinarticles, numberofbytes, numberofbytesinarticles, url, subdir, numberoffiles, numberofusers)
 
 
 output+=u"<h2>Content</h2>"
@@ -591,7 +598,7 @@ output+=u"<h2>Users</h2>"
 output+=u"<table>"
 
 usersmaxsize=10
-usersmaxsize2=1000000 #todos deben salir en la subpagina
+usersmaxsize2=10000 #todos deben salir en la subpagina
 users_list=[]
 usersfilename="users.html"
 editsmin=999
@@ -616,6 +623,11 @@ bytesaddedinarticlestotal=0.0
 for k, v in usersbytesinarticles.items():
 	bytesaddedinarticlestotal+=v
 
+#uploads
+totaluploads=0.0
+for k, v in useruploads.items():
+	totaluploads+=len(useruploads[k])
+
 users_list.sort()
 users_list.reverse()
 users_list2=users_list
@@ -632,6 +644,7 @@ c=1
 for username, edits in users_list[:usersmaxsize2]:
 	usersfileoutput+=u"<tr><td>%s</td><td><a href=\"user_%s.html\">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n" % (c, users[username], username, edits, edits*(100/editstotal), usereditsinarticles[username], usereditsinarticles[username]*(100/editstotalinarticles), usersbytes[username], usersbytes[username]*(100/bytesaddedtotal), usersbytesinarticles[username], usersbytesinarticles[username]*(100/bytesaddedinarticlestotal), len(useruploads[username]))
 	c+=1
+usersfileoutput+=u"<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%.0f</td></tr>\n" % (editstotal, editstotalinarticles, bytesaddedtotal, bytesaddedinarticlestotal, totaluploads)
 usersfileoutput+=u"</table>"
 usersfileoutput+=subpagefooter()
 usersfile=open("%s/%s" % (statsdir, usersfilename), "w")
