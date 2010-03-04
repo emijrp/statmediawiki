@@ -26,7 +26,7 @@ import md5
 statsdir="statmediawiki"
 #limpiamos directorio, realmente no debería limpiarlo, por si el usuario tenía ahí otra cosa
 #os.system("rm -r %s" % statsdir)
-sleep=0.5
+sleep=0.8
 
 indexfilename="index.html"
 sitename="WikiHaskell"
@@ -102,7 +102,7 @@ def footer():
 def subpageheader(subtitle, backlink=""):
 	if not backlink:
 		backlink=indexfilename
-	return u"%s\n<p>&lt;&lt; <a href=\"%s\">Volver</a></p>\n" % (header(subtitle), backlink)
+	return u"%s\n<p>&lt;&lt; <a href=\"%s\">Back</a></p>\n" % (header(subtitle), backlink)
 
 def subpagefooter():
 	return footer()
@@ -644,8 +644,9 @@ c=1
 for username, edits in users_list[:usersmaxsize2]:
 	usersfileoutput+=u"<tr><td>%s</td><td><a href=\"user_%s.html\">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n" % (c, users[username], username, edits, edits*(100/editstotal), usereditsinarticles[username], usereditsinarticles[username]*(100/editstotalinarticles), usersbytes[username], usersbytes[username]*(100/bytesaddedtotal), usersbytesinarticles[username], usersbytesinarticles[username]*(100/bytesaddedinarticlestotal), len(useruploads[username]))
 	c+=1
-usersfileoutput+=u"<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%.0f</td></tr>\n" % (editstotal, editstotalinarticles, bytesaddedtotal, bytesaddedinarticlestotal, totaluploads)
+usersfileoutput+=u"<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href='#note 1'>note 1</a>]</sup> (100%%)</td><td>%s (100%%)</td><td>%.0f</td></tr>\n" % (editstotal, editstotalinarticles, bytesaddedtotal, bytesaddedinarticlestotal, totaluploads)
 usersfileoutput+=u"</table>"
+usersfileoutput+=u"<h2>Notes</h2>\n<ul><li id='note 1'>Note 1: This number can be greater than total bytes in the wiki, as some of the content inserted could have been deleted later.</li>"
 usersfileoutput+=subpagefooter()
 usersfile=open("%s/%s" % (statsdir, usersfilename), "w")
 usersfile.write(usersfileoutput.encode("utf-8"))
