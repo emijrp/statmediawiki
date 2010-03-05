@@ -15,10 +15,11 @@ HOST = forja.rediris.es
 DIR = /htdocs
 HTMLS = desarrollo.html  index_en.html  index.html  objetivo.html publicaciones.html
 OTHERS = header1.png spain.gif united_kingdom.gif
+PAPERS = $(shell ls papers/*.pdf)
 # ICONS = # $(shell ls icons/*.png)
 # CSS   =  matdocenuca.css
 # TARGETFILES = index.html $(ICONS) $(CSS)
-TARGETFILES = $(HTMLS) $(OTHERS)
+TARGETFILES = $(HTMLS) $(OTHERS) $(PAPERS)
 
 all: $(TARGETFILES)
 
