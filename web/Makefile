@@ -13,7 +13,7 @@
 USER = statmediawiki
 HOST = forja.rediris.es
 DIR = /htdocs
-HTMLS = desarrollo.html  index_en.html  index.html  objetivo.html
+HTMLS = desarrollo.html  index_en.html  index.html  objetivo.html publicaciones.html
 OTHERS = header1.png spain.gif united_kingdom.gif
 # ICONS = # $(shell ls icons/*.png)
 # CSS   =  matdocenuca.css
