@@ -23,8 +23,10 @@ import time
 import md5
 import getopt
 import sys
+import time
 
 #el usuario que hace las consultas sql debe tener acceso lectura a las bbdd, con los datos de .my.cnf
+t1=time.time()
 
 def usage():
 	print "nada por ahora"
@@ -148,8 +150,11 @@ def main():
 		<body><h1>StatMediaWiki: %s %s</h1>
 		""" % (sitename, title, sitename, title)
 
-	def footer():
-		return u"<hr/>\n<center>Generated with <a href='http://statmediawiki.forja.rediris.es/'>StatMediaWiki</a></center>"
+	def footer(seconds):
+		if seconds:
+			return u"<hr/>\n<center>Generated with <a href='http://statmediawiki.forja.rediris.es/'>StatMediaWiki</a> in %.2f seconds</center>" % seconds
+		else:
+			return u"<hr/>\n<center>Generated with <a href='http://statmediawiki.forja.rediris.es/'>StatMediaWiki</a></center>"
 
 	def subpageheader(subtitle, backlink=""):
 		if not backlink:
@@ -157,7 +162,7 @@ def main():
 		return u"%s\n<p>&lt;&lt; <a href=\"%s\">Back</a></p>\n" % (header(subtitle), backlink)
 
 	def subpagefooter():
-		return footer()
+		return footer(0)
 
 
 	def generateCloud(revisions, user=""):
@@ -234,8 +239,9 @@ def main():
 	cursor = conn.cursor()
 
 	#estadísticas globales
-	cursor.execute("select count(*) from %suser where 1" % tableprefix)
-	numberofusers=cursor.fetchall()[0][0]
+	#cursor.execute("select count(*) from %suser where 1" % tableprefix)
+	#numberofusers=cursor.fetchall()[0][0]
+	#número de usuarios a partir de las revisiones y de la tabla de usuarios, len(user.items())
 	cursor.execute("select count(*) from %srevision where 1" % tableprefix)
 	numberofedits=cursor.fetchall()[0][0]
 	cursor.execute("select count(*) from %srevision where rev_page in (select page_id from %spage where page_namespace=0)" % (tableprefix, tableprefix))
@@ -299,24 +305,30 @@ def main():
 	#users
 	users={}
 	useruploads={}
-	cursor.execute("select user_name, user_id from %suser where 1" % tableprefix)
-	cursor.execute("select distinct rev_user_text, rev_user from %srevision where 1" % tableprefix)
-	result=cursor.fetchall()
-	for row in result:
-		username=unicode(row[0], "utf-8")
-		userid=int(row[1])
-		if userid==0:
-			users[username]=username
-		else:
-			users[username]=userid
-		#inicializamos uploads
-		useruploads[username]=[]
-
+	useredits={}
+	usereditsinarticles={}
+	userpagepreferences={}
+	for query in ["select user_name, user_id from %suser where 1" % tableprefix, "select distinct rev_user_text, rev_user from %srevision where 1" % tableprefix]:
+		cursor.execute(query)
+		result=cursor.fetchall()
+		for row in result:
+			username=unicode(row[0], "utf-8")
+			userid=int(row[1])
+			if not users.has_key(username):
+				if userid==0:
+					users[username]=username
+				else:
+					users[username]=userid
+				#inicializamos los demás
+				useruploads[username]=[]
+				useredits[username]=0
+				usereditsinarticles[username]=0
+				userpagepreferences[username]={}
+	
+	numberofusers=len(users.items())
 	print "Loaded %s users" % len(users.items())
 
 	#user edits
-	useredits={}
-	usereditsinarticles={}
 	for rev_id, rev_props in revisions.items():
 		username=rev_props["rev_user_text"]
 		if useredits.has_key(username):
@@ -330,7 +342,6 @@ def main():
 			usereditsinarticles[username]+=1
 
 	#user page preferences
-	userpagepreferences={}
 	mosteditedpages={}
 	for rev_id, rev_props in revisions.items():
 		username=rev_props["rev_user_text"]
@@ -560,7 +571,7 @@ def main():
 		if userbytes_list2:
 			gp = Gnuplot.Gnuplot()
 			print user
-			gp(' set data style lines')
+			gp('set data style lines')
 			gp('set title "Content evolution by %s"' % user.encode("utf-8"))
 			gp('set xlabel "Date (YYYY-MM-DD)"')
 			gp('set ylabel "Bytes"')
@@ -761,7 +772,7 @@ def main():
 	output+=u"<p><a href=\"%s\">more...</a></p>" % (cloudfilename)
 
 	#footer
-	output+=footer()
+	output+=footer(time.time()-t1)
 
 	"""
 
