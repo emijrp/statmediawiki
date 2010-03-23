@@ -30,8 +30,11 @@ def usage():
 	print "nada por ahora"
 
 def main():
+	extension="php" # file extension (our server only php)
+
+	#preferences
 	outputdir="statmediawikianalysis"
-	indexfilename="index.html"
+	indexfilename="index.%s" % extension
 	sitename="YourWikiSite"
 	siteurl=url="http://youwikisite.org"
 	subdir="/index.php" # "/index.php"
@@ -39,9 +42,10 @@ def main():
 	tableprefix="" #generalmente vacío
 	startdate="" #que apunte a la primera edición
 	enddate="" #que apunte a la última edición
-
+	
+	#console params
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "", ["help", "outputdir=", "index=", "sitename=", "siteurl=", "dbname=", "tableprefix=", "startdate=", "enddate="])
+		opts, args = getopt.getopt(sys.argv[1:], "", ["help", "outputdir=", "index=", "sitename=", "subdir=", "siteurl=", "dbname=", "tableprefix=", "startdate=", "enddate="])
 	except getopt.GetoptError, err:
 		# print help information and exit:
 		print str(err) # will print something like "option -a not recognized"
@@ -60,6 +64,8 @@ def main():
 			sitename = a
 		elif o in ("--siteurl"):
 			siteurl = url = a
+		elif o in ("--subdir"):
+			subdir = a
 		elif o in ("--dbname"):
 			dbname = a
 		elif o in ("--tableprefix"):
@@ -177,7 +183,7 @@ def main():
 					else:
 						cloud[tag]=1
 		cloud_list=[]
-		cloudfilename="cloud.html"
+		cloudfilename="cloud.%s" % extension
 		if user!="":
 			cloudfilename="user_%s_%s" % (users[user], cloudfilename)
 		tagmin=999
@@ -197,7 +203,7 @@ def main():
 		for k, v in cloud_list2:
 			cloud_list.append([v, k])
 		if user!="":
-			cloudfileoutput=subpageheader("Cloud: %s" % user, "user_%s.html" % users[user])
+			cloudfileoutput=subpageheader("Cloud: %s" % user, "user_%s.%s" % (users[user], extension))
 		else:
 			cloudfileoutput=subpageheader("Cloud")
 		cloudfileoutput+=u"<table><tr><th>Word</th><th>Frequency</th></tr>"
@@ -368,8 +374,8 @@ def main():
 	<dt>Total files:</dt>
 	<dd><a href="%s%s/Special:Imagelist">%s</a></dd>
 	<dt>Users:</dt>
-	<dd><a href="users.html">%s</a></dd>
-	</dl>""" % (url, sitename, generated, period, numberofpages, numberofarticles, numberofedits, numberofeditsinarticles, numberofbytes, numberofbytesinarticles, url, subdir, numberoffiles, numberofusers)
+	<dd><a href="users.%s">%s</a></dd>
+	</dl>""" % (url, sitename, generated, period, numberofpages, numberofarticles, numberofedits, numberofeditsinarticles, numberofbytes, numberofbytesinarticles, url, subdir, numberoffiles, extension, numberofusers)
 
 
 	output+=u"<h2>Content</h2>"
@@ -634,7 +640,7 @@ def main():
 	
 		usersubpage+=subpagefooter()
 	
-		f=open("%s/user_%s.html" % (outputdir, user_id), "w")
+		f=open("%s/user_%s.%s" % (outputdir, user_id, extension), "w")
 		f.write(usersubpage.encode("utf-8"))
 		f.close()
 	#fin gráficas para usuarios
@@ -647,7 +653,7 @@ def main():
 	usersmaxsize=10
 	usersmaxsize2=10000 #todos deben salir en la subpagina
 	users_list=[]
-	usersfilename="users.html"
+	usersfilename="users.%s" % extension
 	editsmin=999
 	editsmax=0
 	#edits
@@ -689,7 +695,7 @@ def main():
 	usersfileoutput+=u"<table><tr><th>#</th><th>User</th><th>Total edits</th><th>Edits in articles</th><th>Total bytes added</th><th>Bytes added in articles</th><th>Uploads</th></tr>"
 	c=1
 	for username, edits in users_list[:usersmaxsize2]:
-		usersfileoutput+=u"<tr><td>%s</td><td><a href=\"user_%s.html\">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n" % (c, users[username], username, edits, edits*(100/editstotal), usereditsinarticles[username], usereditsinarticles[username]*(100/editstotalinarticles), usersbytes[username], usersbytes[username]*(100/bytesaddedtotal), usersbytesinarticles[username], usersbytesinarticles[username]*(100/bytesaddedinarticlestotal), len(useruploads[username]))
+		usersfileoutput+=u"<tr><td>%s</td><td><a href=\"user_%s.%s\">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n" % (c, users[username], extension, username, edits, edits*(100/editstotal), usereditsinarticles[username], usereditsinarticles[username]*(100/editstotalinarticles), usersbytes[username], usersbytes[username]*(100/bytesaddedtotal), usersbytesinarticles[username], usersbytesinarticles[username]*(100/bytesaddedinarticlestotal), len(useruploads[username]))
 		c+=1
 	usersfileoutput+=u"<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href='#note 1'>note 1</a>]</sup> (100%%)</td><td>%s (100%%)</td><td>%.0f</td></tr>\n" % (editstotal, editstotalinarticles, bytesaddedtotal, bytesaddedinarticlestotal, totaluploads)
 	usersfileoutput+=u"</table>"
@@ -713,7 +719,7 @@ def main():
 		subtotalbytesadded+=usersbytes[username]
 		subtotalbytesaddedinarticles+=usersbytesinarticles[username]
 		subtotaluploads+=len(useruploads[username])
-		output+=u"<tr><td>%s</td><td><a href=\"user_%s.html\">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n" % (c, users[username], username, edits, edits*(100/editstotal), usereditsinarticles[username], usereditsinarticles[username]*(100/editstotalinarticles), usersbytes[username], usersbytes[username]*(100/bytesaddedtotal), usersbytesinarticles[username], usersbytesinarticles[username]*(100/bytesaddedinarticlestotal), len(useruploads[username]))
+		output+=u"<tr><td>%s</td><td><a href=\"user_%s.%s\">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n" % (c, users[username], extension, username, edits, edits*(100/editstotal), usereditsinarticles[username], usereditsinarticles[username]*(100/editstotalinarticles), usersbytes[username], usersbytes[username]*(100/bytesaddedtotal), usersbytesinarticles[username], usersbytesinarticles[username]*(100/bytesaddedinarticlestotal), len(useruploads[username]))
 		c+=1
 
 	output+=u"<tr><td></td><td>Subtotal</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%.0f</td></tr>\n" % (subtotaledits, subtotaledits*(100/editstotal), subtotaleditsinarticles, subtotaleditsinarticles*(100/editstotalinarticles), subtotalbytesadded, subtotalbytesadded*(100/bytesaddedtotal), subtotalbytesaddedinarticles, subtotalbytesaddedinarticles*(100/bytesaddedinarticlestotal), subtotaluploads)
@@ -741,9 +747,9 @@ def main():
 		mosteditedoutput+=u"<tr><td>%s</td><td><a href='%s%s/%s'>%s</a></td><td><a href='%s/index.php?title=%s&action=history'>%s</a></td></tr>\n" % (c, siteurl, subdir, fullpagetitle, fullpagetitle,  siteurl, fullpagetitle, edits)
 		c+=1
 	output+=u"</table>"
-	output+=u"<p><a href=\"mosteditedpages.html\">more...</a></p>"
+	output+=u"<p><a href=\"mosteditedpages.%s\">more...</a></p>" % extension
 	mosteditedoutput+=u"</table>"
-	f=open("%s/%s" % (outputdir,"mosteditedpages.html"), "w")
+	f=open("%s/%s" % (outputdir,"mosteditedpages.%s" % extension), "w")
 	f.write(mosteditedoutput.encode("utf-8"))
 	f.close()
 
