@@ -282,7 +282,7 @@ def main():
 
 	#revisions
 	revisions={}
-	cursor.execute("select rev_id, rev_page, rev_user_text, rev_timestamp, rev_comment, old_text from %srevision, %stext where old_id=rev_text_id" % (tableprefix, tableprefix))
+	cursor.execute("select rev_id, rev_page, rev_user_text, rev_timestamp, rev_comment, old_text from %srevision, %stext where old_id=rev_text_id and rev_timestamp>='%s' and rev_timestamp<='%s'" % (tableprefix, tableprefix, '%sZ000000T' % re.sub('-', '', startdate), '%sZ235959T' % re.sub('-', '', enddate)))
 	result=cursor.fetchall()
 	for row in result:
 		revisions[row[0]]={"rev_id": row[0], "rev_page":row[1], "rev_user_text": unicode(row[2], "utf-8"), 
@@ -421,6 +421,8 @@ def main():
 
 	gp = Gnuplot.Gnuplot()
 	gp('set data style lines')
+	#gp('set size .6, .6')
+	#gp('set line_width 8')
 	gp('set title "Content evolution in %s"' % sitename)
 	gp('set xlabel "Date (YYYY-MM-DD)"')
 	gp('set ylabel "Bytes"')
