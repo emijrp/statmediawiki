@@ -28,59 +28,187 @@ import time
 #el usuario que hace las consultas sql debe tener acceso lectura a las bbdd, con los datos de .my.cnf
 t1=time.time()
 
+extension="php" # file extension (our server only php)
+#preferences
+outputdir="statmediawikianalysis"
+indexfilename="index.%s" % extension
+sitename="YourWikiSite"
+siteurl=url="http://youwikisite.org"
+subdir="/index.php" # "/index.php"
+dbname="yourwikidb"
+tableprefix="" #generalmente vacío
+startdate="" #que apunte a la primera edición
+enddate="" #que apunte a la última edición
+
 def usage():
-	print "nada por ahora"
+	f=open("help.txt", "r")
+	print f.read()
+	f.close()
+	sys.exit() #mostramos ayuda y salimos
+
+#console params
+try:
+	opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "outputdir=", "index=", "sitename=", "subdir=", "siteurl=", "dbname=", "tableprefix=", "startdate=", "enddate="])
+except getopt.GetoptError, err:
+	# print help information and exit:
+	print str(err) # will print something like "option -a not recognized"
+	usage()
+	sys.exit(2)
+output = None
+for o, a in opts:
+	if o in ("-h","--help"):
+		usage()
+	elif o in ("--outputdir"):
+		outputdir = a
+	elif o in ("--index"):
+		indexfilename = a
+	elif o in ("--sitename"):
+		sitename = a
+	elif o in ("--siteurl"):
+		siteurl = url = a
+	elif o in ("--subdir"):
+		subdir = a
+	elif o in ("--dbname"):
+		dbname = a
+	elif o in ("--tableprefix"):
+		tableprefix = a
+	elif o in ("--startdate"):
+		startdate = a
+	elif o in ("--enddate"):
+		enddate = a
+	else:
+	    assert False, "unhandled option"
+
+#gestionar falta de parametros
+
+#fin gestionar falta parametros
+
+def header(sitename="", title=""):
+	return u"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>StatMediaWiki: %s %s</title>
+		<style>
+		body {
+			margin-left: 42px;
+			margin-right: 42px;
+			background: #ffffff;
+			color: #002070;
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 12px;
+		}
+		h1 {
+			padding: 2px 5px;
+			border: 1px solid #c0c0c0;
+			color: #002070;
+			background-color: #eeeeee;
+			font-weight: bold;
+			font-size: 16px;
+		}
+
+		h2 {
+			padding: 2px 5px;
+			border: 1px solid #aaaaaa;
+			color: #002070;
+			background-color: #eeeeee;
+			font-size: 14px;
+		}
+
+		table, td {
+			border: 1px solid black;
+			text-align: center;
+		}
+/*
+estilo para los párrafos, tablas...
+*/
+		</style>
+	</head>
+	<body><h1>StatMediaWiki: %s %s</h1>
+	""" % (sitename, title, sitename, title)
+
+def footer(seconds):
+	if seconds:
+		return u"<hr/>\n<center>Generated with <a href='http://statmediawiki.forja.rediris.es/'>StatMediaWiki</a> in %.2f seconds</center>" % seconds
+	else:
+		return u"<hr/>\n<center>Generated with <a href='http://statmediawiki.forja.rediris.es/'>StatMediaWiki</a></center>"
+
+def subpageheader(subtitle, backlink=""):
+	if not backlink:
+		backlink=indexfilename
+	return u"%s\n<p>&lt;&lt; <a href=\"%s\">Back</a></p>\n" % (header(subtitle), backlink)
+
+def subpagefooter():
+	return footer(0)
+
+
+def generateCloud(revisions, users, user=""):
+	cloud={}
+	output=u""
+	cloudmaxsize=50
+	tagminsize=3
+	exclusions=["las", "los", "con", "para", "que", "uno", "una", "del", "como"]
+	for rev_id, rev_props in revisions.items():
+		#print len(rev_props["rev_comment"])
+		rev_user_text=rev_props["rev_user_text"]
+		if user!="":
+			if not user==rev_user_text:
+				continue #saltamos a la siguiente revision
+		rev_comment=rev_props["rev_comment"]
+		rev_comment=rev_comment.lower()
+		rev_comment=re.sub(ur"[^a-záéíóúñ0-9]", ur" ", rev_comment)
+		tags=rev_comment.split(" ")
+		for tag in tags:
+			if len(tag)>=tagminsize and tag not in exclusions:
+				if cloud.has_key(tag):
+					cloud[tag]+=1
+				else:
+					cloud[tag]=1
+	cloud_list=[]
+	cloudfilename="cloud.%s" % extension
+	if user!="":
+		cloudfilename="user_%s_%s" % (users[user], cloudfilename)
+	tagmin=999
+	tagmax=0
+	tagtotal=0.0
+	for k, v in cloud.items():
+		tagtotal+=v
+		if v<tagmin:
+			tagmin=v
+		if v>tagmax:
+			tagmax=v
+		cloud_list.append([v, k])
+	cloud_list.sort()
+	cloud_list.reverse()
+	cloud_list2=cloud_list
+	cloud_list=[]
+	for k, v in cloud_list2:
+		cloud_list.append([v, k])
+	if user!="":
+		cloudfileoutput=subpageheader("Cloud: %s" % user, "user_%s.%s" % (users[user], extension))
+	else:
+		cloudfileoutput=subpageheader("Cloud")
+	cloudfileoutput+=u"<table><tr><th>Word</th><th>Frequency</th></tr>"
+	for tag, times in cloud_list[:cloudmaxsize]:
+		cloudfileoutput+=u"<tr><td>%s</td><td>%s (%.2f%%)</td></tr>\n" % (tag, times, times*(100/tagtotal))
+	cloudfileoutput+=u"</table>"
+	cloudfileoutput+=subpagefooter()
+	cloudfile=open("%s/%s" % (outputdir, cloudfilename), "w")
+	cloudfile.write(cloudfileoutput.encode("utf-8"))
+	cloudfile.close()
+	top_tags=cloud_list[:cloudmaxsize]
+	top_tags.sort()
+	fontsizemin=100
+	fontsizemax=300
+	try:
+		multi=(fontsizemax-fontsizemin)/(tagmax-tagmin)
+	except:
+		multi=0
+	for tag, times in top_tags:
+		output+=u"<span style=\"font-size: %s%%\">%s</span> &nbsp;&nbsp;&nbsp;" % (fontsizemin+multi*times, tag)
+	return output, cloudfilename
 
 def main():
-	extension="php" # file extension (our server only php)
-
-	#preferences
-	outputdir="statmediawikianalysis"
-	indexfilename="index.%s" % extension
-	sitename="YourWikiSite"
-	siteurl=url="http://youwikisite.org"
-	subdir="/index.php" # "/index.php"
-	dbname="yourwikidb"
-	tableprefix="" #generalmente vacío
-	startdate="" #que apunte a la primera edición
-	enddate="" #que apunte a la última edición
-	
-	#console params
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], "", ["help", "outputdir=", "index=", "sitename=", "subdir=", "siteurl=", "dbname=", "tableprefix=", "startdate=", "enddate="])
-	except getopt.GetoptError, err:
-		# print help information and exit:
-		print str(err) # will print something like "option -a not recognized"
-		usage()
-		sys.exit(2)
-	output = None
-	for o, a in opts:
-		if o in ("-h","--help"):
-			usage()
-			sys.exit()
-		elif o in ("--outputdir"):
-			outputdir = a
-		elif o in ("--index"):
-			indexfilename = a
-		elif o in ("--sitename"):
-			sitename = a
-		elif o in ("--siteurl"):
-			siteurl = url = a
-		elif o in ("--subdir"):
-			subdir = a
-		elif o in ("--dbname"):
-			dbname = a
-		elif o in ("--tableprefix"):
-			tableprefix = a
-		elif o in ("--startdate"):
-			startdate = a
-		elif o in ("--enddate"):
-			enddate = a
-		else:
-		    assert False, "unhandled option"
-	
-	#gestionar falta de parámetros
-	
 	if not os.path.isdir(outputdir):
 		os.system("mkdir -p %s" % outputdir)
 
@@ -105,131 +233,6 @@ def main():
 		fecha+=fechaincremento
 		c+=1
 	xticsperiod=xticsperiod[:len(xticsperiod)-1]
-
-	def header(title=""):
-		return u"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-	<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
-		<head>
-			<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-			<title>StatMediaWiki: %s %s</title>
-			<style>
-			body {
-				margin-left: 42px;
-				margin-right: 42px;
-				background: #ffffff;
-				color: #002070;
-				font-family: Verdana, Arial, Helvetica, sans-serif;
-				font-size: 12px;
-			}
-			h1 {
-				padding: 2px 5px;
-				border: 1px solid #c0c0c0;
-				color: #002070;
-				background-color: #eeeeee;
-				font-weight: bold;
-				font-size: 16px;
-			}
-
-			h2 {
-				padding: 2px 5px;
-				border: 1px solid #aaaaaa;
-				color: #002070;
-				background-color: #eeeeee;
-				font-size: 14px;
-			}
-
-			table, td {
-				border: 1px solid black;
-				text-align: center;
-			}
-	/*
-	estilo para los párrafos, tablas...
-	*/
-			</style>
-		</head>
-		<body><h1>StatMediaWiki: %s %s</h1>
-		""" % (sitename, title, sitename, title)
-
-	def footer(seconds):
-		if seconds:
-			return u"<hr/>\n<center>Generated with <a href='http://statmediawiki.forja.rediris.es/'>StatMediaWiki</a> in %.2f seconds</center>" % seconds
-		else:
-			return u"<hr/>\n<center>Generated with <a href='http://statmediawiki.forja.rediris.es/'>StatMediaWiki</a></center>"
-
-	def subpageheader(subtitle, backlink=""):
-		if not backlink:
-			backlink=indexfilename
-		return u"%s\n<p>&lt;&lt; <a href=\"%s\">Back</a></p>\n" % (header(subtitle), backlink)
-
-	def subpagefooter():
-		return footer(0)
-
-
-	def generateCloud(revisions, user=""):
-		cloud={}
-		output=u""
-		cloudmaxsize=50
-		tagminsize=3
-		exclusions=["las", "los", "con", "para", "que", "uno", "una", "del", "como"]
-		for rev_id, rev_props in revisions.items():
-			#print len(rev_props["rev_comment"])
-			rev_user_text=rev_props["rev_user_text"]
-			if user!="":
-				if not user==rev_user_text:
-					continue #saltamos a la siguiente revision
-			rev_comment=rev_props["rev_comment"]
-			rev_comment=rev_comment.lower()
-			rev_comment=re.sub(ur"[^a-záéíóúñ0-9]", ur" ", rev_comment)
-			tags=rev_comment.split(" ")
-			for tag in tags:
-				if len(tag)>=tagminsize and tag not in exclusions:
-					if cloud.has_key(tag):
-						cloud[tag]+=1
-					else:
-						cloud[tag]=1
-		cloud_list=[]
-		cloudfilename="cloud.%s" % extension
-		if user!="":
-			cloudfilename="user_%s_%s" % (users[user], cloudfilename)
-		tagmin=999
-		tagmax=0
-		tagtotal=0.0
-		for k, v in cloud.items():
-			tagtotal+=v
-			if v<tagmin:
-				tagmin=v
-			if v>tagmax:
-				tagmax=v
-			cloud_list.append([v, k])
-		cloud_list.sort()
-		cloud_list.reverse()
-		cloud_list2=cloud_list
-		cloud_list=[]
-		for k, v in cloud_list2:
-			cloud_list.append([v, k])
-		if user!="":
-			cloudfileoutput=subpageheader("Cloud: %s" % user, "user_%s.%s" % (users[user], extension))
-		else:
-			cloudfileoutput=subpageheader("Cloud")
-		cloudfileoutput+=u"<table><tr><th>Word</th><th>Frequency</th></tr>"
-		for tag, times in cloud_list[:cloudmaxsize]:
-			cloudfileoutput+=u"<tr><td>%s</td><td>%s (%.2f%%)</td></tr>\n" % (tag, times, times*(100/tagtotal))
-		cloudfileoutput+=u"</table>"
-		cloudfileoutput+=subpagefooter()
-		cloudfile=open("%s/%s" % (outputdir, cloudfilename), "w")
-		cloudfile.write(cloudfileoutput.encode("utf-8"))
-		cloudfile.close()
-		top_tags=cloud_list[:cloudmaxsize]
-		top_tags.sort()
-		fontsizemin=100
-		fontsizemax=300
-		try:
-			multi=(fontsizemax-fontsizemin)/(tagmax-tagmin)
-		except:
-			multi=0
-		for tag, times in top_tags:
-			output+=u"<span style=\"font-size: %s%%\">%s</span> &nbsp;&nbsp;&nbsp;" % (fontsizemin+multi*times, tag)
-		return output, cloudfilename
 
 	#inicialización
 	os.system("mkdir %s" % outputdir)
@@ -368,7 +371,7 @@ def main():
 	#fin carga datos
 
 	#cabecera
-	output = header()
+	output = header(sitename)
 	output+=u"""<dl>
 	<dt>Site:</dt>
 	<dd><a href='%s'>%s</a></dd>
@@ -432,7 +435,8 @@ def main():
 	plot2 = Gnuplot.PlotItems.Data(graph2, with_="lines", title="%s content (articles)" % sitename)
 	gp.plot(plot1, plot2)
 	gp.hardcopy(filename="%s/content_evolution.png" % outputdir,terminal="png") 
-
+	gp.close()
+	
 	output+=u"<img src=\"%s\" />" % ("content_evolution.png")
 
 	houractivity={}
@@ -468,6 +472,7 @@ def main():
 	plot1 = Gnuplot.PlotItems.Data(houractivity_list, with_="boxes", title=plottitle1.encode("utf-8"))
 	gp.plot(plot1)
 	gp.hardcopy(filename="%s/hour_activity.png" % (outputdir),terminal="png")
+	gp.close()
 	output+=u"<img src=\"hour_activity.png\"/>\n"
 
 	#activity day of week
@@ -483,6 +488,7 @@ def main():
 	plot1 = Gnuplot.PlotItems.Data(dayofweekactivity_list, with_="boxes", title=plottitle1.encode("utf-8"))
 	gp.plot(plot1)
 	gp.hardcopy(filename="%s/dayofweek_activity.png" % (outputdir),terminal="png")
+	gp.close()
 	output+=u"<img src=\"dayofweek_activity.png\"/>\n"
 	#fin gráficas globales
 
@@ -492,7 +498,7 @@ def main():
 	usersbytes={}
 	usersbytesinarticles={}
 	for user, user_id in users.items():
-		print user, user_id
+		print "Generating graphs for %s..." % user
 		usersbytes[user]=0
 		usersbytesinarticles[user]=0
 		userbytes={} #user, not userS
@@ -501,6 +507,7 @@ def main():
 		userdayofweekactivity={}
 		fecha=fechainicio
 		#inicializamos diccionario de fechas
+
 		while fecha<fechafin:
 			userbytes[fecha]=0
 			userbytesinarticles[fecha]=0
@@ -530,26 +537,26 @@ def main():
 						#user day of week activity
 						userdayofweekactivity[rev_timestamp.weekday()]+=1
 				c+=1
-	
+
 		userbytes_list=[]
 		userbytes_list2=[]
 		for timestamp, bytes in userbytes.items():
 			userbytes_list.append([timestamp, bytes])
 		userbytes_list.sort()
-	
+
 		userbytesinarticles_list=[]
 		userbytesinarticles_list2=[]
 		for timestamp, bytes in userbytesinarticles.items():
 			userbytesinarticles_list.append([timestamp, bytes])
 		userbytesinarticles_list.sort()
-	
+
 		c=0
 		acumbytes=0
 		for timestamp, bytes in userbytes_list:
 			acumbytes+=bytes #conservamos 
 			userbytes_list2.append([c, acumbytes])
 			c+=1
-	
+
 		c=0
 		acumbytes=0
 		for timestamp, bytes in userbytesinarticles_list:
@@ -568,11 +575,12 @@ def main():
 	<dt>Files uploaded:</dt>
 	<dd><a href="#uploads">%s</a></dd>
 	</dl>""" % (url, subdir, user, user, url, subdir, user, useredits[user], usereditsinarticles[user], usersbytes[user], usersbytesinarticles[user], len(useruploads[user]))
-	
+
 		#user content evolution
-		if userbytes_list2:
+		if userbytes_list2 and useredits[user]>0:
+
 			gp = Gnuplot.Gnuplot()
-			print user
+			#print user
 			gp('set data style lines')
 			gp('set title "Content evolution by %s"' % user.encode("utf-8"))
 			gp('set xlabel "Date (YYYY-MM-DD)"')
@@ -585,62 +593,67 @@ def main():
 			plot2 = Gnuplot.PlotItems.Data(userbytesinarticles_list2, with_="lines", title=plottitle2.encode("utf-8"))
 			gp.plot(plot1, plot2)
 			gp.hardcopy(filename="%s/user_%s.png" % (outputdir, user_id),terminal="png")
+			gp.close()
 			time.sleep(sleep) #para servidores quisquillosos como el nuestro
-			#le creamos su subpagina
-		
-		
 			usersubpage+=u"<img src=\"user_%s.png\"/>\n" % user_id
+		else:
+			usersubpage+=u"This user has no edits in this wiki."
+		
+		if useredits[user]>0:
+			#user activity per hours
+			userhouractivity_list=userhouractivity.items()
+			userhouractivity_list.sort()
+
+			gp = Gnuplot.Gnuplot()
+			gp("set data style boxes")
+			gp('set title "Hour activity by %s"' % user.encode("utf-8"))
+			gp('set xlabel "Hour"')
+			gp('set ylabel "Edits"')
+			gp('set xtics (%s)' % xtics24hours)
+			plottitle1=u"Edits by %s" % user
+			plot1 = Gnuplot.PlotItems.Data(userhouractivity_list, with_="boxes", title=plottitle1.encode("utf-8"))
+			gp.plot(plot1)
+			gp.hardcopy(filename="%s/user_%s_hour_activity.png" % (outputdir, user_id),terminal="png")
+			gp.close()
+			usersubpage+=u"<img src=\"user_%s_hour_activity.png\"/>\n" % user_id
 	
-		#user activity per hours
-		userhouractivity_list=userhouractivity.items()
-		userhouractivity_list.sort()
-		gp = Gnuplot.Gnuplot()
-		gp("set data style boxes")
-		gp('set title "Hour activity by %s"' % user.encode("utf-8"))
-		gp('set xlabel "Hour"')
-		gp('set ylabel "Edits"')
-		gp('set xtics (%s)' % xtics24hours)
-		plottitle1=u"Edits by %s" % user
-		plot1 = Gnuplot.PlotItems.Data(userhouractivity_list, with_="boxes", title=plottitle1.encode("utf-8"))
-		gp.plot(plot1)
-		gp.hardcopy(filename="%s/user_%s_hour_activity.png" % (outputdir, user_id),terminal="png")
-		usersubpage+=u"<img src=\"user_%s_hour_activity.png\"/>\n" % user_id
+			#user activity day of week
+			userdayofweekactivity_list=userdayofweekactivity.items()
+			userdayofweekactivity_list.sort()
+
+			gp = Gnuplot.Gnuplot()
+			gp("set data style boxes")
+			gp('set title "Day of week activity by %s"' % user.encode("utf-8"))
+			gp('set xlabel "Day of week"')
+			gp('set ylabel "Edits"')
+			gp('set xtics (%s)' % xticsdayofweek)
+			plottitle1=u"Edits by %s" % user
+			plot1 = Gnuplot.PlotItems.Data(userdayofweekactivity_list, with_="boxes", title=plottitle1.encode("utf-8"))
+			gp.plot(plot1)
+			gp.hardcopy(filename="%s/user_%s_dayofweek_activity.png" % (outputdir, user_id),terminal="png")
+			gp.close()
+			usersubpage+=u"<img src=\"user_%s_dayofweek_activity.png\"/>\n" % user_id
 	
-		#user activity day of week
-		userdayofweekactivity_list=userdayofweekactivity.items()
-		userdayofweekactivity_list.sort()
-		gp = Gnuplot.Gnuplot()
-		gp("set data style boxes")
-		gp('set title "Day of week activity by %s"' % user.encode("utf-8"))
-		gp('set xlabel "Day of week"')
-		gp('set ylabel "Edits"')
-		gp('set xtics (%s)' % xticsdayofweek)
-		plottitle1=u"Edits by %s" % user
-		plot1 = Gnuplot.PlotItems.Data(userdayofweekactivity_list, with_="boxes", title=plottitle1.encode("utf-8"))
-		gp.plot(plot1)
-		gp.hardcopy(filename="%s/user_%s_dayofweek_activity.png" % (outputdir, user_id),terminal="png")
-		usersubpage+=u"<img src=\"user_%s_dayofweek_activity.png\"/>\n" % user_id
-	
-		#user most edited pages
-		usersubpage+=u"<h2 id=''>Most edited pages</h2>\n"
-		userpagepreferences_list=[]
-		for k, v in userpagepreferences[user].items():
-			userpagepreferences_list.append([v, k])
-		userpagepreferences_list.sort()
-		userpagepreferences_list.reverse()
-		usersubpage+=u"<table>"
-		usersubpage+=u"<tr><th>#</th><th>Page</th><th>Edits</th></tr>"
-		c=0
-		for edits, pageid in userpagepreferences_list:
-			fullpagetitle=u"%s%s" % (namespaces_[pages[pageid]["page_namespace"]], pages[pageid]["page_title"])
-			usersubpage+=u"<tr><td>%s</td><td><a href='%s%s/%s'>%s</a></td><td><a href='%s/index.php?title=%s&action=history'>%s</a></td></tr>\n" % (c, siteurl, subdir, fullpagetitle, fullpagetitle, siteurl, fullpagetitle, edits)
-			c+=1
-		usersubpage+=u"</table>"
+			#user most edited pages
+			usersubpage+=u"<h2 id=''>Most edited pages</h2>\n"
+			userpagepreferences_list=[]
+			for k, v in userpagepreferences[user].items():
+				userpagepreferences_list.append([v, k])
+			userpagepreferences_list.sort()
+			userpagepreferences_list.reverse()
+			usersubpage+=u"<table>"
+			usersubpage+=u"<tr><th>#</th><th>Page</th><th>Edits</th></tr>"
+			c=0
+			for edits, pageid in userpagepreferences_list:
+				fullpagetitle=u"%s%s" % (namespaces_[pages[pageid]["page_namespace"]], pages[pageid]["page_title"])
+				usersubpage+=u"<tr><td>%s</td><td><a href='%s%s/%s'>%s</a></td><td><a href='%s/index.php?title=%s&action=history'>%s</a></td></tr>\n" % (c, siteurl, subdir, fullpagetitle, fullpagetitle, siteurl, fullpagetitle, edits)
+				c+=1
+			usersubpage+=u"</table>"
 
 		#user uploads
 		usersubpage+=u"<h2 id='uploads'>Uploads</h2>\n"
 		if len(useruploads[user])==0:
-			usersubpage+=u"No files uploaded"
+			usersubpage+=u"This user has no uploaded files"
 		else:
 			for imgname in useruploads[user]:
 				imgname_=re.sub(' ', '_', imgname) #espacios a _
@@ -648,16 +661,19 @@ def main():
 				usersubpage+=u"<a href='%s%s/Image:%s'><img src='%s/images/%s/%s/%s' width=200px /></a>&nbsp;&nbsp;&nbsp;" % (siteurl, subdir, imgname, siteurl, md5_[0], md5_[0:2], imgname) 
 
 		#user cloud
-		[cloud, cloudfilename]=generateCloud(revisions, user)
-		usersubpage+=u"<h2>Cloud</h2>%s<p><a href=\"%s\">more...</a></p>\n" % (cloud, cloudfilename)
-	
+		usersubpage+=u"<h2>Cloud</h2>\n"
+		if useredits[user]>0:
+			[cloud, cloudfilename]=generateCloud(revisions, users, user)
+			usersubpage+=u"%s<p><a href=\"%s\">more...</a></p>\n" % (cloud, cloudfilename)
+		else:
+			usersubpage+=u"This user has no edit summaries."
 		usersubpage+=subpagefooter()
-	
+
 		f=open("%s/user_%s.%s" % (outputdir, user_id, extension), "w")
 		f.write(usersubpage.encode("utf-8"))
 		f.close()
-	#fin gráficas para usuarios
 
+	#fin gráficas para usuarios
 
 	output+=u"<h2>Users</h2>"
 	#los 10 primeros users
@@ -681,6 +697,7 @@ def main():
 	editstotalinarticles=0.0
 	for k, v in usereditsinarticles.items():
 		editstotalinarticles+=v
+
 	#bytes
 	bytesaddedtotal=0.0
 	for k, v in usersbytes.items():
@@ -736,7 +753,6 @@ def main():
 		c+=1
 
 	output+=u"<tr><td></td><td>Subtotal</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%.0f</td></tr>\n" % (subtotaledits, subtotaledits*(100/editstotal), subtotaleditsinarticles, subtotaleditsinarticles*(100/editstotalinarticles), subtotalbytesadded, subtotalbytesadded*(100/bytesaddedtotal), subtotalbytesaddedinarticles, subtotalbytesaddedinarticles*(100/bytesaddedinarticlestotal), subtotaluploads)
-	
 
 	output+=u"</table>"
 
@@ -766,10 +782,9 @@ def main():
 	f.write(mosteditedoutput.encode("utf-8"))
 	f.close()
 
-
 	#cloud
 	output+=u"<h2>Tags cloud of words in edit comments</h2>"
-	[cloud, cloudfilename]=generateCloud(revisions)
+	[cloud, cloudfilename]=generateCloud(revisions, users)
 	output+=cloud
 	output+=u"<p><a href=\"%s\">more...</a></p>" % (cloudfilename)
 
@@ -777,7 +792,6 @@ def main():
 	output+=footer(time.time()-t1)
 
 	"""
-
 	#ranking ediciones globales
 	cursor.execute("select user_name, user_editcount from %suser where 1 order by user_editcount desc" % tableprefix)
 	result=cursor.fetchall()
@@ -827,11 +841,12 @@ def main():
 				nada=False
 			fecha+=incremento
 	"""
-
 	#almacenar fichero estadísticas
 	f=open("%s/%s" % (outputdir, indexfilename), "w")
 	f.write(output.encode("utf-8"))
 	f.close()
+	print "StatMediaWiki has finished correctly. Killing process to exit program."
+	os.system("kill -9 %s" % os.getpid())
 
 if __name__ == "__main__":
     main()
