@@ -1,0 +1,28 @@
+StatMediaWiki es un software en fase de desarrollo que analiza instalaciones MediaWiki generando informes, estadísticas y gráficas.
+
+StatMediaWiki está desarrollado en Python, por lo que para su ejecución se requiere disponer del intérprete de este lenguaje. También requiere el paquete python-gnuplot, que puede ser instalado con aptitude.
+
+Las opciones disponibles son las siguientes:
+* --outputdir: ruta absoluta del directorio donde se almacenará el informe generado
+* --index: nombre del fichero que se desea que sea la portada del informe (por defecto index.php)
+* --sitename: nombre del wiki que figurará en el título del informe
+* --siteurl: URL del wiki
+* --subdir: ruta adicional tras la URL del wiki (por defecto /index.php)
+* --dbname: nombre de la base de datos que contiene el wiki
+* --tableprefix: prefijo de las tablas de la base de datos, si se escogió uno durante la instalación de MediaWiki
+* --startdate: fecha desde donde queremos empezar a analizar (en formato AAAA-MM-DD)
+* --enddate: fecha hasta donde queremos analizar
+
+Para que el script tenga acceso a la base de datos donde se encuentra instalado el wiki, debemos crear un fichero de configuración en nuestro directorio HOME, llamado .my.cnf. El formato de este fichero debe ser:
+
+user = usuario_con_acceso_a_la_bbdd
+password = password_del_usuario
+host = host_de_la_bbdd
+
+Para finalizar, un ejemplo de llamada a StatMediaWiki:
+   python /home/usuario/statmediawiki.py --outputdir="/home/usuario/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb --startdate=2010-01-01 --enddate=2010-31-03
+
+Más información:
+* Página oficial: http://statmediawiki.forja.rediris.es
+* Forja con el código fuente: https://forja.rediris.es/projects/statmediawiki
+* Demo: http://osl.uca.es/statmediawiki/

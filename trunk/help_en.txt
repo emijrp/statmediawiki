@@ -1,0 +1,28 @@
+StatMediaWiki is a GPL beta-stage fully-functional software to collect and aggregate information available in a MediWiki installation.
+
+StatMediaWiki is coded in Python, so it needs a Python interpreter to run. It additionally requires python-gnuplot package, that you can easily install in you Debian-based distribution using aptitude.
+
+The following options are supported:
+* --outputdir: absolute path to the directory where the report will be generated
+* --index: name of the main (initial) file of the report (by default, index.php)
+* --sitename: name of the wiki that will be show on the title of the report
+* --siteurl: URL of the wiki
+* --subdir: path that has to be added to the URL to get to the wiki (by default /index.php)
+* --dbname: name of the database of the wiki
+* --tableprefix: prefix of the tables in the database (only required if you indicated one when installing MediaWiki)
+* --startdate: report starting date (format YYYY-MM-DD)
+* --enddate: report finishing date (format YYYY-MM-DD)
+
+The script needs a file ~/.my.cnf (in HOME directory) containing database connection settings:
+
+user = user_able_to_read_the_db
+password = user_password
+host = bbdd_host
+
+This is a sample invokation to StatMediaWiki:
+ python /home/user/statmediawiki.py --outputdir="/home/user/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb --startdate=2010-01-01 --enddate=2010-31-03
+
+Further reading:
+* Official website: http://statmediawiki.forja.rediris.es
+* Source code: https://forja.rediris.es/projects/statmediawiki
+* Demo: http://osl.uca.es/statmediawiki/
