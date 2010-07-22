@@ -1,0 +1,32 @@
+body {
+	margin-left: 42px;
+	margin-right: 42px;
+	background: #ffffff;
+	color: #002070;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+}
+h1 {
+	padding: 2px 5px;
+	border: 1px solid #c0c0c0;
+	color: #002070;
+	background-color: #eeeeee;
+	font-weight: bold;
+	font-size: 16px;
+}
+
+h2 {
+	padding: 2px 5px;
+	border: 1px solid #aaaaaa;
+	color: #002070;
+	background-color: #eeeeee;
+	font-size: 14px;
+}
+
+table, td {
+	border: 1px solid black;
+	text-align: center;
+}
+/*
+estilo para los párrafos, tablas...
+*/
