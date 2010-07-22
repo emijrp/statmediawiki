@@ -145,6 +145,7 @@ def manageOutputDir():
         if not os.path.exists(directory) or not os.path.isdir(directory):
             try:
                 os.makedirs(directory)
+                print "Creando %s" % directory
             except:
                 print "Hubo un error al intentar crear la ruta %s" % directory
                 sys.exit()
@@ -154,14 +155,16 @@ def copyPHPFiles():
     #Van en el nivel principal (están duplicados con la línea anterior)
     shutil.copyfile("%s/php/index.php" % (preferences["currentPath"]), "%s/index.php" % (preferences["outputDir"]))
     shutil.copyfile("%s/php/functions.php" % (preferences["currentPath"]), "%s/php/functions.php" % (preferences["outputDir"]))
+    os.system("cp %s/php/generators/*.php %s/php/generators" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/php/generators/general/*.php %s/php/generators/general" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/php/generators/pages/*.php %s/php/generators/pages" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/php/generators/users/*.php %s/php/generators/users" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/dependences/pChart/pChart/*.class %s/dependences/pChart/pChart" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/dependences/pChart/Fonts/*.ttf %s/dependences/pChart/Fonts" % (preferences["currentPath"], preferences["outputDir"]))
-    os.system("cp %s/csv/general/*.csv %s/csv/general" % (preferences["currentPath"], preferences["outputDir"]))
-    os.system("cp %s/csv/pages/*.csv %s/csv/pages" % (preferences["currentPath"], preferences["outputDir"]))
-    os.system("cp %s/csv/users/*.csv %s/csv/users" % (preferences["currentPath"], preferences["outputDir"]))
+    #Los CSV no se copian, se generan directamente en outputdir
+    #os.system("cp %s/csv/general/*.csv %s/csv/general" % (preferences["currentPath"], preferences["outputDir"]))
+    #os.system("cp %s/csv/pages/*.csv %s/csv/pages" % (preferences["currentPath"], preferences["outputDir"]))
+    #os.system("cp %s/csv/users/*.csv %s/csv/users" % (preferences["currentPath"], preferences["outputDir"]))
     
 
 def printCSV(type, file, header, rows):
@@ -177,44 +180,48 @@ def printCSV(type, file, header, rows):
         f.write(output.encode("utf-8")) 
     f.close()
 
-def generateAnalysisHourActivity(type, file, cond):
+def generateAnalysisHourActivity(type, file, conds, headers):
+    results = {}
+    
     cursor = createCursor()
-    cursor.execute("SELECT HOUR(rev_timestamp) AS hour, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE page_namespace=0 and %s GROUP BY hour ORDER BY hour" % (preferences["tablePrefix"], preferences["tablePrefix"], cond))
-    result = cursor.fetchall()
-    articleEdits = {}
-    for hour, edits in result:
-        articleEdits[str(hour)] = str(edits)
+    for cond in conds:
+        cursor.execute("SELECT HOUR(rev_timestamp) AS hour, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE %s GROUP BY hour ORDER BY hour" % (preferences["tablePrefix"], preferences["tablePrefix"], cond))
+        result = cursor.fetchall()
+        results[cond] = {}
+        for hour, edits in result:
+            results[cond][str(hour)] = str(edits)
     
-    cursor.execute("SELECT HOUR(rev_timestamp) AS hour, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE page_namespace!=0 and %s GROUP BY hour ORDER BY hour" % (preferences["tablePrefix"], preferences["tablePrefix"], cond))
-    result = cursor.fetchall()
-    noArticleEdits = {}
-    for hour, edits in result:
-        noArticleEdits[str(hour)] = str(edits)
-    
-    header = ['hour', 'edits in articles', 'rest of edits']
+    header = ['hour'] + headers
     rows = []
     for hour in range(24):
         hour = str(hour)
-        ae = "0"
-        noae = "0"
-        if articleEdits.has_key(hour):
-            ae = articleEdits[hour]
+        cond0 = "0"
+        cond1 = "0"
+        if results[conds[0]].has_key(hour):
+            cond0 = results[conds[0]][hour]
         
-        if noArticleEdits.has_key(hour):
-            noae = noArticleEdits[hour]
-        rows.append([hour, ae, noae])
+        if results[conds[1]].has_key(hour):
+            cond1 = results[conds[1]][hour]
+        rows.append([hour, cond0, cond1])
     
     printCSV(type=type, file=file, header=header, rows=rows)
 
 def generateGeneralAnalysisHourActivity():
-    generateAnalysisHourActivity(type="general", file="hour_activity.csv", cond="1")
+    conds = ["page_namespace=0", "page_namespace!=0"] # artículo o no
+    headers = ["edits in articles", "rest of edits"]
+    generateAnalysisHourActivity(type="general", file="general_hour_activity.csv", conds=conds, headers=headers)
 
 def generatePagesAnalysisHourActivity():
-    generateAnalysisHourActivity(type="pages", file="hour_activity.csv", cond="1")
+    for page_id in page_ids:
+        conds = ["rev_user=0", "rev_user!=0"] #anónimo o no
+        headers = ["edits by anons", "edits by registered users"]
+        generateAnalysisHourActivity(type="pages", file="page_%d_hour_activity.csv" % page_id, conds=conds, headers=headers)
 
 def generateUsersAnalysisHourActivity():
     for user_id in user_ids:
-        generateAnalysisHourActivity(type="users", file="user_%d_hour_activity.csv" % user_id, cond="rev_user=%d" % user_id)
+        conds = ["page_namespace=0 and rev_user=%d" % user_id, "page_namespace!=0 and rev_user=%d" % user_id] # artículo o no
+        headers = ["edits in articles", "rest of edits"]
+        generateAnalysisHourActivity(type="users", file="user_%d_hour_activity.csv" % user_id, conds=conds, headers=headers)
 
 def generateGeneralAnalysis():
     cursor = createCursor()
@@ -277,10 +284,10 @@ def main():
     welcome()
     getParameters()
     loadUserIds()
-    generateGeneralAnalysisHourActivity()
-    generateUsersAnalysisHourActivity()
     initialize() #dbname required
     manageOutputDir()
+    generateGeneralAnalysisHourActivity()
+    generateUsersAnalysisHourActivity()
     copyPHPFiles()
     generateAnalysis()
     bye()
