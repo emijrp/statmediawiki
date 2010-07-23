@@ -33,6 +33,8 @@ from statmediawiki_globals import *
 global preferences
 global user_ids
 user_ids = {}
+global page_ids
+page_ids = {}
 #todo:
 #con que numero se lanzan los sys.exit() cuando hay un fallo?
 
@@ -59,6 +61,16 @@ def loadUserIds():
     user_ids = {}
     for user_id, user_name in result:
         user_ids[user_id] = user_name
+
+def loadPageIds():
+    global page_ids
+    
+    cursor = createCursor()
+    cursor.execute("SELECT page_id, page_title FROM %spage" % (preferences["tablePrefix"]))
+    result = cursor.fetchall()
+    page_ids = {}
+    for page_id, page_title in result:
+        page_ids[page_id] = page_title
 
 def welcome():
     pass
@@ -180,36 +192,54 @@ def printCSV(type, file, header, rows):
         f.write(output.encode("utf-8")) 
     f.close()
 
-def generateAnalysisHourActivity(type, file, conds, headers):
+def generateAnalysisTimeActivity(time, type, file, conds, headers):
     results = {}
     
     cursor = createCursor()
     for cond in conds:
-        cursor.execute("SELECT HOUR(rev_timestamp) AS hour, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE %s GROUP BY hour ORDER BY hour" % (preferences["tablePrefix"], preferences["tablePrefix"], cond))
+        cursor.execute("SELECT %s(rev_timestamp) AS time, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE %s GROUP BY time ORDER BY time" % (time, preferences["tablePrefix"], preferences["tablePrefix"], cond))
         result = cursor.fetchall()
         results[cond] = {}
         for hour, edits in result:
             results[cond][str(hour)] = str(edits)
     
-    header = ['hour'] + headers
+    header = [time] + headers
     rows = []
-    for hour in range(24):
-        hour = str(hour)
+    if time == "hour":
+        range_ = range(24)
+    elif time == "dayofweek":
+        range_ = range(1,8)
+    elif time == "month":
+        range_ = range(1,13)
+    
+    for period in range_:
+        period  = str(period)
         cond0 = "0"
         cond1 = "0"
-        if results[conds[0]].has_key(hour):
-            cond0 = results[conds[0]][hour]
+        if results[conds[0]].has_key(period):
+            cond0 = results[conds[0]][period]
         
-        if results[conds[1]].has_key(hour):
-            cond1 = results[conds[1]][hour]
-        rows.append([hour, cond0, cond1])
+        if results[conds[1]].has_key(period):
+            cond1 = results[conds[1]][period]
+        rows.append([period, cond0, cond1])
     
     printCSV(type=type, file=file, header=header, rows=rows)
 
-def generateGeneralAnalysisHourActivity():
+def generateAnalysisHourActivity(type, file, conds, headers):
+    generateAnalysisTimeActivity(time="hour", type=type, file=file, conds=conds, headers=headers)
+
+def generateAnalysisDayOfWeekActivity(type, file, conds, headers):
+    generateAnalysisTimeActivity(time="dayofweek", type=type, file=file, conds=conds, headers=headers)
+
+def generateAnalysisMonthActivity(type, file, conds, headers):
+    generateAnalysisTimeActivity(time="month", type=type, file=file, conds=conds, headers=headers)
+
+def generateGeneralAnalysisTimeActivity():
     conds = ["page_namespace=0", "page_namespace!=0"] # artículo o no
     headers = ["edits in articles", "rest of edits"]
     generateAnalysisHourActivity(type="general", file="general_hour_activity.csv", conds=conds, headers=headers)
+    generateAnalysisDayOfWeekActivity(type="general", file="general_dayofweek_activity.csv", conds=conds, headers=headers)
+    generateAnalysisMonthActivity(type="general", file="general_month_activity.csv", conds=conds, headers=headers)
 
 def generatePagesAnalysisHourActivity():
     for page_id in page_ids:
@@ -264,13 +294,13 @@ def generateGeneralAnalysis():
     
     printCSV(type="general", file="general.csv", header=keysList, rows=[valuesList])
     
-    generateGeneralAnalysisHourActivity()
+    generateGeneralAnalysisTimeActivity()
 
 def generatePagesAnalysis():
     pass
 
 def generateUsersAnalysis():
-    pass
+    generateUsersAnalysisHourActivity()
 
 def generateAnalysis():
     generateGeneralAnalysis()
@@ -282,14 +312,15 @@ def bye():
 
 def main():
     welcome()
+    
     getParameters()
     loadUserIds()
+    loadPageIds()
     initialize() #dbname required
     manageOutputDir()
-    generateGeneralAnalysisHourActivity()
-    generateUsersAnalysisHourActivity()
-    copyPHPFiles()
     generateAnalysis()
+    copyPHPFiles()
+    
     bye()
 
 if __name__ == "__main__":

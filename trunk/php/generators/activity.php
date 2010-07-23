@@ -61,7 +61,18 @@ $Test->drawGrid(4,TRUE,230,230,230,20);
 $Test->drawStackedBarGraph($DataSet->GetData(),$DataSet->GetDataDescription(),70);  
 
 // Draw the title  
-$Title = "  Edits per hour\r\n  ";  
+switch ($time)
+{
+    case "hour":
+        $Title = "  Edits per hour\r\n  ";
+        break;
+    case "dayofweek":
+        $Title = "  Edits per day of week\r\n  ";
+        break;
+    case "month":
+        $Title = "  Edits per month\r\n  ";
+        break;
+}
 $Test->drawTextBox(0,0,50,230,$Title,90,255,255,255,ALIGN_BOTTOM_CENTER,TRUE,0,0,0,30);  
 
 // Draw the legend  
