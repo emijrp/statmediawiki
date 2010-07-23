@@ -39,9 +39,9 @@ switch ($type)
     case "general":
         echo '<center>';
         echo '<h2>General activity</h2>';
-        echo '<img src="php/generators/activity.php?type='.$type.'&time=hour" alt="Edits by hour" description="Edits by hour"/><br/><br/>';
-        echo '<img src="php/generators/activity.php?type='.$type.'&time=dayofweek" alt="Edits by day of week" description="Edits by day of week"/><br/><br/>';
-        echo '<img src="php/generators/activity.php?type='.$type.'&time=month" alt="Edits by month" description="Edits by month"/>';
+        echo '<img src="php/generators/activity.php?type='.$type.'&time=hour" alt="Edits by hour" description="Edits by hour"/><br/><p class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=hour">Download as PNG</a>] [<a href="csv/'.$type.'/general_hour_activity.csv">Download CSV</a>]</p><br/>';
+        echo '<img src="php/generators/activity.php?type='.$type.'&time=dayofweek" alt="Edits by day of week" description="Edits by day of week"/><br/><p class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=dayofweek">Download as PNG</a>] [<a href="csv/'.$type.'/general_dayofweek_activity.csv">Download as CSV</a>]</p><br/>';
+        echo '<img src="php/generators/activity.php?type='.$type.'&time=month" alt="Edits by month" description="Edits by month"/><br/><p class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=month">Download as PNG</a>] [<a href="csv/'.$type.'/general_month_activity.csv">Download as CSV</a>]</p><br/>';
         echo '</center>';
         break;
     case "users":

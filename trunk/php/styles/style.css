@@ -30,3 +30,7 @@ table, td {
 /*
 estilo para los párrafos, tablas...
 */
+
+p.download-link {
+    font-size: 90%;
+}

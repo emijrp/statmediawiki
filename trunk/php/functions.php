@@ -6,7 +6,7 @@ function printHeader($title = "")
 	$output .= '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">';
 	$output .= '<header>';
 	$output .= '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />';
-	$output .= '<link rel="stylesheet" href="styles/style.css" type="text/css" media="all" />n';
+	$output .= '<link rel="stylesheet" href="php/styles/style.css" type="text/css" media="all" />';
 	$output .= '<title>StatMediaWiki: '.$title.'</title>';
 	$output .= '</header>';
 	$output .= '<body>';

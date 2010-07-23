@@ -64,7 +64,7 @@ $Test->drawGraphAreaGradient(132,173,131,50,TARGET_BACKGROUND);
 $Test->setFontProperties("../../dependences/pChart/Fonts/tahoma.ttf",8);  
 $Test->setGraphArea(120,20,675,190);  
 $Test->drawGraphArea(213,217,221,FALSE);  
-$Test->drawScale($DataSet->GetData(),$DataSet->GetDataDescription(),SCALE_ADDALL,213,217,221,TRUE,0,2,TRUE);  
+$Test->drawScale($DataSet->GetData(),$DataSet->GetDataDescription(),SCALE_ADDALL,213,217,221,TRUE,0,0,TRUE,1,FALSE);  
 $Test->drawGraphAreaGradient(163,203,167,50);  
 $Test->drawGrid(4,TRUE,230,230,230,20);  
 

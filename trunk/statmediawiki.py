@@ -152,6 +152,7 @@ def manageOutputDir():
         "%s/php/generators/general" % preferences["outputDir"],
         "%s/php/generators/pages" % preferences["outputDir"],
         "%s/php/generators/users" % preferences["outputDir"],
+        "%s/php/styles" % preferences["outputDir"],
     ]
     for directory in directories:
         if not os.path.exists(directory) or not os.path.isdir(directory):
@@ -171,6 +172,7 @@ def copyPHPFiles():
     os.system("cp %s/php/generators/general/*.php %s/php/generators/general" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/php/generators/pages/*.php %s/php/generators/pages" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/php/generators/users/*.php %s/php/generators/users" % (preferences["currentPath"], preferences["outputDir"]))
+    os.system("cp %s/php/styles/*.css %s/php/styles" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/dependences/pChart/pChart/*.class %s/dependences/pChart/pChart" % (preferences["currentPath"], preferences["outputDir"]))
     os.system("cp %s/dependences/pChart/Fonts/*.ttf %s/dependences/pChart/Fonts" % (preferences["currentPath"], preferences["outputDir"]))
     #Los CSV no se copian, se generan directamente en outputdir
