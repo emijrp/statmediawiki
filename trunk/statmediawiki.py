@@ -267,6 +267,54 @@ def generateUsersAnalysisHourActivity():
         headers = ["edits in articles", "rest of edits"]
         generateAnalysisHourActivity(type="users", file="user_%d_hour_activity.csv" % user_id, conds=conds, headers=headers)
 
+def generateCloud(type, file, conds, limit=100):
+    cloud = {}
+    
+    conn, cursor = createConnCursor()
+    for cond in conds:
+        cursor.execute("SELECT rev_comment FROM %srevision" % (preferences["tablePrefix"]))
+        result = cursor.fetchall()
+        for row in result:
+            #array('c', ) http://bytes.com/topic/python/answers/472757-mysqldb-return-strange-type-variable
+            rev_comment = unicode(row[0].tostring(), "utf-8")
+            line = re.sub(ur"  +", ur" ", rev_comment)
+            tags = line.split(" ")
+            for tag in tags:
+                #unuseful tags filter
+                tag = tag.lower()
+                tag = re.sub(ur"[\[\]\=\,]", ur"", tag) #no commas, csv
+                if len(tag)<4:
+                    continue
+                #end filter
+                if cloud.has_key(tag):
+                    cloud[tag] += 1
+                else:
+                    cloud[tag] = 1
+    
+    cloudList = []
+    for tag, times in cloud.items():
+       cloudList.append([times, tag])
+    
+    cloudList.sort()
+    cloudList.reverse()
+    
+    header = ['word', 'frequency']
+    rows = []
+    c = 0
+    for times, tag in cloudList:
+        c+=1
+        if c>limit:
+            break
+        rows.append([tag, str(times)])
+    
+    printCSV(type=type, file=file, header=header, rows=rows)
+    
+    destroyConnCursor(conn, cursor)
+
+def generateGeneralCloud():
+    conds = ["1"] # no condition
+    generateCloud(type="general", file="general_cloud.csv", conds=conds)
+
 def generateGeneralAnalysis():
     conn, cursor = createConnCursor()
     
@@ -311,6 +359,7 @@ def generateGeneralAnalysis():
     printCSV(type="general", file="general.csv", header=keysList, rows=[valuesList])
     
     generateGeneralAnalysisTimeActivity()
+    generateGeneralCloud()
     
     destroyConnCursor(conn, cursor)
 
