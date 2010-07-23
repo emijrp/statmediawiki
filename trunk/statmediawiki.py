@@ -259,40 +259,42 @@ def generateGeneralAnalysis():
     cursor = createCursor()
     
     dict = {}
+    dict["sitename"] = preferences["siteName"]
+    dict["siteurl"] = preferences["siteUrl"]
     
     cursor.execute("SELECT COUNT(user_id) AS count FROM %suser WHERE 1" % preferences["tablePrefix"])
-    dict["totalUsers"] = cursor.fetchall()[0][0]
+    dict["totalusers"] = cursor.fetchall()[0][0]
     
     #número de usuarios a partir de las revisiones y de la tabla de usuarios, len(user.items())
     cursor.execute("SELECT COUNT(rev_id) AS count FROM %srevision WHERE 1" % preferences["tablePrefix"])
-    dict["totalEdits"] = cursor.fetchall()[0][0]
+    dict["totaledits"] = cursor.fetchall()[0][0]
     
     #todo: con un inner join mejor?
     cursor.execute("SELECT COUNT(rev_id) AS count FROM %srevision WHERE rev_page IN (SELECT page_id FROM %spage WHERE page_namespace=0)" % (preferences["tablePrefix"], preferences["tablePrefix"]))
-    dict["totalEditsInArticles"] = cursor.fetchall()[0][0]
+    dict["totaleditsinarticles"] = cursor.fetchall()[0][0]
     
     cursor.execute("SELECT COUNT(page_id) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
-    dict["totalPages"] = cursor.fetchall()[0][0]
+    dict["totalpages"] = cursor.fetchall()[0][0]
     
     cursor.execute("SELECT COUNT(*) AS count FROM %spage WHERE page_namespace=0 AND page_is_redirect=0" % preferences["tablePrefix"])
-    dict["totalArticles"] = cursor.fetchall()[0][0]
+    dict["totalarticles"] = cursor.fetchall()[0][0]
     
     cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
-    dict["totalBytes"] = cursor.fetchall()[0][0]
+    dict["totalbytes"] = cursor.fetchall()[0][0]
     
     cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE page_namespace=0 AND page_is_redirect=0" % preferences["tablePrefix"])
-    dict["totalBytesInArticles"] = cursor.fetchall()[0][0]
+    dict["totalbytesinarticles"] = cursor.fetchall()[0][0]
     
     cursor.execute("SELECT COUNT(*) AS count FROM %simage WHERE 1" % preferences["tablePrefix"])
-    dict["totalFiles"] = cursor.fetchall()[0][0]
+    dict["totalfiles"] = cursor.fetchall()[0][0]
     dateGenerated = datetime.datetime.now().isoformat()
     period = "%s &ndash %s" % (preferences["startDate"].isoformat(), preferences["endDate"].isoformat())
     
     keysList = []
     valuesList = []
     for k, v in dict.items():
-        keysList.append(k.lower())
-        valuesList.append(str(v).lower())
+        keysList.append(k)
+        valuesList.append(str(v))
     
     printCSV(type="general", file="general.csv", header=keysList, rows=[valuesList])
     
