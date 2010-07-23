@@ -37,9 +37,12 @@ fclose($f);
 switch ($type)
 {
     case "general":
-        echo '<img src="php/generators/activity.php?type='.$type.'&time=hour" alt="Edits by hour" description="Edits by hour"/>';
-        echo '<img src="php/generators/activity.php?type='.$type.'&time=dayofweek" alt="Edits by day of week" description="Edits by day of week"/>';
+        echo '<center>';
+        echo '<h2>General activity</h2>';
+        echo '<img src="php/generators/activity.php?type='.$type.'&time=hour" alt="Edits by hour" description="Edits by hour"/><br/><br/>';
+        echo '<img src="php/generators/activity.php?type='.$type.'&time=dayofweek" alt="Edits by day of week" description="Edits by day of week"/><br/><br/>';
         echo '<img src="php/generators/activity.php?type='.$type.'&time=month" alt="Edits by month" description="Edits by month"/>';
+        echo '</center>';
         break;
     case "users":
         echo '<img src="php/generators/hour_activity.php?type='.$type.'&time=dayofweek" alt="Edits by day of week" description="Edits by day of week"/>';

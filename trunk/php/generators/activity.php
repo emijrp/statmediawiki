@@ -43,8 +43,19 @@ $DataSet->ImportFromCSV($filename,",",range(1,2),TRUE,0);
 $DataSet->AddAllSeries();
 $DataSet->RemoveSerie("Serie0");
 $DataSet->SetAbsciseLabelSerie();  
-$DataSet->SetYAxisName("Edits");  
-$DataSet->SetXAxisName("Hours");  
+$DataSet->SetYAxisName("Edits");
+switch ($time)
+{
+    case "hour":
+        $DataSet->SetXAxisName("Hours");  
+        break;
+    case "dayofweek":
+        $DataSet->SetXAxisName("Days of week");  
+        break;
+    case "month":
+        $DataSet->SetXAxisName("Months");  
+        break;
+}
 
 // Initialise the graph  
 $Test = new pChart(700,230);  
