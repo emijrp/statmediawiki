@@ -10,14 +10,16 @@ function printHeader($title = "")
 	$output .= '<title>StatMediaWiki: '.$title.'</title>';
 	$output .= '</header>';
 	$output .= '<body>';
+	$output .= '<h1>StatMediaWiki: '.$title.'</h1>';
 	
 	print $output;
 }
 
 function printFooter()
 {
-	$output = '</body>';
-	$output = '</html>';
+	$output = '<hr/><center>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a></center>';
+	$output .= '</body>';
+	$output .= '</html>';
 	
 	echo $output;
 }

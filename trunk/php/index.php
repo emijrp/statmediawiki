@@ -71,6 +71,10 @@ echo "<dt>Users:</dt>";
 #echo "<dd><a href="users.php">67</a></dd>";
 */
 
+echo "<h2>Users</h2>";
+echo "<h2>Pages</h2>";
+echo "<h2>Tags cloud</h2>";
+
 printFooter();
 
 ?>
