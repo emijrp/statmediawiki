@@ -11,16 +11,34 @@ include("../../dependences/pChart/pChart/pChart.class");
 
 // Dataset definition   
 $DataSet = new pData;
-$filename = "../../csv/general/general_hour_activity.csv";
-if ($user)
+$type = "general";
+if (isset($_GET["type"]))
 {
-	$filename="../../csv/users/user_".$user."_hour_activity.csv";
-}else{
-	if ($page)
-	{
-		$filename="../../csv/pages/page_".$page."_hour_activity.csv";
-	}
+    if ($_GET["type"]=="pages") { $type = "pages"; }
+    if ($_GET["type"]=="users") { $type = "users"; }
 }
+$time = "hour";
+if (isset($_GET["time"]))
+{
+    if ($_GET["time"]=="dayofweek") { $time = "dayofweek"; }
+    if ($_GET["time"]=="month") { $time = "month"; }
+}
+
+switch ($type)
+{
+    case "general":
+        $filename = "../../csv/general/general_".$time."_activity.csv";
+        break;
+    case "pages":
+        if (isset($_GET["page"])) { $page = $_GET["page"]; } #comprobar si la pagina existe con una tabla o algo
+        $filename = "../../csv/pages/page_".$page."_".$time."_activity.csv";
+        break;
+    case "users":
+        if (isset($_GET["user"])) { $user = $_GET["user"]; } #comprobar si el usuario existe con una tabla o algo, o si existe el fichero...
+        $filename = "../../csv/users/user_".$user."_".$time."_activity.csv";
+        break;
+}
+
 $DataSet->ImportFromCSV($filename,",",range(1,2),TRUE,0);  
 $DataSet->AddAllSeries();
 $DataSet->RemoveSerie("Serie0");
