@@ -10,27 +10,41 @@ h1 {
 	padding: 2px 5px;
 	border: 1px solid #c0c0c0;
 	color: #002070;
-	background-color: #eeeeee;
+	background-color: #dddddd;
 	font-weight: bold;
 	font-size: 16px;
 }
 
 h2 {
 	padding: 2px 5px;
-	border: 1px solid #aaaaaa;
+	border: 1px solid #c0c0c0;
 	color: #002070;
-	background-color: #eeeeee;
+	background-color: #dddddd;
 	font-size: 14px;
 }
 
-table, td {
-	border: 1px solid black;
-	text-align: center;
+table{
+    width: 920px;
+	border: 0px;
+	border-spacing: 2px 15px;
 }
+
+td{
+	vertical-align: top;
+	width: auto;
+}
+
+td.description{
+	border: 1px solid #c0c0c0;
+	background-color: #dddddd;
+	padding: 5px;
+}
+
 /*
 estilo para los párrafos, tablas...
 */
 
-p.download-link {
+div.download-link {
+    margin-top: 10px;
     font-size: 90%;
 }

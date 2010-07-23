@@ -70,9 +70,19 @@ switch ($type)
         echo '<h2>Content evolution</h2>';
         echo '<h2>General activity</h2>';
         echo '<center>';
-        echo '<img src="php/generators/activity.php?type='.$type.'&time=hour" alt="Edits by hour" description="Edits by hour"/><br/><p class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=hour">Download as PNG</a>] [<a href="csv/'.$type.'/general_hour_activity.csv">Download CSV</a>]</p><br/>';
-        echo '<img src="php/generators/activity.php?type='.$type.'&time=dayofweek" alt="Edits by day of week" description="Edits by day of week"/><br/><p class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=dayofweek">Download as PNG</a>] [<a href="csv/'.$type.'/general_dayofweek_activity.csv">Download as CSV</a>]</p><br/>';
-        echo '<img src="php/generators/activity.php?type='.$type.'&time=month" alt="Edits by month" description="Edits by month"/><br/><p class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=month">Download as PNG</a>] [<a href="csv/'.$type.'/general_month_activity.csv">Download as CSV</a>]</p><br/>';
+		echo '<table>
+				  <tr>
+					  <td><img src="php/generators/activity.php?type='.$type.'&time=hour" alt="Edits by hour" description="Edits by hour"/></td>
+					  <td class="description">MediaWiki almacena la fecha en la que se realiza cada edición en UTC.<br/>Si los usuarios del wiki provienen de una misma zona horaria, debería observar un patrón característico en la gráfica, cuyas horas más activas serían las diurnas.<div class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=hour">Download as PNG</a>]<br/>[<a href="csv/'.$type.'/general_hour_activity.csv">Download CSV</a>]</div></td>
+				  </tr>
+				  <tr>
+					  <td><img src="php/generators/activity.php?type='.$type.'&time=dayofweek" alt="Edits by day of week" description="Edits by day of week"/></td>
+					  <td class="description">aaa<div class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=dayofweek">Download as PNG</a>]<br/>[<a href="csv/'.$type.'/general_dayofweek_activity.csv">Download as CSV</a>]</div><br/></td>
+				  </tr>
+				  <tr>
+					  <td><img src="php/generators/activity.php?type='.$type.'&time=month" alt="Edits by month" description="Edits by month"/></td><td class="description">bbbbb<div class="download-link">[<a href="php/generators/activity.php?type='.$type.'&time=month">Download as PNG</a>]<br/>[<a href="csv/'.$type.'/general_month_activity.csv">Download as CSV</a>]</div><br/></td>
+				  </tr>
+			 </table>';
         echo '</center>';
         
         echo '<h2>Users</h2>';
