@@ -42,7 +42,7 @@ page_ids = {}
 t1=time.time()
 
 def initialize():
-    cursor = createCursor()
+    conn, cursor = createConnCursor()
     
     cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (preferences["tablePrefix"]))
     a = cursor.fetchall()[0][0]
@@ -51,26 +51,32 @@ def initialize():
     cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp ASC LIMIT 1" % (preferences["tablePrefix"]))
     a = cursor.fetchall()[0][0]
     preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
+    
+    destroyConnCursor(conn, cursor)
 
 def loadUserIds():
     global user_ids
     
-    cursor = createCursor()
+    conn, cursor = createConnCursor()
     cursor.execute("SELECT user_id, user_name FROM %suser" % (preferences["tablePrefix"]))
     result = cursor.fetchall()
     user_ids = {}
     for user_id, user_name in result:
         user_ids[user_id] = user_name
+    
+    destroyConnCursor(conn, cursor)
 
 def loadPageIds():
     global page_ids
     
-    cursor = createCursor()
+    conn, cursor = createConnCursor()
     cursor.execute("SELECT page_id, page_title FROM %spage" % (preferences["tablePrefix"]))
     result = cursor.fetchall()
     page_ids = {}
     for page_id, page_title in result:
         page_ids[page_id] = page_title
+    
+    destroyConnCursor(conn, cursor)
 
 def welcome():
     pass
@@ -81,7 +87,7 @@ def usage():
     f.close()
     sys.exit() #mostramos ayuda y salimos
 
-def createCursor():
+def createConnCursor():
     conn = MySQLdb.connect(host='localhost', db=preferences["dbName"], read_default_file='/home/emijrp/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
     cursor = conn.cursor()
     try:
@@ -90,7 +96,11 @@ def createCursor():
     except:
         print "Hubo un error al conectarse a la base de datos"
         sys.exit()
-    return cursor
+    return conn, cursor
+
+def destroyConnCursor(conn, cursor):
+    cursor.close()
+    conn.close()
 
 def getParameters():
     #console params
@@ -197,7 +207,7 @@ def printCSV(type, file, header, rows):
 def generateAnalysisTimeActivity(time, type, file, conds, headers):
     results = {}
     
-    cursor = createCursor()
+    conn, cursor = createConnCursor()
     for cond in conds:
         cursor.execute("SELECT %s(rev_timestamp) AS time, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE %s GROUP BY time ORDER BY time" % (time, preferences["tablePrefix"], preferences["tablePrefix"], cond))
         result = cursor.fetchall()
@@ -226,6 +236,8 @@ def generateAnalysisTimeActivity(time, type, file, conds, headers):
         rows.append([period, cond0, cond1])
     
     printCSV(type=type, file=file, header=header, rows=rows)
+    
+    destroyConnCursor(conn, cursor)
 
 def generateAnalysisHourActivity(type, file, conds, headers):
     generateAnalysisTimeActivity(time="hour", type=type, file=file, conds=conds, headers=headers)
@@ -256,7 +268,7 @@ def generateUsersAnalysisHourActivity():
         generateAnalysisHourActivity(type="users", file="user_%d_hour_activity.csv" % user_id, conds=conds, headers=headers)
 
 def generateGeneralAnalysis():
-    cursor = createCursor()
+    conn, cursor = createConnCursor()
     
     dict = {}
     dict["sitename"] = preferences["siteName"]
@@ -299,6 +311,8 @@ def generateGeneralAnalysis():
     printCSV(type="general", file="general.csv", header=keysList, rows=[valuesList])
     
     generateGeneralAnalysisTimeActivity()
+    
+    destroyConnCursor(conn, cursor)
 
 def generatePagesAnalysis():
     pass
