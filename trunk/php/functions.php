@@ -28,7 +28,9 @@ function printHTMLCloud($type="general", $limit=50)
     $lines = split("[\r\n]", $raw);
     array_shift($lines); #quitamos header
     if (sizeof($lines)<$limit) { $limit = sizeof($lines); }
-    $lines = array_slice($lines, $limit); #nos quedamos con las $limit primeras
+    $lines = array_slice($lines, 0, $limit); #nos quedamos con las $limit primeras
+    
+    #var_dump($lines);
     
     shuffle($lines);
     
@@ -49,7 +51,7 @@ function printHTMLCloud($type="general", $limit=50)
     $output = "";
     foreach ($tags as $tag=>$times)
     {
-        $fontSize = (($times - $minTimes) * ($maxSize - $minSize)) / ($maxTimes - $minTimes);
+        $fontSize = 100 + (($times - $minTimes) * ($maxSize - $minSize)) / ($maxTimes - $minTimes);
         $output .= '<span style="font-size: '.$fontSize.'%">'.$tag.'</span> &nbsp;&nbsp;&nbsp;';
     }
     
