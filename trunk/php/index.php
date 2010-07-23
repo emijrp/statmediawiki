@@ -78,7 +78,8 @@ switch ($type)
         echo '<h2>Users</h2>';
         echo '<h2>Pages</h2>';
         echo '<h2>Tags cloud</h2>';
-        printHTMLCloud($type="general");
+        printHTMLCloud($type=$type);
+        echo '<p class="download-link">[<a href="csv/'.$type.'/general_cloud.csv">Download as CSV</a>]</p>';
         break;
     case "users":
         echo '<img src="php/generators/hour_activity.php?type='.$type.'&time=dayofweek" alt="Edits by day of week" description="Edits by day of week"/>';

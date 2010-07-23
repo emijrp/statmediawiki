@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Gnuplot
-
 import datetime
 import getopt
 import md5
@@ -35,8 +33,10 @@ global user_ids
 user_ids = {}
 global page_ids
 page_ids = {}
+
 #todo:
 #con que numero se lanzan los sys.exit() cuando hay un fallo?
+#que las rutas ../../ no sean relativas, buscar algo como $IP o __file__ ?
 
 #el usuario que hace las consultas sql debe tener acceso lectura a las bbdd, con los datos de .my.cnf
 t1=time.time()
