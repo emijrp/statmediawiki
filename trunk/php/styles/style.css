@@ -45,6 +45,9 @@ estilo para los párrafos, tablas...
 */
 
 div.download-link {
-    margin-top: 10px;
-    font-size: 90%;
+    font-size: 100%;
+}
+
+p{
+	margin-top: 0px;
 }
