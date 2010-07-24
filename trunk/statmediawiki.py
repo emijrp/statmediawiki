@@ -367,15 +367,15 @@ def printLinesGraph(title, file, labels, headers, rows):
     
     gp = Gnuplot.Gnuplot()
     gp('set data style lines')
-    #gp('set size .6, .6')
+    gp('set grid')
     #gp('set line_width 8')
     gp('set title "%s"' % title.encode("utf-8"))
-    gp('set xlabel "%s"' % labels[0])
-    gp('set ylabel "%s"' % labels[1])
+    gp('set xlabel "%s"' % labels[0].encode("utf-8"))
+    gp('set ylabel "%s"' % labels[1].encode("utf-8"))
     gp('set xtics rotate by 90')
     gp('set xtics (%s)' % xticsperiod)
-    plot1 = Gnuplot.PlotItems.Data(rows[0], with_="lines", title=headers[1])
-    plot2 = Gnuplot.PlotItems.Data(rows[1], with_="lines", title=headers[2])
+    plot1 = Gnuplot.PlotItems.Data(rows[0], with_="lines", title=headers[1].encode("utf-8"))
+    plot2 = Gnuplot.PlotItems.Data(rows[1], with_="lines", title=headers[2].encode("utf-8"))
     gp.plot(plot1, plot2)
     gp.hardcopy(filename=file, terminal="png") 
     gp.close()
@@ -396,7 +396,8 @@ def printBarsGraph(title, file, labels, headers, rows):
 
 def printGraphContentEvolution(type, fileprefix, title, headers, rows):
     labels = ["Date", "Bytes"]
-    printLinesGraph(title=title, file="%s/graphs/%s/%s_content_evolution.png" % (preferences["outputDir"], type, fileprefix), labels=labels, headers=headers, rows=rows)
+    file = "%s/graphs/%s/%s_content_evolution.png" % (preferences["outputDir"], type, fileprefix)
+    printLinesGraph(title=title, file=file, labels=labels, headers=headers, rows=rows)
 
 def printGraphTimeActivity(type, file, headers, rows):
     labels = ["Edits", "Hour"]
@@ -462,7 +463,7 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         user_name = users[user_id]["user_name"]
         title = u"Content evolution by %s" % user_name
         fileprefix = "users_%s" % user_id
-        owner =user_name
+        owner = user_name
     elif type=="pages":
         page_title = pages[page_id]["page_title"]
         title = u"Content evolution in %s" % page_title
@@ -470,7 +471,9 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         owner = page_title
     
     #falta csv
-    printGraphContentEvolution(type=type, fileprefix=fileprefix, title=title, headers=["Date", "%s content (only articles)" % owner, "%s content (all pages)" % owner], rows=[graph1, graph2])
+    headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner]
+    headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner]
+    printGraphContentEvolution(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=[graph1, graph2])
 
 def generateGeneralContentEvolution():
     generateContentEvolution(type="general")
