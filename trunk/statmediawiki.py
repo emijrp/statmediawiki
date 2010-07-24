@@ -208,7 +208,6 @@ def copyFiles():
     #os.system("cp %s/csv/pages/*.csv %s/csv/pages" % (preferences["currentPath"], preferences["outputDir"]))
     #os.system("cp %s/csv/users/*.csv %s/csv/users" % (preferences["currentPath"], preferences["outputDir"]))
     
-
 def printCSV(type, file, header, rows):
     #Type puede ser: general, users o pages
     #File es un nombre de fichero con extensión .
@@ -222,7 +221,7 @@ def printCSV(type, file, header, rows):
         f.write(output.encode("utf-8")) 
     f.close()
 
-def generateAnalysisTimeActivity(time, type, file, conds, headers):
+def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, page_id=False):
     results = {}
     
     conn, cursor = createConnCursor()
@@ -234,6 +233,7 @@ def generateAnalysisTimeActivity(time, type, file, conds, headers):
             results[cond][str(hour)] = str(edits)
     
     header = [time] + headers
+    fileprefix = "%s_%s" % (fileprefix, time)
     rows = []
     if time == "hour":
         range_ = range(24)
@@ -242,49 +242,77 @@ def generateAnalysisTimeActivity(time, type, file, conds, headers):
     elif time == "month":
         range_ = range(1,13)
     
+    row0=[]
+    row1=[]
+    row2=[]
     for period in range_:
         period  = str(period)
+        row0.append(period)
         cond0 = "0"
         cond1 = "0"
         if results[conds[0]].has_key(period):
             cond0 = results[conds[0]][period]
-        
+        row1.append(cond0)
         if results[conds[1]].has_key(period):
             cond1 = results[conds[1]][period]
-        rows.append([period, cond0, cond1])
+        row2.append(cond1)
+    rows=[row0, row1, row2]
     
-    printCSV(type=type, file=file, header=header, rows=rows)
-    printGraphTimeActivity(type=type, file=file, headers=headers, rows=rows)
+    title = ""
+    if type=="general":
+        if time=="hour":
+            title = u"Hour activity in %s" % preferences["siteName"]
+        elif time=="dayofweek":
+            title = u"Day of week activity in %s" % preferences["siteName"]
+        elif time=="month":
+            title = u"Month activity in %s" % preferences["siteName"]
+    elif type=="users":
+        user_name = users[user_id]
+        if time=="hour":
+            title = u"Hour activity by %s" % user_name
+        elif time=="dayofweek":
+            title = u"Day of week activity by %s" % user_name
+        elif time=="month":
+            title = u"Month activity by %s" % user_name
+    elif type=="pages":
+        page_title = pages[page_id]
+        if time=="hour":
+            title = u"Hour activity in %s" % page_title
+        elif time=="dayofweek":
+            title = u"Day of week activity in %s" % page_title
+        elif time=="month":
+            title = u"Month activity in %s" % page_title
+    
+    #printCSV(type=type, file=file, header=header, rows=rows)
+    print rows
+    printGraphTimeActivity(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=rows)
     
     destroyConnCursor(conn, cursor)
 
-def generateAnalysisHourActivity(type, file, conds, headers):
-    generateAnalysisTimeActivity(time="hour", type=type, file=file, conds=conds, headers=headers)
-
-def generateAnalysisDayOfWeekActivity(type, file, conds, headers):
-    generateAnalysisTimeActivity(time="dayofweek", type=type, file=file, conds=conds, headers=headers)
-
-def generateAnalysisMonthActivity(type, file, conds, headers):
-    generateAnalysisTimeActivity(time="month", type=type, file=file, conds=conds, headers=headers)
-
-def generateGeneralAnalysisTimeActivity():
+def generateGeneralTimeActivity():
     conds = ["page_namespace=0", "page_namespace!=0"] # artículo o no
-    headers = ["edits in articles", "rest of edits"]
-    generateAnalysisHourActivity(type="general", file="general_hour_activity.csv", conds=conds, headers=headers)
-    generateAnalysisDayOfWeekActivity(type="general", file="general_dayofweek_activity.csv", conds=conds, headers=headers)
-    generateAnalysisMonthActivity(type="general", file="general_month_activity.csv", conds=conds, headers=headers)
+    headers = ["Edits (only articles)", "Edits (rest of pages)"]
+    generateTimeActivity(time="hour", type="general", fileprefix="general", conds=conds, headers=headers)
+    generateTimeActivity(time="dayofweek", type="general", fileprefix="general", conds=conds, headers=headers)
+    generateTimeActivity(time="month", type="general", fileprefix="general", conds=conds, headers=headers)
 
-def generatePagesAnalysisHourActivity():
+def generatePagesTimeActivity():
     for page_id in page_ids:
         conds = ["rev_user=0", "rev_user!=0"] #anónimo o no
-        headers = ["edits by anons", "edits by registered users"]
-        generateAnalysisHourActivity(type="pages", file="page_%d_hour_activity.csv" % page_id, conds=conds, headers=headers)
+        page_title = pages[page_id] #todo namespaces
+        headers = ["Edits by anonymous users in %s" % page_title, "Edits by registered users in %s" % page_title]
+        generateTimeActivity(time="hour", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+        generateTimeActivity(time="dayofweek", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+        generateTimeActivity(time="month", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
 
-def generateUsersAnalysisHourActivity():
+def generateUsersTimeActivity():
     for user_id in user_ids:
         conds = ["page_namespace=0 and rev_user=%d" % user_id, "page_namespace!=0 and rev_user=%d" % user_id] # artículo o no
-        headers = ["edits in articles", "rest of edits"]
-        generateAnalysisHourActivity(type="users", file="user_%d_hour_activity.csv" % user_id, conds=conds, headers=headers)
+        user_name = users[user_id]
+        headers = ["Edits by %s (only articles)" % user_name, "Edits by %s (rest of pages)" % user_name]
+        generateTimeActivity(time="hour", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
+        generateTimeActivity(time="dayofweek", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
+        generateTimeActivity(time="month", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
 
 def generateCloud(type, file, conds, limit=100):
     cloud = {}
@@ -381,28 +409,37 @@ def printLinesGraph(title, file, labels, headers, rows):
     gp.close()
 
 def printBarsGraph(title, file, labels, headers, rows):
-    xtics24hours='"00" 0, "01" 1, "02" 2, "03" 3, "04" 4, "05" 5, "06" 6, "07" 7, "08" 8, "09" 9, "10" 10, "11" 11, "12" 12, "13" 13, "14" 14, "15" 15, "16" 16, "17" 17, "18" 18, "19" 19, "20" 20, "21" 21, "22" 22, "23" 23'
+    #xtics24hours='"00" 0, "01" 1, "02" 2, "03" 3, "04" 4, "05" 5, "06" 6, "07" 7, "08" 8, "09" 9, "10" 10, "11" 11, "12" 12, "13" 13, "14" 14, "15" 15, "16" 16, "17" 17, "18" 18, "19" 19, "20" 20, "21" 21, "22" 22, "23" 23'
+    xtics = ""
+    for xtic in rows[0]:
+        xtic_ = xtic
+        if len(xtic_) == 1:
+            xtic_ = "0%s" % xtic
+        xtics += '"%s" %s, ' % (xtic_, xtic)
+    xtics=xtics[:-2]
+    #print xtics
     gp = Gnuplot.Gnuplot()
-    gp("set data style boxes")
-    gp('set title "Hour activity"')
+    gp("set style data boxes")
+    gp("set grid")
+    gp('set title "%s"' % title.encode("utf-8"))
     gp('set xlabel "Hour"')
     gp('set ylabel "Edits"')
-    gp('set xtics (%s)' % xtics24hours)
+    gp('set xtics (%s)' % xtics)
     plottitle1=u"Edits"
-    plot1 = Gnuplot.PlotItems.Data(houractivity_list, with_="boxes", title=plottitle1.encode("utf-8"))
+    plot1 = Gnuplot.PlotItems.Data(rows[1], with_="boxes", title=plottitle1.encode("utf-8"))
     gp.plot(plot1)
     gp.hardcopy(filename=file,terminal="png")
     gp.close()
 
 def printGraphContentEvolution(type, fileprefix, title, headers, rows):
-    labels = ["Date", "Bytes"]
+    labels = ["Date (YYYY-MM-DD)", "Bytes"]
     file = "%s/graphs/%s/%s_content_evolution.png" % (preferences["outputDir"], type, fileprefix)
     printLinesGraph(title=title, file=file, labels=labels, headers=headers, rows=rows)
 
-def printGraphTimeActivity(type, file, headers, rows):
+def printGraphTimeActivity(type, fileprefix, title, headers, rows):
     labels = ["Edits", "Hour"]
-    if type=="general":
-        printBarsGraph(title="Activity per %s" % header[0], file="%s/graphs/%s/%s" % (preferences["outputDir"], type, file), labels=labels, headers=headers, rows=rows)
+    file = "%s/graphs/%s/%s_activity.png" % (preferences["outputDir"], type, fileprefix)
+    printBarsGraph(title=title, file=file, labels=labels, headers=headers, rows=rows)
 
 def generateContentEvolution(type, user_id=False, page_id=False):
     fecha=preferences["startDate"]
@@ -548,7 +585,7 @@ def generateGeneralAnalysis():
     """ % (preferences["siteUrl"], preferences["siteName"], 0, 0, dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"])
     
     generateGeneralContentEvolution()
-    #generateGeneralAnalysisTimeActivity()
+    generateGeneralTimeActivity()
     #generateGeneralCloud()
     
     printHTML(type="general", file=preferences["indexFilename"], title=preferences["siteName"], body=body)
