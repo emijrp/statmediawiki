@@ -17,6 +17,7 @@
 
 import datetime
 import getopt
+import Gnuplot
 import md5
 #import hashlib #From python2.5
 import MySQLdb
@@ -26,13 +27,21 @@ import time
 import shutil
 import sys
 
-from statmediawiki_globals import *
+pages = {}
+preferences = {}
+users = {}
+revisions = {}
 
-global preferences
-global user_ids
-user_ids = {}
-global page_ids
-page_ids = {}
+preferences["outputDir"] = "output"
+preferences["indexFilename"] = "index.html"
+preferences["siteName"] = "YourWikiSite"
+preferences["siteUrl"] = "http://youwikisite.org"
+preferences["subDir"] = "/index.php" #MediaWiki subdir, usually index.php/
+preferences["dbName"] = "yourwikidb"
+preferences["tablePrefix"] = "" #Usually empty
+preferences["startDate"] = "" #If wanted, start point for date range
+preferences["endDate"] = "" #If wanted, end point for date range
+preferences["currentPath"] = os.path.dirname(__file__)
 
 #todo:
 #con que numero se lanzan los sys.exit() cuando hay un fallo?
@@ -40,52 +49,6 @@ page_ids = {}
 
 #el usuario que hace las consultas sql debe tener acceso lectura a las bbdd, con los datos de .my.cnf
 t1=time.time()
-
-def initialize():
-    conn, cursor = createConnCursor()
-    
-    cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (preferences["tablePrefix"]))
-    a = cursor.fetchall()[0][0]
-    preferences["startDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
-    
-    cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp ASC LIMIT 1" % (preferences["tablePrefix"]))
-    a = cursor.fetchall()[0][0]
-    preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
-    
-    destroyConnCursor(conn, cursor)
-
-def loadUserIds():
-    global user_ids
-    
-    conn, cursor = createConnCursor()
-    cursor.execute("SELECT user_id, user_name FROM %suser" % (preferences["tablePrefix"]))
-    result = cursor.fetchall()
-    user_ids = {}
-    for user_id, user_name in result:
-        user_ids[user_id] = user_name
-    
-    destroyConnCursor(conn, cursor)
-
-def loadPageIds():
-    global page_ids
-    
-    conn, cursor = createConnCursor()
-    cursor.execute("SELECT page_id, page_title FROM %spage" % (preferences["tablePrefix"]))
-    result = cursor.fetchall()
-    page_ids = {}
-    for page_id, page_title in result:
-        page_ids[page_id] = page_title
-    
-    destroyConnCursor(conn, cursor)
-
-def welcome():
-    pass
-
-def usage():
-    f=open("help.txt", "r")
-    print f.read()
-    f.close()
-    sys.exit() #mostramos ayuda y salimos
 
 def createConnCursor():
     conn = MySQLdb.connect(host='localhost', db=preferences["dbName"], read_default_file='/home/emijrp/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
@@ -102,7 +65,75 @@ def destroyConnCursor(conn, cursor):
     cursor.close()
     conn.close()
 
+def loadUsers():
+    global users
+    
+    conn, cursor = createConnCursor()
+    cursor.execute("SELECT user_id, user_name FROM %suser" % (preferences["tablePrefix"]))
+    result = cursor.fetchall()
+    users = {}
+    for row in result:
+        users[row[0]] = {"user_name" : unicode(row[1], "utf-8")}
+    print "Loaded %s users" % len(users.items())
+    
+    destroyConnCursor(conn, cursor)
+
+def loadPages():
+    global pages
+    
+    conn, cursor = createConnCursor()
+    cursor.execute("select page_id, page_namespace, page_title, page_is_redirect from %spage" % preferences["tablePrefix"])
+    result = cursor.fetchall()
+    pages = {}
+    for row in result:
+        pages[row[0]]={"page_namespace": int(row[1]), "page_title": unicode(row[2], "utf-8"), "page_is_redirect": int(row[3])}
+    print "Loaded %s pages" % len(pages.items())
+    
+    destroyConnCursor(conn, cursor)
+
+def loadRevisions():
+    global revisions
+    
+    conn, cursor = createConnCursor()
+    cursor.execute("select rev_id, rev_page, rev_user_text, rev_timestamp, rev_comment, old_text from %srevision, %stext where old_id=rev_text_id and rev_timestamp>='%s' and rev_timestamp<='%s'" % (preferences["tablePrefix"], preferences["tablePrefix"], '%sZ000000T' % re.sub('-', '', preferences["startDate"].isoformat().split("T")[0]), '%sZ235959T' % re.sub('-', '', preferences["endDate"].isoformat().split("T")[0])))
+    result=cursor.fetchall()
+    for row in result:
+        revisions[row[0]]={"rev_id": row[0], "rev_page":row[1], "rev_user_text": unicode(row[2], "utf-8"), 
+    "rev_timestamp": datetime.datetime(year=int(row[3][:4]), month=int(row[3][4:6]), day=int(row[3][6:8]), hour=int(row[3][8:10]), minute=int(row[3][10:12]), second=int(row[3][12:14])), "rev_comment": unicode(row[4].tostring(), "utf-8"), "old_text": unicode(row[5].tostring(), "utf-8")} #el rev_id no es un error
+    print "Loaded %s revisions" % len(revisions.items())
+    
+    destroyConnCursor(conn, cursor)
+
+
+def initialize():
+    global preferences
+    
+    conn, cursor = createConnCursor()
+    
+    if not preferences["startDate"]:
+        cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp ASC LIMIT 1" % (preferences["tablePrefix"]))
+        a = cursor.fetchall()[0][0]
+        preferences["startDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
+    
+    if not preferences["endDate"]:
+        cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (preferences["tablePrefix"]))
+        a = cursor.fetchall()[0][0]
+        preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
+    
+    destroyConnCursor(conn, cursor)
+
+def welcome():
+    pass
+
+def usage():
+    f=open("help.txt", "r")
+    print f.read()
+    f.close()
+    sys.exit() #mostramos ayuda y salimos
+
 def getParameters():
+    global preferences
+    
     #console params
     try:
         opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "outputdir=", "index=", "sitename=", "subdir=", "siteurl=", "dbname=", "tableprefix=", "startdate=", "enddate="])
@@ -153,6 +184,10 @@ def manageOutputDir():
         "%s/csv/general" % preferences["outputDir"],
         "%s/csv/users" % preferences["outputDir"],
         "%s/csv/pages" % preferences["outputDir"],
+        "%s/graphs" % preferences["outputDir"],
+        "%s/graphs/general" % preferences["outputDir"],
+        "%s/graphs/users" % preferences["outputDir"],
+        "%s/graphs/pages" % preferences["outputDir"],
         "%s/styles" % preferences["outputDir"],
     ]
     for directory in directories:
@@ -219,6 +254,7 @@ def generateAnalysisTimeActivity(time, type, file, conds, headers):
         rows.append([period, cond0, cond1])
     
     printCSV(type=type, file=file, header=header, rows=rows)
+    printGraphTimeActivity(type=type, file=file, headers=headers, rows=rows)
     
     destroyConnCursor(conn, cursor)
 
@@ -299,8 +335,8 @@ def generateGeneralCloud():
     generateCloud(type="general", file="general_cloud.csv", conds=conds)
 
 def printHTML(type, file, title="", body=""):
-    f=open("%s/%s" % (preferences["outputDir"], file), "w")
-    header = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    f = open("%s/%s" % (preferences["outputDir"], file), "w")
+    output = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
     <header>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -308,16 +344,100 @@ def printHTML(type, file, title="", body=""):
     <title>StatMediaWiki: %s</title>
     </header>
     <body>
-    <h1>StatMediaWiki: %s</h1>""" % (title, title)
-    
-    footer="""<hr/><center>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a></center>
+    <h1>StatMediaWiki: %s</h1>
+    %s
+    <hr/><center>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a></center>
     </body>
-    </html>"""
+    </html>""" % (title, title, body)
     
-    output = header+body+footer
     f.write(output.encode("utf-8"))
     f.close()
 
+def printLinesGraph(title, file, labels, headers, rows):
+    xticsperiod=""
+    c=0
+    fecha=preferences["startDate"]
+    fechaincremento=datetime.timedelta(days=1)
+    while fecha!=preferences["endDate"]:
+        if fecha.day in [1, 15]:
+            xticsperiod+='"%s" %s,' % (fecha.strftime("%Y-%m-%d"), c)
+        fecha+=fechaincremento
+        c+=1
+    xticsperiod=xticsperiod[:len(xticsperiod)-1]
+    
+    gp = Gnuplot.Gnuplot()
+    gp('set data style lines')
+    #gp('set size .6, .6')
+    #gp('set line_width 8')
+    gp('set title "%s"' % title)
+    gp('set xlabel "%s"' % labels[0])
+    gp('set ylabel "%s"' % labels[1])
+    gp('set xtics rotate by 90')
+    gp('set xtics (%s)' % xticsperiod)
+    plot1 = Gnuplot.PlotItems.Data(rows[0], with_="lines", title=headers[1])
+    plot2 = Gnuplot.PlotItems.Data(rows[1], with_="lines", title=headers[2])
+    gp.plot(plot1, plot2)
+    gp.hardcopy(filename=file, terminal="png") 
+    gp.close()
+
+def printBarsGraph(title, file, labels, headers, rows):
+    xtics24hours='"00" 0, "01" 1, "02" 2, "03" 3, "04" 4, "05" 5, "06" 6, "07" 7, "08" 8, "09" 9, "10" 10, "11" 11, "12" 12, "13" 13, "14" 14, "15" 15, "16" 16, "17" 17, "18" 18, "19" 19, "20" 20, "21" 21, "22" 22, "23" 23'
+    gp = Gnuplot.Gnuplot()
+    gp("set data style boxes")
+    gp('set title "Hour activity"')
+    gp('set xlabel "Hour"')
+    gp('set ylabel "Edits"')
+    gp('set xtics (%s)' % xtics24hours)
+    plottitle1=u"Edits"
+    plot1 = Gnuplot.PlotItems.Data(houractivity_list, with_="boxes", title=plottitle1.encode("utf-8"))
+    gp.plot(plot1)
+    gp.hardcopy(filename=file,terminal="png")
+    gp.close()
+
+def printGraphContentEvolution(type, file, headers, rows):
+    labels = ["Date", "Bytes"]
+    if type=="general":
+        printLinesGraph(title="Content evolution in %s" % preferences["siteName"], file="%s/graphs/%s/%s" % (preferences["outputDir"], type, file), labels=labels, headers=headers, rows=rows)
+
+def printGraphTimeActivity(type, file, headers, rows):
+    labels = ["Edits", "Hour"]
+    if type=="general":
+        printBarsGraph(title="Activity per %s" % header[0], file="%s/graphs/%s/%s" % (preferences["outputDir"], type, file), labels=labels, headers=headers, rows=rows)
+
+def generateGeneralContentEvolution():
+    fecha=preferences["startDate"]
+    fechaincremento=datetime.timedelta(days=1)
+    graph1=[]
+    graph2=[]
+    c=0
+    while fecha<preferences["endDate"]:
+        status={}
+        statusarticles={}
+        for rev_id, rev_props in revisions.items():
+            if rev_props["rev_timestamp"]<fecha and ((status.has_key(rev_props["rev_page"]) and status[rev_props["rev_page"]]["rev_timestamp"]<rev_props["rev_timestamp"]) or not status.has_key(rev_props["rev_page"])):
+                status[rev_props["rev_page"]]=rev_props
+    
+        for rev_id, rev_props in revisions.items():
+            if pages[rev_props["rev_page"]]["page_namespace"]==0 and rev_props["rev_timestamp"]<fecha and ((statusarticles.has_key(rev_props["rev_page"]) and statusarticles[rev_props["rev_page"]]["rev_timestamp"]<rev_props["rev_timestamp"]) or not statusarticles.has_key(rev_props["rev_page"])):
+                statusarticles[rev_props["rev_page"]]=rev_props
+    
+        #recorremos entonces la instantanea de la wiki en aquel momento
+        bytes=0
+        for rev_page, rev_props in status.items():
+            bytes+=len(rev_props["old_text"])
+        graph1.append([c, bytes])
+    
+        bytesarticles=0
+        for rev_page, rev_props in statusarticles.items():
+            bytesarticles+=len(rev_props["old_text"])
+        graph2.append([c, bytesarticles])
+        c+=1
+        fecha+=fechaincremento
+    
+    
+    #print csv todo
+    printGraphContentEvolution(type="general", file="general_content_evolution.png", headers=["Date", "%s content (only articles)" % preferences["siteName"], "%s content (all pages)" % preferences["siteName"]], rows=[graph1, graph2])
+    
 def generateGeneralAnalysis():
     conn, cursor = createConnCursor()
     
@@ -351,13 +471,7 @@ def generateGeneralAnalysis():
     dateGenerated = datetime.datetime.now().isoformat()
     period = "%s &ndash %s" % (preferences["startDate"].isoformat(), preferences["endDate"].isoformat())
     
-    keysList = []
-    valuesList = []
-    for k, v in dict.items():
-        keysList.append(k)
-        valuesList.append(str(v))
-    
-    body=u"""<dl>
+    body = u"""<dl>
     <dt>Site:</dt>
     <dd><a href='%s'>%s</a></dd>
     <dt>Generated:</dt>
@@ -374,13 +488,23 @@ def generateGeneralAnalysis():
     <dd><a href="%s%s/Special:Imagelist">%s</a></dd>
     <dt>Users:</dt>
     <dd><a href="users.html">%s</a></dd>
-    </dl>""" % (preferences["siteUrl"], preferences["siteName"], 0, 0, dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"])
-
-    printCSV(type="general", file="general.csv", header=keysList, rows=[valuesList])
-    printHTML(type="general", file=preferences["indexFilename"], body=body)
+    </dl>
+    <h2>Content evolution</h2>
+    <img src="graphs/general/general_content_evolution.png" />
+    <h2>Activity</h2>
+    <img src="graphs/general/general_hour_activity.png" />
+    <img src="graphs/general/general_dayofweek_activity.png" />
+    <img src="graphs/general/general_month_activity.png" />
+    <h2>Users</h2>
+    <h2>Pages</h2>
+    <h2>Tags cloud</h2>
+    """ % (preferences["siteUrl"], preferences["siteName"], 0, 0, dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"])
     
+    #generateGeneralContentEvolution()
     #generateGeneralAnalysisTimeActivity()
     #generateGeneralCloud()
+    
+    printHTML(type="general", file=preferences["indexFilename"], title=preferences["siteName"], body=body)
     
     destroyConnCursor(conn, cursor)
 
@@ -388,7 +512,8 @@ def generatePagesAnalysis():
     pass
 
 def generateUsersAnalysis():
-    generateUsersAnalysisHourActivity()
+    pass
+    #generateUsersAnalysisHourActivity()
 
 def generateAnalysis():
     generateGeneralAnalysis()
@@ -403,8 +528,9 @@ def main():
     welcome()
     
     getParameters()
-    loadUserIds()
-    loadPageIds()
+    loadUsers()
+    loadPages()
+    loadRevisions()
     initialize() #dbname required
     manageOutputDir()
     generateAnalysis()
