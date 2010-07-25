@@ -640,7 +640,7 @@ def generateUsersTable():
                 rev_page = rev_props["rev_page"]
                 if pages[rev_page]["page_namespace"] == 0:
                     editsInArticles += 1
-        output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_id, user_props["user_name"], editsInAllPages, 0, editsInArticles, 0, 0, 0, 0, 0, len(users[user_id]["images"]))
+        output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], editsInAllPages, 0, editsInArticles, 0, 0, 0, 0, 0, user_id, len(users[user_id]["images"]))
         c+=1
     
     output += """</table>"""
@@ -757,6 +757,7 @@ def generateUsersAnalysis():
         <img src="../../graphs/users/users_%s_dayofweek_activity.png" />
         <img src="../../graphs/users/users_%s_month_activity.png" />
         </center>
+        <h2>Uploads</h2>
         <h2>Tags cloud</h2>
         <center>
         </center>
