@@ -395,11 +395,12 @@ def printLinesGraph(title, file, labels, headers, rows):
     
     gp = Gnuplot.Gnuplot()
     gp('set data style lines')
-    gp('set grid')
+    gp('set grid ytics mytics')
     #gp('set line_width 8')
     gp('set title "%s"' % title.encode("utf-8"))
     gp('set xlabel "%s"' % labels[0].encode("utf-8"))
     gp('set ylabel "%s"' % labels[1].encode("utf-8"))
+    gp('set mytics 2')
     gp('set xtics rotate by 90')
     gp('set xtics (%s)' % xticsperiod)
     plot1 = Gnuplot.PlotItems.Data(rows[0], with_="lines", title=headers[1].encode("utf-8"))
@@ -411,8 +412,9 @@ def printLinesGraph(title, file, labels, headers, rows):
 def printBarsGraph(title, file, labels, headers, rows):
     convert={}
     convert["hour"]={"0":"00", "1":"01", "2":"02", "3":"03", "4":"04", "5":"05", "6":"06", "7":"07", "8":"08", "9":"09", "10":"10", "11":"11", "12":"12", "13":"13", "14":"14", "15":"15", "16":"16", "17":"17", "18":"18", "19":"19", "20":"20", "21":"21", "22":"22", "23":"23"}
-    convert["dayofweek"]={"0":"Sunday", "1":"Monday", "2":"Tuesday", "3":"Wednesday", "4":"Thursday", "5":"Friday", "6":"Saturday"}
-    convert["month"]={"0":"January", "1":"February", "2":"March", "3":"April", "4":"May", "5":"June", "6":"July", "7":"August", "8":"September", "9":"October", "10":"November", "11":"December"}
+    convert["dayofweek"]={"0":"Sun", "1":"Mon", "2":"Tue", "3":"Wed", "4":"Thu", "5":"Fri", "6":"Sat"}
+    convert["month"]={"0":"Jan", "1":"Feb", "2":"Mar", "3":"Apr", "4":"May", "5":"Jun", "6":"Jul", "7":"Aug", "8":"Sep", "9":"Oct", "10":"Nov", "11":"Dec"}
+    convert2={"hour":"Hour", "dayofweek":"Day of week", "month":"Month"}
     xtics = ""
     for xtic in rows[0]:
         xtic_ = convert[headers[0]][str(xtic)]
@@ -421,11 +423,12 @@ def printBarsGraph(title, file, labels, headers, rows):
     #print xtics
     gp = Gnuplot.Gnuplot()
     gp("set style data boxes")
-    gp("set grid")
+    gp("set grid ytics mytics")
     gp('set title "%s"' % title.encode("utf-8"))
-    gp('set xlabel "%s"' % headers[0].encode("utf-8"))
+    gp('set xlabel "%s"' % convert2[headers[0]].encode("utf-8"))
+    gp('set mytics 2')
     gp('set ylabel "Edits"')
-    gp('set xtics rotate by 90')
+    #gp('set xtics rotate by 90')
     gp('set xtics (%s)' % xtics.encode("utf-8"))
     plot1 = Gnuplot.PlotItems.Data(rows[1], with_="boxes", title=headers[1].encode("utf-8"))
     plot2 = Gnuplot.PlotItems.Data(rows[2], with_="boxes", title=headers[2].encode("utf-8"))
