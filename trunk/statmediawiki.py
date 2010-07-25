@@ -269,7 +269,7 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
         elif time=="month":
             title = u"Month activity in %s" % preferences["siteName"]
     elif type=="users":
-        user_name = users[user_id]
+        user_name = users[user_id]["user_name"]
         if time=="hour":
             title = u"Hour activity by %s" % user_name
         elif time=="dayofweek":
@@ -277,7 +277,7 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
         elif time=="month":
             title = u"Month activity by %s" % user_name
     elif type=="pages":
-        page_title = pages[page_id]
+        page_title = pages[page_id]["page_title"]
         if time=="hour":
             title = u"Hour activity in %s" % page_title
         elif time=="dayofweek":
@@ -292,29 +292,27 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
     destroyConnCursor(conn, cursor)
 
 def generateGeneralTimeActivity():
-    conds = ["page_namespace=0", "1"] # artículo o todas
-    headers = ["Edits (only articles)", "Edits (all pages)"]
+    conds = ["1", "page_namespace=0"] # artículo o todas
+    headers = ["Edits (all pages)", "Edits (only articles)"]
     generateTimeActivity(time="hour", type="general", fileprefix="general", conds=conds, headers=headers)
     generateTimeActivity(time="dayofweek", type="general", fileprefix="general", conds=conds, headers=headers)
     generateTimeActivity(time="month", type="general", fileprefix="general", conds=conds, headers=headers)
 
-def generatePagesTimeActivity():
-    for page_id in page_ids:
-        conds = ["rev_user=0", "rev_user!=0"] #anónimo o no
-        page_title = pages[page_id] #todo namespaces
-        headers = ["Edits by anonymous users in %s" % page_title, "Edits by registered users in %s" % page_title]
-        generateTimeActivity(time="hour", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-        generateTimeActivity(time="dayofweek", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-        generateTimeActivity(time="month", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+def generatePagesTimeActivity(page_id):
+    page_title = pages[page_id]["page_title"] #todo namespaces
+    conds = ["rev_user=0", "rev_user!=0"] #anónimo o no
+    headers = ["Edits by anonymous users in %s" % page_title, "Edits by registered users in %s" % page_title]
+    generateTimeActivity(time="hour", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="dayofweek", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="month", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
 
-def generateUsersTimeActivity():
-    for user_id in user_ids:
-        conds = ["page_namespace=0 and rev_user=%d" % user_id, "rev_user=%d" % user_id] # artículo o todas
-        user_name = users[user_id]
-        headers = ["Edits by %s (only articles)" % user_name, "Edits by %s (all pages)" % user_name]
-        generateTimeActivity(time="hour", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
-        generateTimeActivity(time="dayofweek", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
-        generateTimeActivity(time="month", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
+def generateUsersTimeActivity(user_id):
+    user_name = users[user_id]["user_name"]
+    conds = ["rev_user=%d" % user_id, "page_namespace=0 and rev_user=%d" % user_id] # artículo o todas
+    headers = ["Edits by %s (all pages)" % user_name, "Edits by %s (only articles)" % user_name]
+    generateTimeActivity(time="hour", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="dayofweek", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="month", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
 
 def generateCloud(type, file, conds, limit=100):
     cloud = {}
@@ -598,12 +596,13 @@ def generatePagesAnalysis():
     for page_id, page_props in pages.items():
         print u"Generando análisis para la página %s" % pages[page_id]["page_title"]
         generatePagesContentEvolution(page_id=page_id)
+        generatePagesTimeActivity(page_id=page_id)
 
 def generateUsersAnalysis():
     for user_id, user_props in users.items():
         print u"Generando análisis para el usuario %s" % users[user_id]["user_name"]
         generateUsersContentEvolution(user_id=user_id)
-    #generateUsersAnalysisHourActivity()
+        generateUsersTimeActivity(user_id=user_id)
 
 def generateAnalysis():
     generateGeneralAnalysis()
