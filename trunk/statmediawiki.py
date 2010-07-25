@@ -27,6 +27,7 @@ import time
 import shutil
 import sys
 
+images = {}
 pages = {}
 preferences = {}
 users = {}
@@ -65,28 +66,95 @@ def destroyConnCursor(conn, cursor):
     cursor.close()
     conn.close()
 
-def loadUsers():
-    global users
+def getUserImages(user_id):
+    user_images = []
+    for img_name, imageprops in images.items():
+        if imageprops["img_user"] == user_id:
+            user_images.append(img_name)
+    return user_images
+
+def loadImages():
+    global images
+    images = {}
     
     conn, cursor = createConnCursor()
-    cursor.execute("SELECT user_id, user_name FROM %suser" % (preferences["tablePrefix"]))
+    cursor.execute("SELECT img_name, img_user, img_user_text, img_timestamp, img_size FROM %simage WHERE 1" % preferences["tablePrefix"])
     result = cursor.fetchall()
-    users = {}
     for row in result:
-        users[row[0]] = {"user_name" : unicode(row[1], "utf-8")}
+        img_name = unicode(re.sub("_", " ", row[0]), "utf-8")
+        img_user = int(row[1])
+        img_user_text = unicode(re.sub("_", " ", row[2]), "utf-8")
+        img_timestamp = row[3]
+        img_size = int(row[4])
+        images[img_name] = {
+            "img_user": img_user, 
+            "img_user_text": img_user_text, 
+            "img_timestamp": img_timestamp, 
+            "img_size": img_size, 
+        }
+    print "Loaded %s images" % len(images.items())
+    
+    destroyConnCursor(conn, cursor)
+
+def getUserRevisions(user_id):
+    user_revisions = []
+    
+    user_name = users[user_id]["user_name"]
+    for rev_id, rev_props in revisions.items():
+        if user_name == rev_props["rev_user_text"]:
+            user_revisions.append(rev_id)
+    
+    return user_revisions
+
+def loadUsers():
+    global users
+    users = {}
+    
+    conn, cursor = createConnCursor()
+    queries = [
+        "SELECT DISTINCT rev_user, rev_user_text FROM %srevision WHERE 1" % (preferences["tablePrefix"]),
+        "SELECT user_id, user_name FROM %suser WHERE 1" % (preferences["tablePrefix"]),
+    ]
+    for query in queries:
+        cursor.execute(query)
+        result = cursor.fetchall()
+        for row in result:
+            user_id = int(row[0])
+            user_name = unicode(re.sub("_", " ", row[1]), "utf-8")
+            if user_id == 0: #if ip, we use user_name (ip) as id
+                user_id = user_name
+            users[user_id] = {
+                "user_name": user_name,
+                "images": [],
+                "revisions": [],
+            }
     print "Loaded %s users" % len(users.items())
+    
+    #cargamos listas de images y revisiones para cada usuario
+    #no puede hacerse en el bucle anterior porque getUserImages() y la otra función, llaman a users y necesitan que users esté creado antes
+    for user_id, user_props in users.items():
+        users[user_id]["images"] = getUserImages(user_id)
+        users[user_id]["revisions"] = getUserRevisions(user_id)
     
     destroyConnCursor(conn, cursor)
 
 def loadPages():
     global pages
+    pages = {}
     
     conn, cursor = createConnCursor()
     cursor.execute("select page_id, page_namespace, page_title, page_is_redirect from %spage" % preferences["tablePrefix"])
     result = cursor.fetchall()
-    pages = {}
     for row in result:
-        pages[row[0]]={"page_namespace": int(row[1]), "page_title": unicode(row[2], "utf-8"), "page_is_redirect": int(row[3])}
+        page_id = int(row[0])
+        page_namespace = int(row[1])
+        page_title = unicode(row[2], "utf-8")
+        page_is_redirect = int(row[3])
+        pages[page_id] = {
+            "page_namespace": page_namespace, 
+            "page_title": page_title, 
+            "page_is_redirect": page_is_redirect,
+        }
     print "Loaded %s pages" % len(pages.items())
     
     destroyConnCursor(conn, cursor)
@@ -96,10 +164,24 @@ def loadRevisions():
     
     conn, cursor = createConnCursor()
     cursor.execute("select rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, old_text from %srevision, %stext where old_id=rev_text_id and rev_timestamp>='%s' and rev_timestamp<='%s'" % (preferences["tablePrefix"], preferences["tablePrefix"], '%sZ000000T' % re.sub('-', '', preferences["startDate"].isoformat().split("T")[0]), '%sZ235959T' % re.sub('-', '', preferences["endDate"].isoformat().split("T")[0])))
-    result=cursor.fetchall()
+    result = cursor.fetchall()
     for row in result:
-        revisions[row[0]]={"rev_id": row[0], "rev_page":row[1], "rev_user": row[2], "rev_user_text": unicode(row[3], "utf-8"), 
-    "rev_timestamp": datetime.datetime(year=int(row[4][:4]), month=int(row[4][4:6]), day=int(row[4][6:8]), hour=int(row[4][8:10]), minute=int(row[4][10:12]), second=int(row[4][12:14])), "rev_comment": unicode(row[5].tostring(), "utf-8"), "old_text": unicode(row[6].tostring(), "utf-8")} #el rev_id no es un error
+        rev_id = int(row[0])
+        rev_page = int(row[1])
+        rev_user = int(row[2])
+        rev_user_text = unicode(re.sub("_", " ", row[3]), "utf-8")
+        rev_timestamp = row[4]
+        rev_comment = unicode(row[5].tostring(), "utf-8")
+        old_text = unicode(row[6].tostring(), "utf-8")
+        revisions[rev_id] = {
+            "rev_id": rev_id, #no es un error
+            "rev_page": rev_page, 
+            "rev_user": rev_user, 
+            "rev_user_text": rev_user_text, 
+            "rev_timestamp": datetime.datetime(year=int(rev_timestamp[:4]), month=int(rev_timestamp[4:6]), day=int(rev_timestamp[6:8]), hour=int(rev_timestamp[8:10]), minute=int(rev_timestamp[10:12]), second=int(rev_timestamp[12:14])), 
+            "rev_comment": rev_comment, 
+            "old_text": old_text, 
+        } 
     print "Loaded %s revisions" % len(revisions.items())
     
     destroyConnCursor(conn, cursor)
@@ -188,6 +270,10 @@ def manageOutputDir():
         "%s/graphs/general" % preferences["outputDir"],
         "%s/graphs/users" % preferences["outputDir"],
         "%s/graphs/pages" % preferences["outputDir"],
+        "%s/html" % preferences["outputDir"],
+        "%s/html/general" % preferences["outputDir"],
+        "%s/html/users" % preferences["outputDir"],
+        "%s/html/pages" % preferences["outputDir"],
         "%s/styles" % preferences["outputDir"],
     ]
     for directory in directories:
@@ -308,11 +394,14 @@ def generatePagesTimeActivity(page_id):
 
 def generateUsersTimeActivity(user_id):
     user_name = users[user_id]["user_name"]
-    conds = ["rev_user=%d" % user_id, "page_namespace=0 and rev_user=%d" % user_id] # artículo o todas
+    if user_name == user_id: #ip
+        conds = ["rev_user_text='%s'" % user_id, "page_namespace=0 and rev_user_text='%s'" % user_id] # artículo o todas, #todo añadir escape() para comillas?
+    else:
+        conds = ["rev_user=%d" % user_id, "page_namespace=0 and rev_user=%d" % user_id] # artículo o todas
     headers = ["Edits by %s (all pages)" % user_name, "Edits by %s (only articles)" % user_name]
-    generateTimeActivity(time="hour", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
-    generateTimeActivity(time="dayofweek", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
-    generateTimeActivity(time="month", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="hour", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="dayofweek", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="month", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
 
 def generateCloud(type, file, conds, limit=100):
     cloud = {}
@@ -362,8 +451,13 @@ def generateGeneralCloud():
     conds = ["1"] # no condition
     generateCloud(type="general", file="general_cloud.csv", conds=conds)
 
-def printHTML(type, file, title="", body=""):
-    f = open("%s/%s" % (preferences["outputDir"], file), "w")
+def printHTML(type, file="", title="", body=""):
+    if file:
+        file = "%s/html/%s/%s" % (preferences["outputDir"], type, file)
+    else:
+        file = "%s/index.html" % (preferences["outputDir"], preferences["indexFilename"])
+    
+    f = open(file, "w")
     output = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
     <header>
@@ -523,7 +617,33 @@ def generateUsersContentEvolution(user_id):
     
 def generatePagesContentEvolution(page_id):
     generateContentEvolution(type="pages", page_id=page_id)
+
+def generateUsersTable():
+    output = u"""<table>
+    <tr><th>#</th><th>User</th><th>Edits</th><th>Edits in articles</th><th>Bytes added</th><th>Bytes added in articles</th><th>Uploads</th></tr>"""
     
+    sortedUsers = [] #by edits
+    for user_id, user_props in users.items():
+        sortedUsers.append([len(user_props["revisions"]), user_id])
+    sortedUsers.sort()
+    sortedUsers.reverse()
+    
+    c=1
+    for revisionsNumber, user_id in sortedUsers:
+        user_props = users[user_id]
+        editsInAllPages = len(user_props["revisions"])
+        editsInArticles = 0
+        for rev_id, rev_props in revisions.items():
+            rev_page = rev_props["rev_page"]
+            if pages[rev_page]["page_namespace"] == 0:
+                editsInArticles += 1
+        output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_id, user_props["user_name"], editsInAllPages, 0, 0, 0, 0, 0, 0, 0, 0)
+        c+=1
+    
+    output += """</table>"""
+    
+    return output
+
 def generateGeneralAnalysis():
     print "Generando análisis general"
     conn, cursor = createConnCursor()
@@ -577,21 +697,32 @@ def generateGeneralAnalysis():
     <dd><a href="users.html">%s</a></dd>
     </dl>
     <h2>Content evolution</h2>
+    <center>
     <img src="graphs/general/general_content_evolution.png" />
+    </center>
     <h2>Activity</h2>
+    <center>
     <img src="graphs/general/general_hour_activity.png" />
     <img src="graphs/general/general_dayofweek_activity.png" />
     <img src="graphs/general/general_month_activity.png" />
+    </center>
     <h2>Users</h2>
+    <center>
+    %s
+    </center>
     <h2>Pages</h2>
+    </center>
+    </center>
     <h2>Tags cloud</h2>
-    """ % (preferences["siteUrl"], preferences["siteName"], 0, 0, dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"])
+    <center>
+    </center>
+    """ % (preferences["siteUrl"], preferences["siteName"], 0, 0, dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], generateUsersTable())
     
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
     #generateGeneralCloud()
     
-    printHTML(type="general", file=preferences["indexFilename"], title=preferences["siteName"], body=body)
+    printHTML(type="general", title=preferences["siteName"], body=body)
     
     destroyConnCursor(conn, cursor)
 
@@ -603,9 +734,32 @@ def generatePagesAnalysis():
 
 def generateUsersAnalysis():
     for user_id, user_props in users.items():
-        print u"Generando análisis para el usuario %s" % users[user_id]["user_name"]
+        user_name = user_props["user_name"]
+        print u"Generando análisis para el usuario %s" % user_name
         generateUsersContentEvolution(user_id=user_id)
         generateUsersTimeActivity(user_id=user_id)
+        
+        body = u"""<dl>
+        <dt>User:</dt>
+        <dd><a href='%s/%s/User:%s'>%s</a></dd>
+        </dl>
+        <h2>Content evolution by %s</h2>
+        <center>
+        <img src="graphs/%s/user_%s__content_evolution.png" />
+        </center>
+        <h2>Activity by %s</h2>
+        <center>
+        <img src="graphs/%s/user_%s_hour_activity.png" />
+        <img src="graphs/%s/user_%s_dayofweek_activity.png" />
+        <img src="graphs/%s/user_%s_month_activity.png" />
+        </center>
+        <h2>Tags cloud</h2>
+        <center>
+        </center>
+        """ % (preferences["siteUrl"], preferences["subDir"], user_name, user_name, user_name, user_id, user_name, user_id, user_id, user_id)
+        
+        title = "%s: User:%s" % (preferences["siteName"], user_name)
+        printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
 
 def generateAnalysis():
     generateGeneralAnalysis()
@@ -620,9 +774,10 @@ def main():
     welcome()
     
     getParameters()
-    loadUsers()
     loadPages()
+    loadImages()
     loadRevisions()
+    loadUsers() #revisions and uploads loaded required
     initialize() #dbname required
     manageOutputDir()
     generateAnalysis()
