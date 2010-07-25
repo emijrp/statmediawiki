@@ -388,9 +388,9 @@ def generatePagesTimeActivity(page_id):
     page_title = pages[page_id]["page_title"] #todo namespaces
     conds = ["rev_user=0", "rev_user!=0"] #anónimo o no
     headers = ["Edits by anonymous users in %s" % page_title, "Edits by registered users in %s" % page_title]
-    generateTimeActivity(time="hour", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-    generateTimeActivity(time="dayofweek", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-    generateTimeActivity(time="month", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="hour", type="pages", fileprefix="pages_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="dayofweek", type="pages", fileprefix="pages_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="month", type="pages", fileprefix="pages_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
 
 def generateUsersTimeActivity(user_id):
     user_name = users[user_id]["user_name"]
@@ -399,9 +399,9 @@ def generateUsersTimeActivity(user_id):
     else:
         conds = ["rev_user=%d" % user_id, "page_namespace=0 and rev_user=%d" % user_id] # artículo o todas
     headers = ["Edits by %s (all pages)" % user_name, "Edits by %s (only articles)" % user_name]
-    generateTimeActivity(time="hour", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
-    generateTimeActivity(time="dayofweek", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
-    generateTimeActivity(time="month", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="hour", type="users", fileprefix="users_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="dayofweek", type="users", fileprefix="users_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="month", type="users", fileprefix="users_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
 
 def generateCloud(type, file, conds, limit=100):
     cloud = {}
@@ -452,17 +452,19 @@ def generateGeneralCloud():
     generateCloud(type="general", file="general_cloud.csv", conds=conds)
 
 def printHTML(type, file="", title="", body=""):
+    stylesdir = "styles"
     if file:
         file = "%s/html/%s/%s" % (preferences["outputDir"], type, file)
+        stylesdir = "../../%s" % stylesdir
     else:
-        file = "%s/index.html" % (preferences["outputDir"], preferences["indexFilename"])
+        file = "%s/%s" % (preferences["outputDir"], preferences["indexFilename"])
     
     f = open(file, "w")
     output = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
     <header>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="styles/style.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="%s/style.css" type="text/css" media="all" />
     <title>StatMediaWiki: %s</title>
     </header>
     <body>
@@ -470,7 +472,7 @@ def printHTML(type, file="", title="", body=""):
     %s
     <hr/><center>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a></center>
     </body>
-    </html>""" % (title, title, body)
+    </html>""" % (stylesdir, title, title, body)
     
     f.write(output.encode("utf-8"))
     f.close()
@@ -739,24 +741,25 @@ def generateUsersAnalysis():
         generateUsersContentEvolution(user_id=user_id)
         generateUsersTimeActivity(user_id=user_id)
         
-        body = u"""<dl>
+        body = u"""&lt;&lt; <a href="../../%s">Back</a>
+        <dl>
         <dt>User:</dt>
         <dd><a href='%s/%s/User:%s'>%s</a></dd>
         </dl>
         <h2>Content evolution by %s</h2>
         <center>
-        <img src="graphs/%s/user_%s__content_evolution.png" />
+        <img src="../../graphs/users/users_%s_content_evolution.png" />
         </center>
         <h2>Activity by %s</h2>
         <center>
-        <img src="graphs/%s/user_%s_hour_activity.png" />
-        <img src="graphs/%s/user_%s_dayofweek_activity.png" />
-        <img src="graphs/%s/user_%s_month_activity.png" />
+        <img src="../../graphs/users/users_%s_hour_activity.png" />
+        <img src="../../graphs/users/users_%s_dayofweek_activity.png" />
+        <img src="../../graphs/users/users_%s_month_activity.png" />
         </center>
         <h2>Tags cloud</h2>
         <center>
         </center>
-        """ % (preferences["siteUrl"], preferences["subDir"], user_name, user_name, user_name, user_id, user_name, user_id, user_id, user_id)
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, user_name, user_id, user_name, user_id, user_id, user_id)
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
