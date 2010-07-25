@@ -232,7 +232,7 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
         for hour, edits in result:
             results[cond][str(hour)] = str(edits)
     
-    header = [time] + headers
+    headers = [time] + headers
     fileprefix = "%s_%s" % (fileprefix, time)
     rows = []
     if time == "hour":
@@ -290,8 +290,8 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
     destroyConnCursor(conn, cursor)
 
 def generateGeneralTimeActivity():
-    conds = ["page_namespace=0", "page_namespace!=0"] # artículo o no
-    headers = ["Edits (only articles)", "Edits (rest of pages)"]
+    conds = ["page_namespace=0", "1"] # artículo o todas
+    headers = ["Edits (only articles)", "Edits (all pages)"]
     generateTimeActivity(time="hour", type="general", fileprefix="general", conds=conds, headers=headers)
     generateTimeActivity(time="dayofweek", type="general", fileprefix="general", conds=conds, headers=headers)
     generateTimeActivity(time="month", type="general", fileprefix="general", conds=conds, headers=headers)
@@ -307,9 +307,9 @@ def generatePagesTimeActivity():
 
 def generateUsersTimeActivity():
     for user_id in user_ids:
-        conds = ["page_namespace=0 and rev_user=%d" % user_id, "page_namespace!=0 and rev_user=%d" % user_id] # artículo o no
+        conds = ["page_namespace=0 and rev_user=%d" % user_id, "rev_user=%d" % user_id] # artículo o todas
         user_name = users[user_id]
-        headers = ["Edits by %s (only articles)" % user_name, "Edits by %s (rest of pages)" % user_name]
+        headers = ["Edits by %s (only articles)" % user_name, "Edits by %s (all pages)" % user_name]
         generateTimeActivity(time="hour", type="users", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
         generateTimeActivity(time="dayofweek", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
         generateTimeActivity(time="month", fileprefix="user_%d" % user_id, conds=conds, headers=headers, user_id=user_id)
@@ -409,12 +409,13 @@ def printLinesGraph(title, file, labels, headers, rows):
     gp.close()
 
 def printBarsGraph(title, file, labels, headers, rows):
-    #xtics24hours='"00" 0, "01" 1, "02" 2, "03" 3, "04" 4, "05" 5, "06" 6, "07" 7, "08" 8, "09" 9, "10" 10, "11" 11, "12" 12, "13" 13, "14" 14, "15" 15, "16" 16, "17" 17, "18" 18, "19" 19, "20" 20, "21" 21, "22" 22, "23" 23'
+    convert={}
+    convert["hour"]={"0":"00", "1":"01", "2":"02", "3":"03", "4":"04", "5":"05", "6":"06", "7":"07", "8":"08", "9":"09", "10":"10", "11":"11", "12":"12", "13":"13", "14":"14", "15":"15", "16":"16", "17":"17", "18":"18", "19":"19", "20":"20", "21":"21", "22":"22", "23":"23"}
+    convert["dayofweek"]={"1":"Sunday", "2":"Monday", "3":"Tuesday", "4":"Wednesday", "5":"Thursday", "6":"Friday", "7":"Saturday"}
+    convert["month"]={"1":"January", "2":"February", "3":"March", "4":"April", "5":"May", "6":"June", "7":"July", "8":"August", "9":"September", "10":"October", "11":"November", "12":"December"}
     xtics = ""
     for xtic in rows[0]:
-        xtic_ = xtic
-        if len(xtic_) == 1:
-            xtic_ = "0%s" % xtic
+        xtic_ = convert[headers[0]][str(xtic)]
         xtics += '"%s" %s, ' % (xtic_, xtic)
     xtics=xtics[:-2]
     #print xtics
@@ -422,12 +423,13 @@ def printBarsGraph(title, file, labels, headers, rows):
     gp("set style data boxes")
     gp("set grid")
     gp('set title "%s"' % title.encode("utf-8"))
-    gp('set xlabel "Hour"')
+    gp('set xlabel "%s"' % headers[0].encode("utf-8"))
     gp('set ylabel "Edits"')
-    gp('set xtics (%s)' % xtics)
-    plottitle1=u"Edits"
-    plot1 = Gnuplot.PlotItems.Data(rows[1], with_="boxes", title=plottitle1.encode("utf-8"))
-    gp.plot(plot1)
+    gp('set xtics rotate by 90')
+    gp('set xtics (%s)' % xtics.encode("utf-8"))
+    plot1 = Gnuplot.PlotItems.Data(rows[1], with_="boxes", title=headers[1].encode("utf-8"))
+    plot2 = Gnuplot.PlotItems.Data(rows[2], with_="boxes", title=headers[2].encode("utf-8"))
+    gp.plot(plot1, plot2)
     gp.hardcopy(filename=file,terminal="png")
     gp.close()
 
@@ -446,7 +448,6 @@ def generateContentEvolution(type, user_id=False, page_id=False):
     fechaincremento=datetime.timedelta(days=1)
     graph1=[]
     graph2=[]
-    c=0
     while fecha<preferences["endDate"]:
         status={}
         statusarticles={}
@@ -480,13 +481,12 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         bytes=0
         for rev_page, rev_props in status.items():
             bytes+=len(rev_props["old_text"])
-        graph1.append([c, bytes])
+        graph1.append(bytes)
     
         bytesarticles=0
         for rev_page, rev_props in statusarticles.items():
             bytesarticles+=len(rev_props["old_text"])
-        graph2.append([c, bytesarticles])
-        c+=1
+        graph2.append(bytesarticles)
         fecha+=fechaincremento
     
     title = ""
