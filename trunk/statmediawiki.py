@@ -229,8 +229,10 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
         cursor.execute("SELECT %s(rev_timestamp) AS time, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE %s GROUP BY time ORDER BY time" % (time, preferences["tablePrefix"], preferences["tablePrefix"], cond))
         result = cursor.fetchall()
         results[cond] = {}
-        for hour, edits in result:
-            results[cond][str(hour)] = str(edits)
+        for timestamp, edits in result:
+            if time in ["dayofweek", "month"]:
+                timestamp = timestamp - 1
+            results[cond][str(timestamp)] = str(edits)
     
     headers = [time] + headers
     fileprefix = "%s_%s" % (fileprefix, time)
@@ -238,9 +240,9 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
     if time == "hour":
         range_ = range(24)
     elif time == "dayofweek":
-        range_ = range(1,8)
+        range_ = range(7)
     elif time == "month":
-        range_ = range(1,13)
+        range_ = range(12)
     
     row0=[]
     row1=[]
@@ -411,8 +413,8 @@ def printLinesGraph(title, file, labels, headers, rows):
 def printBarsGraph(title, file, labels, headers, rows):
     convert={}
     convert["hour"]={"0":"00", "1":"01", "2":"02", "3":"03", "4":"04", "5":"05", "6":"06", "7":"07", "8":"08", "9":"09", "10":"10", "11":"11", "12":"12", "13":"13", "14":"14", "15":"15", "16":"16", "17":"17", "18":"18", "19":"19", "20":"20", "21":"21", "22":"22", "23":"23"}
-    convert["dayofweek"]={"1":"Sunday", "2":"Monday", "3":"Tuesday", "4":"Wednesday", "5":"Thursday", "6":"Friday", "7":"Saturday"}
-    convert["month"]={"1":"January", "2":"February", "3":"March", "4":"April", "5":"May", "6":"June", "7":"July", "8":"August", "9":"September", "10":"October", "11":"November", "12":"December"}
+    convert["dayofweek"]={"0":"Sunday", "1":"Monday", "2":"Tuesday", "3":"Wednesday", "4":"Thursday", "5":"Friday", "6":"Saturday"}
+    convert["month"]={"0":"January", "1":"February", "2":"March", "3":"April", "4":"May", "5":"June", "6":"July", "7":"August", "8":"September", "9":"October", "10":"November", "11":"December"}
     xtics = ""
     for xtic in rows[0]:
         xtic_ = convert[headers[0]][str(xtic)]
