@@ -37,7 +37,7 @@ preferences["outputDir"] = "output"
 preferences["indexFilename"] = "index.html"
 preferences["siteName"] = "YourWikiSite"
 preferences["siteUrl"] = "http://youwikisite.org"
-preferences["subDir"] = "/index.php" #MediaWiki subdir, usually index.php/
+preferences["subDir"] = "index.php" #MediaWiki subdir, usually "index.php" in http://osl.uca.es/wikihaskell/index.php/Main_Page
 preferences["dbName"] = "yourwikidb"
 preferences["tablePrefix"] = "" #Usually empty
 preferences["startDate"] = "" #If wanted, start point for date range
@@ -636,10 +636,11 @@ def generateUsersTable():
         editsInAllPages = len(user_props["revisions"])
         editsInArticles = 0
         for rev_id, rev_props in revisions.items():
-            rev_page = rev_props["rev_page"]
-            if pages[rev_page]["page_namespace"] == 0:
-                editsInArticles += 1
-        output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_id, user_props["user_name"], editsInAllPages, 0, 0, 0, 0, 0, 0, 0, 0)
+            if rev_props["rev_user_text"] == user_props["user_name"]:
+                rev_page = rev_props["rev_page"]
+                if pages[rev_page]["page_namespace"] == 0:
+                    editsInArticles += 1
+        output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_id, user_props["user_name"], editsInAllPages, 0, editsInArticles, 0, 0, 0, 0, 0, len(users[user_id]["images"]))
         c+=1
     
     output += """</table>"""
