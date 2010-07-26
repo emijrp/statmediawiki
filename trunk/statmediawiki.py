@@ -22,6 +22,7 @@ import md5
 #import hashlib #From python2.5
 import MySQLdb
 import os
+import random
 import re
 import time
 import shutil
@@ -43,6 +44,7 @@ preferences["tablePrefix"] = "" #Usually empty
 preferences["startDate"] = "" #If wanted, start point for date range
 preferences["endDate"] = "" #If wanted, end point for date range
 preferences["currentPath"] = os.path.dirname(__file__)
+preferences["anonymous"] = False
 
 #todo:
 #con que numero se lanzan los sys.exit() cuando hay un fallo?
@@ -73,6 +75,56 @@ def getUserImages(user_id):
             user_images.append(img_name)
     return user_images
 
+def noise(s):
+    s = u"%s%s" % (s, random.randint(1, 999999999))
+    s = md5.new(s.encode('utf-8')).hexdigest()
+    return s
+
+def anonimize():
+    #tables & dicts with user information:
+    #* images: img_user, img_user_text
+    #* users: key, user_name
+    #* revisions: rev_user, rev_user_text
+    #* pages: nothing
+    #
+    global images
+    global revisions
+    global users
+    
+    users_ = {}
+    anonymous_table = {}
+    #create anonymous table which is destroyed after exit this function
+    #anonimyze users dict
+    for user_id, user_props in users.items():
+        user_name = user_props["user_name"]
+        user_id_ = noise(str(user_id))
+        user_name_ = noise(user_name)
+        while user_id_ in anonymous_table.values() or user_name_ in anonymous_table.values():
+            user_id_ = noise(str(user_id))
+            user_name_ = noise(user_name)
+        anonymous_table[str(user_id)] = user_id_
+        anonymous_table[user_name] = user_name_
+        
+        user_props_ = user_props
+        user_props_["user_name"] = user_name_
+        
+        users_[user_id_] = user_props_
+    users = users_
+    
+    #anonimize images dict
+    for img_name, img_props in images.items():
+        img_props_ = img_props
+        img_props_["img_user"] = anonymous_table[str(img_props_["img_user"])]
+        img_props_["img_user_text"] = anonymous_table[img_props_["img_user_text"]]
+        images[img_name] = img_props_
+    
+    #anonimize revisions dict
+    for rev_id, rev_props in revisions.items():
+        rev_props_ = rev_props
+        rev_props_["rev_user"] = anonymous_table[str(rev_props_["rev_user"])]
+        rev_props_["rev_user_text"] = anonymous_table[rev_props_["rev_user_text"]]
+        revisions[rev_id] = rev_props_
+
 def loadImages():
     global images
     images = {}
@@ -84,6 +136,8 @@ def loadImages():
         img_name = unicode(re.sub("_", " ", row[0]), "utf-8")
         img_user = int(row[1])
         img_user_text = unicode(re.sub("_", " ", row[2]), "utf-8")
+        if img_user == 0: #ip (no es normal que la subida anónima esté habilitada, pero quien sabe...)
+            img_user = img_user_text
         img_timestamp = row[3]
         img_size = int(row[4])
         images[img_name] = {
@@ -170,6 +224,8 @@ def loadRevisions():
         rev_page = int(row[1])
         rev_user = int(row[2])
         rev_user_text = unicode(re.sub("_", " ", row[3]), "utf-8")
+        if rev_user == 0: #ip
+            rev_user = rev_user_text
         rev_timestamp = row[4]
         rev_comment = unicode(row[5].tostring(), "utf-8")
         old_text = unicode(row[6].tostring(), "utf-8")
@@ -181,7 +237,7 @@ def loadRevisions():
             "rev_timestamp": datetime.datetime(year=int(rev_timestamp[:4]), month=int(rev_timestamp[4:6]), day=int(rev_timestamp[6:8]), hour=int(rev_timestamp[8:10]), minute=int(rev_timestamp[10:12]), second=int(rev_timestamp[12:14])), 
             "rev_comment": rev_comment, 
             "old_text": old_text, 
-        } 
+        }
     print "Loaded %s revisions" % len(revisions.items())
     
     destroyConnCursor(conn, cursor)
@@ -218,7 +274,7 @@ def getParameters():
     
     #console params
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "outputdir=", "index=", "sitename=", "subdir=", "siteurl=", "dbname=", "tableprefix=", "startdate=", "enddate="])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "anonymous", "outputdir=", "index=", "sitename=", "subdir=", "siteurl=", "dbname=", "tableprefix=", "startdate=", "enddate="])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -251,6 +307,8 @@ def getParameters():
             preferences["startDate"] = datetime.datetime(year=int(a.split("-")[0]), month=int(a.split("-")[1]), day=int(a.split("-")[2]), hour=0, minute=0, second=0)
         elif o in ("--enddate"):
             preferences["endDate"] = datetime.datetime(year=int(a.split("-")[0]), month=int(a.split("-")[1]), day=int(a.split("-")[2]), hour=0, minute=0, second=0)
+        elif o in ("--anonymous"):
+            preferences["anonymous"] = True
         else:
             assert False, "unhandled option"
 
@@ -640,7 +698,10 @@ def generateUsersTable():
                 rev_page = rev_props["rev_page"]
                 if pages[rev_page]["page_namespace"] == 0:
                     editsInArticles += 1
-        output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], editsInAllPages, 0, editsInArticles, 0, 0, 0, 0, 0, user_id, len(users[user_id]["images"]))
+        if preferences["anonymous"]:
+            output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], editsInAllPages, 0, editsInArticles, 0, 0, 0, 0, 0, len(users[user_id]["images"]))
+        else:
+            output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], editsInAllPages, 0, editsInArticles, 0, 0, 0, 0, 0, user_id, len(users[user_id]["images"]))
         c+=1
     
     output += """</table>"""
@@ -769,7 +830,8 @@ def generateUsersAnalysis():
 def generateAnalysis():
     generateGeneralAnalysis()
     generatePagesAnalysis()
-    generateUsersAnalysis()
+    if not preferences["anonymous"]:
+        generateUsersAnalysis()
 
 def bye():
     print "StatMediaWiki has finished correctly. Killing process to exit program."
@@ -783,6 +845,8 @@ def main():
     loadImages()
     loadRevisions()
     loadUsers() #revisions and uploads loaded required
+    if preferences["anonymous"]:
+        anonimize()
     initialize() #dbname required
     manageOutputDir()
     generateAnalysis()
