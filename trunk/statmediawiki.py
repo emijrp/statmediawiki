@@ -184,11 +184,13 @@ def loadUsers():
             user_name = unicode(re.sub("_", " ", row[1]), "utf-8")
             if user_id == 0: #if ip, we use user_name (ip) as id
                 user_id = user_name
-            users[user_id] = {
-                "user_name": user_name,
-                "images": [],
-                "revisions": [],
-            }
+            if not users.has_key(user_id):
+                users[user_id] = {
+                    "user_name": user_name,
+                    "images": [],
+                    "revisions": [],
+                    "revisionsbynamespace": {0: 0},
+                }
     print "Loaded %s users" % len(users.items())
     
     #cargamos listas de images y revisiones para cada usuario
@@ -196,6 +198,12 @@ def loadUsers():
     for user_id, user_props in users.items():
         users[user_id]["images"] = getUserImages(user_id)
         users[user_id]["revisions"] = getUserRevisions(user_id)
+        
+    for rev_id, rev_props in revisions.items():
+        rev_page = rev_props["rev_page"]
+        rev_user = rev_props["rev_user"]
+        if pages[rev_page]["page_namespace"] == 0:
+            users[rev_user]["revisionsbynamespace"][0] += 1
     
     destroyConnCursor(conn, cursor)
 
@@ -698,17 +706,10 @@ def generateUsersTable():
     c=1
     for revisionsNumber, user_id in sortedUsers:
         user_props = users[user_id]
-        editsInAllPages = len(user_props["revisions"])
-        editsInArticles = 0
-        for rev_id, rev_props in revisions.items():
-            if rev_props["rev_user_text"] == user_props["user_name"]:
-                rev_page = rev_props["rev_page"]
-                if pages[rev_page]["page_namespace"] == 0:
-                    editsInArticles += 1
         if preferences["anonymous"]:
-            output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], editsInAllPages, 0, editsInArticles, 0, 0, 0, 0, 0, len(users[user_id]["images"]))
+            output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], len(user_props["revisions"]), 0, user_props["revisionsbynamespace"][0], 0, 0, 0, 0, 0, len(user_props["images"]))
         else:
-            output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], editsInAllPages, 0, editsInArticles, 0, 0, 0, 0, 0, user_id, len(users[user_id]["images"]))
+            output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], len(user_props["revisions"]), 0, user_props["revisionsbynamespace"][0], 0, 0, 0, 0, 0, user_id, len(user_props["images"]))
         c+=1
     
     output += """</table>"""
@@ -823,6 +824,13 @@ def generateUsersAnalysis():
             gallery += u"<a href='%s%s/Image:%s'><img src='%s' width=200px /></a>&nbsp;&nbsp;&nbsp;" % (preferences["siteUrl"], preferences["subDir"], img_name, images[img_name]["img_url"])
         
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
+        <table class="sections">
+        <tr><th><b>Sections</b></th></tr>
+        <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
+        <tr><td><a href="#activity">Activity</a></td></tr>
+        <tr><td><a href="#uploads">Uploads</a></td></tr>
+        <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
+        </table>
         <dl>
         <dt>User:</dt>
         <dd><a href='%s/%s/User:%s'>%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</dd>
@@ -844,7 +852,7 @@ def generateUsersAnalysis():
         <img src="../../graphs/users/user_%s_month_activity.png" />
         </center>
         <h2 id="uploads">Uploads</h2>
-        This user has uploaded %s files:<br/>
+        This user has uploaded %s files.<br/>
         %s
         <h2 id="tagscloud">Tags cloud</h2>
         <center>
