@@ -68,6 +68,12 @@ def destroyConnCursor(conn, cursor):
     cursor.close()
     conn.close()
 
+def getImageUrl(img_name):
+    img_name_ = re.sub(' ', '_', img_name) #espacios a _
+    md5_ = md5.md5(img_name_.encode('utf-8')).hexdigest() #digest hexadecimal
+    img_url = u"%s/images/%s/%s/%s" % (preferences["siteUrl"], md5_[0], md5_[:2], img_name_)
+    return img_url
+
 def getUserImages(user_id):
     user_images = []
     for img_name, imageprops in images.items():
@@ -145,6 +151,7 @@ def loadImages():
             "img_user_text": img_user_text, 
             "img_timestamp": img_timestamp, 
             "img_size": img_size, 
+            "img_url": getImageUrl(img_name),
         }
     print "Loaded %s images" % len(images.items())
     
@@ -446,9 +453,9 @@ def generatePagesTimeActivity(page_id):
     page_title = pages[page_id]["page_title"] #todo namespaces
     conds = ["rev_user=0", "rev_user!=0"] #anónimo o no
     headers = ["Edits by anonymous users in %s" % page_title, "Edits by registered users in %s" % page_title]
-    generateTimeActivity(time="hour", type="pages", fileprefix="pages_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-    generateTimeActivity(time="dayofweek", type="pages", fileprefix="pages_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-    generateTimeActivity(time="month", type="pages", fileprefix="pages_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="hour", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="dayofweek", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="month", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
 
 def generateUsersTimeActivity(user_id):
     user_name = users[user_id]["user_name"]
@@ -457,9 +464,9 @@ def generateUsersTimeActivity(user_id):
     else:
         conds = ["rev_user=%d" % user_id, "page_namespace=0 and rev_user=%d" % user_id] # artículo o todas
     headers = ["Edits by %s (all pages)" % user_name, "Edits by %s (only articles)" % user_name]
-    generateTimeActivity(time="hour", type="users", fileprefix="users_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
-    generateTimeActivity(time="dayofweek", type="users", fileprefix="users_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
-    generateTimeActivity(time="month", type="users", fileprefix="users_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="hour", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="dayofweek", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+    generateTimeActivity(time="month", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
 
 def generateCloud(type, file, conds, limit=100):
     cloud = {}
@@ -742,7 +749,15 @@ def generateGeneralAnalysis():
     dateGenerated = datetime.datetime.now().isoformat()
     period = "%s &ndash %s" % (preferences["startDate"].isoformat(), preferences["endDate"].isoformat())
     
-    body = u"""<dl>
+    body = u"""<table class="sections">
+    <tr><th><b>Sections</b></th></tr>
+    <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
+    <tr><td><a href="#activity">Activity</a></td></tr>
+    <tr><td><a href="#users">Users</a></td></tr>
+    <tr><td><a href="#pages">Pages</a></td></tr>
+    <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
+    </table>
+    <dl>
     <dt>Site:</dt>
     <dd><a href='%s'>%s</a></dd>
     <dt>Report period:</dt>
@@ -760,24 +775,24 @@ def generateGeneralAnalysis():
     <dt>Generated:</dt>
     <dd>%s</dt>
     </dl>
-    <h2>Content evolution</h2>
+    <h2 id="contentevolution">Content evolution</h2>
     <center>
     <img src="graphs/general/general_content_evolution.png" />
     </center>
-    <h2>Activity</h2>
+    <h2 id="activity">Activity</h2>
     <center>
     <img src="graphs/general/general_hour_activity.png" />
     <img src="graphs/general/general_dayofweek_activity.png" />
     <img src="graphs/general/general_month_activity.png" />
     </center>
-    <h2>Users</h2>
+    <h2 id="users">Users</h2>
     <center>
     %s
     </center>
-    <h2>Pages</h2>
+    <h2 id="pages">Pages</h2>
     </center>
     </center>
-    <h2>Tags cloud</h2>
+    <h2 id="tagscloud">Tags cloud</h2>
     <center>
     </center>
     """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable())
@@ -803,33 +818,45 @@ def generateUsersAnalysis():
         generateUsersContentEvolution(user_id=user_id)
         generateUsersTimeActivity(user_id=user_id)
         
+        gallery = u""
+        for img_name in users[user_id]["images"]:
+            gallery += u"<a href='%s%s/Image:%s'><img src='%s' width=200px /></a>&nbsp;&nbsp;&nbsp;" % (preferences["siteUrl"], preferences["subDir"], img_name, images[img_name]["img_url"])
+        
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <dl>
         <dt>User:</dt>
-        <dd><a href='%s/%s/User:%s'>%s</a></dd>
+        <dd><a href='%s/%s/User:%s'>%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</dd>
+        <dt>Edits:</dt>
+        <dd>0 (In articles: 0)</dd>
+        <dt>Bytes added:</dt>
+        <dd>0 (In articles: 0)</dd>
+        <dt>Files uploaded:</dt>
+        <dd><a href="#uploads">0</a></dd>
         </dl>
-        <h2>Content evolution by %s</h2>
+        <h2 id="contentevolution">Content evolution</h2>
         <center>
-        <img src="../../graphs/users/users_%s_content_evolution.png" />
+        <img src="../../graphs/users/user_%s_content_evolution.png" />
         </center>
-        <h2>Activity by %s</h2>
+        <h2 id="activity">Activity</h2>
         <center>
-        <img src="../../graphs/users/users_%s_hour_activity.png" />
-        <img src="../../graphs/users/users_%s_dayofweek_activity.png" />
-        <img src="../../graphs/users/users_%s_month_activity.png" />
+        <img src="../../graphs/users/user_%s_hour_activity.png" />
+        <img src="../../graphs/users/user_%s_dayofweek_activity.png" />
+        <img src="../../graphs/users/user_%s_month_activity.png" />
         </center>
-        <h2>Uploads</h2>
-        <h2>Tags cloud</h2>
+        <h2 id="uploads">Uploads</h2>
+        This user has uploaded %s files:<br/>
+        %s
+        <h2 id="tagscloud">Tags cloud</h2>
         <center>
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, user_name, user_id, user_name, user_id, user_id, user_id)
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery)
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
 
 def generateAnalysis():
     generateGeneralAnalysis()
-    generatePagesAnalysis()
+    #generatePagesAnalysis()
     if not preferences["anonymous"]:
         generateUsersAnalysis()
 
@@ -859,5 +886,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
