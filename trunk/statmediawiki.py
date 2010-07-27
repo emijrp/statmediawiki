@@ -476,29 +476,37 @@ def generateUsersTimeActivity(user_id):
     generateTimeActivity(time="dayofweek", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
     generateTimeActivity(time="month", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
 
-def generateCloud(type, file, conds, limit=100):
+def generateCloud(type, fileprefix, user_id=False, page_id=False):
     cloud = {}
     
-    conn, cursor = createConnCursor()
-    for cond in conds:
-        cursor.execute("SELECT rev_comment FROM %srevision" % (preferences["tablePrefix"]))
-        result = cursor.fetchall()
-        for row in result:
-            #array('c', ) http://bytes.com/topic/python/answers/472757-mysqldb-return-strange-type-variable
-            rev_comment = unicode(row[0].tostring(), "utf-8")
-            line = re.sub(ur"  +", ur" ", rev_comment)
-            tags = line.split(" ")
-            for tag in tags:
-                #unuseful tags filter
-                tag = tag.lower()
-                tag = re.sub(ur"[\[\]\=\,]", ur"", tag) #no commas, csv
-                if len(tag)<4:
+    for rev_id, rev_props in revisions.items():
+        if type=="users":
+            if user_id:
+                if rev_props["rev_user"] != user_id:
                     continue
-                #end filter
-                if cloud.has_key(tag):
-                    cloud[tag] += 1
-                else:
-                    cloud[tag] = 1
+            else:
+                print u"Llamada a función tipo users sin user_id"
+        if type=="pages":
+            if page_id:
+                if rev_props["rev_page"] != page_id:
+                    continue
+            else:
+                print u"Llamada a función tipo pages sin page_id"
+        
+        line = re.sub(ur"  +", ur" ", rev_props["rev_comment"])
+        tags = line.split(" ")
+        for tag in tags:
+            #unuseful tags filter
+            tag = tag.lower()
+            tag = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿]", ur" ", tag) #no commas, csv
+            tag = re.sub(ur"  +", ur" ", tag)
+            if len(tag)<4:
+                continue
+            #end filter
+            if cloud.has_key(tag):
+                cloud[tag] += 1
+            else:
+                cloud[tag] = 1
     
     cloudList = []
     for tag, times in cloud.items():
@@ -507,22 +515,53 @@ def generateCloud(type, file, conds, limit=100):
     cloudList.sort()
     cloudList.reverse()
     
-    header = ['word', 'frequency']
+    """header = ['word', 'frequency']
     rows = []
     c = 0
+    
     for times, tag in cloudList:
         c+=1
-        if c>limit:
+        if c>50:
             break
         rows.append([tag, str(times)])
+    """
     
-    printCSV(type=type, file=file, header=header, rows=rows)
+    limit = 50
     
-    destroyConnCursor(conn, cursor)
+    minSize = 100 #min fontsize
+    maxSize = 300 #max fontsize
+    maxTimes = 0
+    minTimes = 999999999
+    for times, tag in cloudList[:limit]:
+        if maxTimes<times:
+            maxTimes = times
+        if minTimes>times:
+            minTimes = times
+    
+    output = u""
+    cloudListShuffle = cloudList[:limit]
+    random.shuffle(cloudListShuffle)
+    for times, tag in cloudListShuffle:
+        if maxTimes - minTimes > 0:
+            fontsize = 100 + ((times - minTimes) * (maxSize - minSize)) / (maxTimes - minTimes)
+        else:
+            fontsize = 100 + (maxSize - minSize ) / 2
+        output += u"""<span style="font-size: %s%%">%s</span> &nbsp;&nbsp;&nbsp""" % (fontsize, tag)
+    
+    if not output:
+        output += u"This user has made no comments in edits."
+    #printCSV(type=type, file=file, header=header, rows=rows)
+    
+    return output
 
 def generateGeneralCloud():
-    conds = ["1"] # no condition
-    generateCloud(type="general", file="general_cloud.csv", conds=conds)
+    return generateCloud(type="general", fileprefix="general")
+    
+def generateUsersCloud(user_id):
+    return generateCloud(type="users", fileprefix="user_%s" % user_id, user_id=user_id)
+    
+def generatePagesCloud(page_id):
+    return generateCloud(type="pages", fileprefix="page_%d" % page_id, page_id=page_id)
 
 def printHTML(type, file="", title="", body=""):
     stylesdir = "styles"
@@ -791,12 +830,13 @@ def generateGeneralAnalysis():
     %s
     </center>
     <h2 id="pages">Pages</h2>
-    </center>
+    <center>
     </center>
     <h2 id="tagscloud">Tags cloud</h2>
     <center>
+    %s
     </center>
-    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable())
+    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable(), generateGeneralCloud())
     
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
@@ -853,11 +893,14 @@ def generateUsersAnalysis():
         </center>
         <h2 id="uploads">Uploads</h2>
         This user has uploaded %s files.<br/>
+        <center>
         %s
+        </center>
         <h2 id="tagscloud">Tags cloud</h2>
         <center>
+        %s
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery)
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
