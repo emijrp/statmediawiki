@@ -671,12 +671,12 @@ def generateContentEvolution(type, user_id=False, page_id=False):
     elif type=="users":
         user_name = users[user_id]["user_name"]
         title = u"Content evolution by %s" % user_name
-        fileprefix = "users_%s" % user_id
+        fileprefix = "user_%s" % user_id
         owner = user_name
     elif type=="pages":
         page_title = pages[page_id]["page_title"]
         title = u"Content evolution in %s" % page_title
-        fileprefix = "pages_%s" % page_id
+        fileprefix = "page_%s" % page_id
         owner = page_title
     
     #falta csv
