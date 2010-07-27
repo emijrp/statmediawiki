@@ -256,7 +256,7 @@ def initialize():
     if not preferences["endDate"]:
         cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (preferences["tablePrefix"]))
         a = cursor.fetchall()[0][0]
-        preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
+        preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=23, minute=59, second=59)
     
     destroyConnCursor(conn, cursor)
 
@@ -536,16 +536,16 @@ def printHTML(type, file="", title="", body=""):
     f.close()
 
 def printLinesGraph(title, file, labels, headers, rows):
-    xticsperiod=""
-    c=0
-    fecha=preferences["startDate"]
+    xticsperiod = ""
+    c = 0
+    fecha = preferences["startDate"]
     fechaincremento=datetime.timedelta(days=1)
-    while fecha!=preferences["endDate"]:
+    while fecha <= preferences["endDate"]:
         if fecha.day in [1, 15]:
-            xticsperiod+='"%s" %s,' % (fecha.strftime("%Y-%m-%d"), c)
-        fecha+=fechaincremento
-        c+=1
-    xticsperiod=xticsperiod[:len(xticsperiod)-1]
+            xticsperiod += '"%s" %s,' % (fecha.strftime("%Y-%m-%d"), c)
+        fecha += fechaincremento
+        c += 1
+    xticsperiod = xticsperiod[:len(xticsperiod)-1]
     
     gp = Gnuplot.Gnuplot()
     gp('set data style lines')
@@ -564,16 +564,16 @@ def printLinesGraph(title, file, labels, headers, rows):
     gp.close()
 
 def printBarsGraph(title, file, labels, headers, rows):
-    convert={}
-    convert["hour"]={"0":"00", "1":"01", "2":"02", "3":"03", "4":"04", "5":"05", "6":"06", "7":"07", "8":"08", "9":"09", "10":"10", "11":"11", "12":"12", "13":"13", "14":"14", "15":"15", "16":"16", "17":"17", "18":"18", "19":"19", "20":"20", "21":"21", "22":"22", "23":"23"}
-    convert["dayofweek"]={"0":"Sun", "1":"Mon", "2":"Tue", "3":"Wed", "4":"Thu", "5":"Fri", "6":"Sat"}
-    convert["month"]={"0":"Jan", "1":"Feb", "2":"Mar", "3":"Apr", "4":"May", "5":"Jun", "6":"Jul", "7":"Aug", "8":"Sep", "9":"Oct", "10":"Nov", "11":"Dec"}
-    convert2={"hour":"Hour", "dayofweek":"Day of week", "month":"Month"}
+    convert = {}
+    convert["hour"] = {"0":"00", "1":"01", "2":"02", "3":"03", "4":"04", "5":"05", "6":"06", "7":"07", "8":"08", "9":"09", "10":"10", "11":"11", "12":"12", "13":"13", "14":"14", "15":"15", "16":"16", "17":"17", "18":"18", "19":"19", "20":"20", "21":"21", "22":"22", "23":"23"}
+    convert["dayofweek"] = {"0":"Sun", "1":"Mon", "2":"Tue", "3":"Wed", "4":"Thu", "5":"Fri", "6":"Sat"}
+    convert["month"] = {"0":"Jan", "1":"Feb", "2":"Mar", "3":"Apr", "4":"May", "5":"Jun", "6":"Jul", "7":"Aug", "8":"Sep", "9":"Oct", "10":"Nov", "11":"Dec"}
+    convert2 = {"hour":"Hour", "dayofweek":"Day of week", "month":"Month"}
     xtics = ""
     for xtic in rows[0]:
         xtic_ = convert[headers[0]][str(xtic)]
         xtics += '"%s" %s, ' % (xtic_, xtic)
-    xtics=xtics[:-2]
+    xtics = xtics[:-2]
     #print xtics
     gp = Gnuplot.Gnuplot()
     gp("set style data boxes")
@@ -745,10 +745,8 @@ def generateGeneralAnalysis():
     body = u"""<dl>
     <dt>Site:</dt>
     <dd><a href='%s'>%s</a></dd>
-    <dt>Generated:</dt>
-    <dd>%s</dt>
     <dt>Report period:</dt>
-    <dd>%s</dd>
+    <dd>%s &ndash; %s</dd>
     <dt>Total pages:</dt>
     <dd>%s (Articles: %s)</dd>
     <dt>Total edits:</dt>
@@ -759,6 +757,8 @@ def generateGeneralAnalysis():
     <dd><a href="%s%s/Special:Imagelist">%s</a></dd>
     <dt>Users:</dt>
     <dd><a href="users.html">%s</a></dd>
+    <dt>Generated:</dt>
+    <dd>%s</dt>
     </dl>
     <h2>Content evolution</h2>
     <center>
@@ -780,7 +780,7 @@ def generateGeneralAnalysis():
     <h2>Tags cloud</h2>
     <center>
     </center>
-    """ % (preferences["siteUrl"], preferences["siteName"], 0, 0, dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], generateUsersTable())
+    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable())
     
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
@@ -841,13 +841,16 @@ def main():
     welcome()
     
     getParameters()
+    initialize() #dbname required
+    
     loadPages()
     loadImages()
-    loadRevisions()
+    loadRevisions() #require startDate and endDate initialized
     loadUsers() #revisions and uploads loaded required
+    
     if preferences["anonymous"]:
         anonimize()
-    initialize() #dbname required
+    
     manageOutputDir()
     generateAnalysis()
     copyFiles()
