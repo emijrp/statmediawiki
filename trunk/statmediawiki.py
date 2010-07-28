@@ -738,18 +738,25 @@ def generateUsersTable():
     <tr><th>#</th><th>User</th><th>Edits</th><th>Edits in articles</th><th>Bytes added</th><th>Bytes added in articles</th><th>Uploads</th></tr>"""
     
     sortedUsers = [] #by edits
+    
+    edits = 0
+    editsinarticles = 0
     for user_id, user_props in users.items():
-        sortedUsers.append([len(user_props["revisions"]), user_id])
+        edits += user_props["revisionsbynamespace"]["*"]
+        editsinarticles += user_props["revisionsbynamespace"][0]
+        sortedUsers.append([user_props["revisionsbynamespace"]["*"], user_id])
     sortedUsers.sort()
     sortedUsers.reverse()
     
     c=1
     for revisionsNumber, user_id in sortedUsers:
         user_props = users[user_id]
+        edits_percent = user_props["revisionsbynamespace"]["*"] / (edits / 100.0)
+        editsinarticles_percent = user_props["revisionsbynamespace"][0] / (editsinarticles / 100.0)
         if preferences["anonymous"]:
-            output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], len(user_props["revisions"]), 0, user_props["revisionsbynamespace"][0], 0, 0, 0, 0, 0, len(user_props["images"]))
+            output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, 0, 0, 0, 0, len(user_props["images"]))
         else:
-            output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], len(user_props["revisions"]), 0, user_props["revisionsbynamespace"][0], 0, 0, 0, 0, 0, user_id, len(user_props["images"]))
+            output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, 0, 0, 0, 0, user_id, len(user_props["images"]))
         c+=1
     
     output += """</table>"""
