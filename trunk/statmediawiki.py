@@ -189,7 +189,7 @@ def loadUsers():
                     "user_name": user_name,
                     "images": [],
                     "revisions": [],
-                    "revisionsbynamespace": {0: 0},
+                    "revisionsbynamespace": {"*": 0, 0: 0},
                 }
     print "Loaded %s users" % len(users.items())
     
@@ -202,6 +202,7 @@ def loadUsers():
     for rev_id, rev_props in revisions.items():
         rev_page = rev_props["rev_page"]
         rev_user = rev_props["rev_user"]
+        users[rev_user]["revisionsbynamespace"]["*"] += 1
         if pages[rev_page]["page_namespace"] == 0:
             users[rev_user]["revisionsbynamespace"][0] += 1
     
@@ -861,7 +862,7 @@ def generateUsersAnalysis():
         
         gallery = u""
         for img_name in users[user_id]["images"]:
-            gallery += u"<a href='%s%s/Image:%s'><img src='%s' width=200px /></a>&nbsp;&nbsp;&nbsp;" % (preferences["siteUrl"], preferences["subDir"], img_name, images[img_name]["img_url"])
+            gallery += u"<a href='%s/%s/Image:%s'><img src='%s' width=200px /></a>&nbsp;&nbsp;&nbsp;" % (preferences["siteUrl"], preferences["subDir"], img_name, images[img_name]["img_url"])
         
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <table class="sections">
@@ -875,11 +876,11 @@ def generateUsersAnalysis():
         <dt>User:</dt>
         <dd><a href='%s/%s/User:%s'>%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</dd>
         <dt>Edits:</dt>
-        <dd>0 (In articles: 0)</dd>
+        <dd>%s (In articles: %s)</dd>
         <dt>Bytes added:</dt>
         <dd>0 (In articles: 0)</dd>
         <dt>Files uploaded:</dt>
-        <dd><a href="#uploads">0</a></dd>
+        <dd><a href="#uploads">%s</a></dd>
         </dl>
         <h2 id="contentevolution">Content evolution</h2>
         <center>
@@ -900,7 +901,7 @@ def generateUsersAnalysis():
         <center>
         %s
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
