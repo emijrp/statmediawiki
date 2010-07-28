@@ -499,7 +499,7 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
         for tag in tags:
             #unuseful tags filter
             tag = tag.lower()
-            tag = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿]", ur" ", tag) #no commas, csv
+            tag = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*]", ur" ", tag) #no commas, csv
             tag = re.sub(ur"  +", ur" ", tag)
             if len(tag)<4:
                 continue
