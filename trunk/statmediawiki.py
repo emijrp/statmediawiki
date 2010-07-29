@@ -740,6 +740,10 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         
         fecha += fechaincremento
     
+    if type == "users":
+        users[user_id]["bytesbynamespace"]["*"] = bytes
+        users[user_id]["bytesbynamespace"][0] = bytesinarticles
+        
     title = ""
     fileprefix = ""
     owner = ""
@@ -779,9 +783,13 @@ def generateUsersTable():
     
     edits = 0
     editsinarticles = 0
+    bytes = 0
+    bytesinarticles = 0
     for user_id, user_props in users.items():
         edits += user_props["revisionsbynamespace"]["*"]
         editsinarticles += user_props["revisionsbynamespace"][0]
+        bytes += user_props["bytesbynamespace"]["*"]
+        bytesinarticles += user_props["bytesbynamespace"][0]
         sortedUsers.append([user_props["revisionsbynamespace"]["*"], user_id])
     sortedUsers.sort()
     sortedUsers.reverse()
@@ -791,10 +799,12 @@ def generateUsersTable():
         user_props = users[user_id]
         edits_percent = user_props["revisionsbynamespace"]["*"] / (edits / 100.0)
         editsinarticles_percent = user_props["revisionsbynamespace"][0] / (editsinarticles / 100.0)
+        bytes_percent = user_props["bytesbynamespace"]["*"] / (bytes / 100.0)
+        bytesinarticles_percent = user_props["bytesbynamespace"][0] / (bytesinarticles / 100.0)
         if preferences["anonymous"]:
-            output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, 0, 0, 0, 0, len(user_props["images"]))
+            output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, len(user_props["images"]))
         else:
-            output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, 0, 0, 0, 0, user_id, len(user_props["images"]))
+            output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, user_id, len(user_props["images"]))
         c+=1
     
     output += """</table>"""
