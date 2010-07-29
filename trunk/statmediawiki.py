@@ -41,14 +41,18 @@ preferences["siteUrl"] = "http://youwikisite.org"
 preferences["subDir"] = "index.php" #MediaWiki subdir, usually "index.php" in http://osl.uca.es/wikihaskell/index.php/Main_Page
 preferences["dbName"] = "yourwikidb"
 preferences["tablePrefix"] = "" #Usually empty
-preferences["startDate"] = "" #If wanted, start point for date range
-preferences["endDate"] = "" #If wanted, end point for date range
+preferences["startDate"] = "" #auto, start point for date range
+preferences["endDate"] = "" #auto, end point for date range
 preferences["currentPath"] = os.path.dirname(__file__)
 preferences["anonymous"] = False
 
 #todo:
 #con que numero se lanzan los sys.exit() cuando hay un fallo?
 #que las rutas ../../ no sean relativas, buscar algo como $IP o __file__ ?
+
+#conv:
+#convenciones:
+#solo contamos los añadidos de texto, no cuando se elimina texto (no se penaliza a nadie)
 
 #el usuario que hace las consultas sql debe tener acceso lectura a las bbdd, con los datos de .my.cnf
 t1=time.time()
@@ -82,7 +86,7 @@ def getUserImages(user_id):
     return user_images
 
 def noise(s):
-    s = u"%s%s" % (s, random.randint(1, 999999999))
+    s = u"%s%s%s" % (random.randint(1, 999999999), s, random.randint(1, 999999999))
     s = md5.new(s.encode('utf-8')).hexdigest()
     return s
 
@@ -190,15 +194,17 @@ def loadUsers():
                     "images": [],
                     "revisions": [],
                     "revisionsbynamespace": {"*": 0, 0: 0},
+                    "bytesbynamespace": {"*": 0, 0: 0},
                 }
     print "Loaded %s users" % len(users.items())
     
     #cargamos listas de images y revisiones para cada usuario
-    #no puede hacerse en el bucle anterior porque getUserImages() y la otra función, llaman a users y necesitan que users esté creado antes
+    #no puede hacerse en el bucle anterior porque getUserImages() y la otra función, llaman a users y necesitan que users esté relleno ya
     for user_id, user_props in users.items():
         users[user_id]["images"] = getUserImages(user_id)
         users[user_id]["revisions"] = getUserRevisions(user_id)
-        
+    
+    #revisions by namespace
     for rev_id, rev_props in revisions.items():
         rev_page = rev_props["rev_page"]
         rev_user = rev_props["rev_user"]
@@ -233,7 +239,7 @@ def loadRevisions():
     global revisions
     
     conn, cursor = createConnCursor()
-    cursor.execute("select rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, old_text from %srevision, %stext where old_id=rev_text_id and rev_timestamp>='%s' and rev_timestamp<='%s'" % (preferences["tablePrefix"], preferences["tablePrefix"], '%sZ000000T' % re.sub('-', '', preferences["startDate"].isoformat().split("T")[0]), '%sZ235959T' % re.sub('-', '', preferences["endDate"].isoformat().split("T")[0])))
+    cursor.execute("select rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text from %srevision, %stext where old_id=rev_text_id" % (preferences["tablePrefix"], preferences["tablePrefix"]))
     result = cursor.fetchall()
     for row in result:
         rev_id = int(row[0])
@@ -244,20 +250,34 @@ def loadRevisions():
             rev_user = rev_user_text
         rev_timestamp = row[4]
         rev_comment = unicode(row[5].tostring(), "utf-8")
-        old_text = unicode(row[6].tostring(), "utf-8")
+        rev_parent_id = int(row[6])
+        old_text = unicode(row[7].tostring(), "utf-8")
         revisions[rev_id] = {
             "rev_id": rev_id, #no es un error
             "rev_page": rev_page, 
             "rev_user": rev_user, 
             "rev_user_text": rev_user_text, 
             "rev_timestamp": datetime.datetime(year=int(rev_timestamp[:4]), month=int(rev_timestamp[4:6]), day=int(rev_timestamp[6:8]), hour=int(rev_timestamp[8:10]), minute=int(rev_timestamp[10:12]), second=int(rev_timestamp[12:14])), 
-            "rev_comment": rev_comment, 
+            "rev_comment": rev_comment,
+            "rev_parent_id": rev_parent_id,
             "old_text": old_text, 
+            "len_diff": 0,
         }
     print "Loaded %s revisions" % len(revisions.items())
     
+    #len_diff, incremento de tamaño respecto a la versión anterior (si es negativo es decremento)
+    for rev_id, rev_props in revisions.items():
+        #que pasa con los rev_parent_id que apuntan a revisiones borradas?
+        rev_parent_id = rev_props["rev_parent_id"]
+        if rev_parent_id == 0: #es la primera revisión de esta página
+            revisions[rev_id]["len_diff"] = len(rev_props["old_text"])
+        elif revisions.has_key(rev_parent_id):
+            revisions[rev_id]["len_diff"] = len(rev_props["old_text"]) - len(revisions[rev_parent_id]["old_text"])
+        else:
+            print "Revision", rev_parent_id, "no encontrada"
+            sys.exit()
+    
     destroyConnCursor(conn, cursor)
-
 
 def initialize():
     global preferences
@@ -407,18 +427,23 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
     row0=[]
     row1=[]
     row2=[]
+    row3=[]
     for period in range_:
         period  = str(period)
         row0.append(period)
         cond0 = "0"
         cond1 = "0"
+        cond2 = "0"
         if results[conds[0]].has_key(period):
             cond0 = results[conds[0]][period]
         row1.append(cond0)
         if results[conds[1]].has_key(period):
             cond1 = results[conds[1]][period]
         row2.append(cond1)
-    rows=[row0, row1, row2]
+        if results[conds[2]].has_key(period):
+            cond2 = results[conds[2]][period]
+        row3.append(cond2)
+    rows=[row0, row1, row2, row3]
     
     title = ""
     if type=="general":
@@ -446,14 +471,14 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
             title = u"Month activity in %s" % page_title
     
     #printCSV(type=type, file=file, header=header, rows=rows)
-    print rows
+    #print rows
     printGraphTimeActivity(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=rows)
     
     destroyConnCursor(conn, cursor)
 
 def generateGeneralTimeActivity():
-    conds = ["1", "page_namespace=0"] # artículo o todas
-    headers = ["Edits (all pages)", "Edits (only articles)"]
+    conds = ["1", "page_namespace=0", "page_namespace=1"] # artículo o todas
+    headers = ["Edits (all pages)", "Edits (only articles)", "Edits (only articles talks)"]
     generateTimeActivity(time="hour", type="general", fileprefix="general", conds=conds, headers=headers)
     generateTimeActivity(time="dayofweek", type="general", fileprefix="general", conds=conds, headers=headers)
     generateTimeActivity(time="month", type="general", fileprefix="general", conds=conds, headers=headers)
@@ -469,10 +494,10 @@ def generatePagesTimeActivity(page_id):
 def generateUsersTimeActivity(user_id):
     user_name = users[user_id]["user_name"]
     if user_name == user_id: #ip
-        conds = ["rev_user_text='%s'" % user_id, "page_namespace=0 and rev_user_text='%s'" % user_id] # artículo o todas, #todo añadir escape() para comillas?
+        conds = ["rev_user_text='%s'" % user_id, "page_namespace=0 and rev_user_text='%s'" % user_id, "page_namespace=1 and rev_user_text='%s'" % user_id] # artículo o todas, #todo añadir escape() para comillas?
     else:
-        conds = ["rev_user=%d" % user_id, "page_namespace=0 and rev_user=%d" % user_id] # artículo o todas
-    headers = ["Edits by %s (all pages)" % user_name, "Edits by %s (only articles)" % user_name]
+        conds = ["rev_user=%d" % user_id, "page_namespace=0 and rev_user=%d" % user_id, "page_namespace=1 and rev_user=%d" % user_id] # artículo o todas
+    headers = ["Edits by %s (all pages)" % user_name, "Edits by %s (only articles)" % user_name, "Edits by %s (only articles talks)" % user_name]
     generateTimeActivity(time="hour", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
     generateTimeActivity(time="dayofweek", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
     generateTimeActivity(time="month", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
@@ -612,13 +637,24 @@ def printLinesGraph(title, file, labels, headers, rows):
     gp('set mytics 2')
     gp('set xtics rotate by 90')
     gp('set xtics (%s)' % xticsperiod)
-    plot1 = Gnuplot.PlotItems.Data(rows[0], with_="lines", title=headers[1].encode("utf-8"))
-    plot2 = Gnuplot.PlotItems.Data(rows[1], with_="lines", title=headers[2].encode("utf-8"))
-    gp.plot(plot1, plot2)
+    plots = []
+    c = 0
+    for row in rows:
+        plots.append(Gnuplot.PlotItems.Data(rows[c], with_="lines", title=headers[c+1].encode("utf-8")))
+        c += 1
+    if len(plots) == 1:
+        gp.plot(plots[0])
+    elif len(plots) == 2:
+        gp.plot(plots[0], plots[1])
+    elif len(plots) == 3:
+        gp.plot(plots[0], plots[1], plots[2])
+    elif len(plots) == 4:
+        gp.plot(plots[0], plots[1], plots[2], plots[3])
+
     gp.hardcopy(filename=file, terminal="png") 
     gp.close()
 
-def printBarsGraph(title, file, labels, headers, rows):
+def printBarsGraph(title, file, headers, rows):
     convert = {}
     convert["hour"] = {"0":"00", "1":"01", "2":"02", "3":"03", "4":"04", "5":"05", "6":"06", "7":"07", "8":"08", "9":"09", "10":"10", "11":"11", "12":"12", "13":"13", "14":"14", "15":"15", "16":"16", "17":"17", "18":"18", "19":"19", "20":"20", "21":"21", "22":"22", "23":"23"}
     convert["dayofweek"] = {"0":"Sun", "1":"Mon", "2":"Tue", "3":"Wed", "4":"Thu", "5":"Fri", "6":"Sat"}
@@ -639,9 +675,17 @@ def printBarsGraph(title, file, labels, headers, rows):
     gp('set ylabel "Edits"')
     #gp('set xtics rotate by 90')
     gp('set xtics (%s)' % xtics.encode("utf-8"))
-    plot1 = Gnuplot.PlotItems.Data(rows[1], with_="boxes", title=headers[1].encode("utf-8"))
-    plot2 = Gnuplot.PlotItems.Data(rows[2], with_="boxes", title=headers[2].encode("utf-8"))
-    gp.plot(plot1, plot2)
+    c = 1
+    plots = []
+    for row in rows[1:]:
+        plots.append(Gnuplot.PlotItems.Data(rows[c], with_="boxes", title=headers[c].encode("utf-8")))
+        c += 1
+    if len(rows)-1 == 1:
+        gp.plot(plots[0])
+    elif len(rows)-1 == 2:
+        gp.plot(plots[0], plots[1])
+    elif len(rows)-1 == 3:
+        gp.plot(plots[0], plots[1], plots[2])
     gp.hardcopy(filename=file,terminal="png")
     gp.close()
 
@@ -651,78 +695,72 @@ def printGraphContentEvolution(type, fileprefix, title, headers, rows):
     printLinesGraph(title=title, file=file, labels=labels, headers=headers, rows=rows)
 
 def printGraphTimeActivity(type, fileprefix, title, headers, rows):
-    labels = ["Edits", "Hour"]
     file = "%s/graphs/%s/%s_activity.png" % (preferences["outputDir"], type, fileprefix)
-    printBarsGraph(title=title, file=file, labels=labels, headers=headers, rows=rows)
+    printBarsGraph(title=title, file=file, headers=headers, rows=rows)
 
 def generateContentEvolution(type, user_id=False, page_id=False):
-    fecha=preferences["startDate"]
-    fechaincremento=datetime.timedelta(days=1)
-    graph1=[]
-    graph2=[]
-    while fecha<preferences["endDate"]:
-        status={}
-        statusarticles={}
+    fecha = preferences["startDate"]
+    fechaincremento = datetime.timedelta(days=1)
+    graph1 = []
+    graph2 = []
+    graph3 = []
+    bytes = 0
+    bytesinarticles = 0
+    bytesintalks = 0
+    while fecha < preferences["endDate"]:
         for rev_id, rev_props in revisions.items():
-            if type=="general":
+            if type == "general":
                 pass #nos interesan todas
-            elif type=="users":
+            elif type == "users":
                 if not user_id:
                     print "Error: no hay user_id"
-                if rev_props["rev_user"]!=user_id:
+                if rev_props["rev_user"] != user_id:
                     continue #nos la saltamos, no es de este usuario
             elif type=="pages":
                 if not page_id:
                     print "Error: no hay page_id"
-                if rev_props["rev_page"]!=page_id:
+                if rev_props["rev_page"] != page_id:
                     continue #nos la saltamos, no es de esta página
             
-            if rev_props["rev_timestamp"]<fecha:
+            if rev_props["rev_timestamp"] < fecha and rev_props["rev_timestamp"] >= fecha - fechaincremento: # 00:00:00 < fecha < 23:59:59 
                 rev_page = rev_props["rev_page"]
+                if rev_props["len_diff"] < 1: #conv: solo contamos las diferencias positivas, de momento
+                    continue
                 #evolución de los artículos
-                if pages[rev_page]["page_namespace"]==0:
-                    if (statusarticles.has_key(rev_page) and statusarticles[rev_page]["rev_timestamp"]<rev_props["rev_timestamp"]) or \
-                       not statusarticles.has_key(rev_page):
-                        statusarticles[rev_page] = rev_props
+                if pages[rev_page]["page_namespace"] == 0:
+                    bytesinarticles += rev_props["len_diff"]
+                if pages[rev_page]["page_namespace"] == 1:
+                    bytesintalks += rev_props["len_diff"]
                 #evolución de todas las páginas
-                if (status.has_key(rev_page) and status[rev_page]["rev_timestamp"]<rev_props["rev_timestamp"]) or \
-                   not status.has_key(rev_page):
-                    status[rev_page] = rev_props
-    
-        #recorremos entonces la instantanea de la wiki en aquel momento
-        bytes=0
-        for rev_page, rev_props in status.items():
-            bytes+=len(rev_props["old_text"])
+                bytes += rev_props["len_diff"]
+        
         graph1.append(bytes)
-    
-        bytesarticles=0
-        for rev_page, rev_props in statusarticles.items():
-            bytesarticles+=len(rev_props["old_text"])
-        graph2.append(bytesarticles)
-        fecha+=fechaincremento
+        graph2.append(bytesinarticles)
+        graph3.append(bytesintalks)
+        
+        fecha += fechaincremento
     
     title = ""
     fileprefix = ""
     owner = ""
-    if type=="general":
+    if type == "general":
         title = u"Content evolution in %s" % preferences["siteName"]
         fileprefix = "general"
         owner = preferences["siteName"]
-    elif type=="users":
+    elif type == "users":
         user_name = users[user_id]["user_name"]
         title = u"Content evolution by %s" % user_name
         fileprefix = "user_%s" % user_id
         owner = user_name
-    elif type=="pages":
+    elif type == "pages":
         page_title = pages[page_id]["page_title"]
         title = u"Content evolution in %s" % page_title
         fileprefix = "page_%s" % page_id
         owner = page_title
     
     #falta csv
-    headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner]
-    headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner]
-    printGraphContentEvolution(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=[graph1, graph2])
+    headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner, "%s content (only articles talks)" % owner]
+    printGraphContentEvolution(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=[graph1, graph2, graph3])
 
 def generateGeneralContentEvolution():
     generateContentEvolution(type="general")
@@ -864,7 +902,7 @@ def generateUsersAnalysis():
     for user_id, user_props in users.items():
         user_name = user_props["user_name"]
         print u"Generando análisis para el usuario %s" % user_name
-        generateUsersContentEvolution(user_id=user_id)
+        generateUsersContentEvolution(user_id=user_id) #debe ir antes de rellenar el body, cuenta bytes
         generateUsersTimeActivity(user_id=user_id)
         
         gallery = u""
@@ -885,7 +923,7 @@ def generateUsersAnalysis():
         <dt>Edits:</dt>
         <dd>%s (In articles: %s)</dd>
         <dt>Bytes added:</dt>
-        <dd>0 (In articles: 0)</dd>
+        <dd>%s (In articles: %s)</dd>
         <dt>Files uploaded:</dt>
         <dd><a href="#uploads">%s</a></dd>
         </dl>
@@ -908,16 +946,16 @@ def generateUsersAnalysis():
         <center>
         %s
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
 
 def generateAnalysis():
-    generateGeneralAnalysis()
     #generatePagesAnalysis()
     if not preferences["anonymous"]:
         generateUsersAnalysis()
+    generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
 
 def bye():
     print "StatMediaWiki has finished correctly. Killing process to exit program."
