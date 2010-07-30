@@ -238,6 +238,8 @@ def loadPages():
             "page_is_redirect": page_is_redirect,
             "page_len": page_len,
             "page_counter": page_counter, #visits
+            "revisions": [],
+            "revisionsbyuserclass": {"anon": 0, "reg": 0},
             "edits": 0,
         }
     print "Loaded %s pages" % len(pages.items())
@@ -247,6 +249,11 @@ def loadPages():
         rev_page = rev_props["rev_page"]
         if pages.has_key(rev_page):
             pages[rev_page]["edits"] += 1
+            pages[rev_page]["revisions"].append(rev_id)
+            if rev_props["rev_user"] == rev_props["rev_user_text"]: #anon #todo:  tener una variable is_anon en cada revisión?
+                pages[rev_page]["revisionsbyuserclass"]["anon"] += 1
+            else:
+                pages[rev_page]["revisionsbyuserclass"]["reg"] += 1
         else:
             print "Page", rev_page, "not found"
             sys.exit()
@@ -849,7 +856,7 @@ def generateUsersTable():
             output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, user_id, len(user_props["images"]))
         c += 1
     
-    output += u"""<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s (100%%)</td><td>%s</td></tr>\n""" % (edits, editsinarticles, bytes, bytesinarticles, uploads)
+    output += u"""<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s</td></tr>\n""" % (edits, editsinarticles, bytes, bytesinarticles, uploads)
     output += u"""</table>"""
     output += u"""<ul><li id="note1">Note 1: This number can be greater than total bytes in the wiki, as some of the content inserted could have been deleted later.</li></ul>"""
     
@@ -883,6 +890,63 @@ def generatePagesTable():
     
     output += """<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n""" % (edits, bytes, visits)
     output += """</table>"""
+    
+    return output
+
+def generateUsersMostEditedTable(user_id):
+    output = u"""<table>
+    <tr><th>#</th><th>Page</th><th>Edits</th></tr>"""
+    
+    most_edited = {}
+    for rev_id in users[user_id]["revisions"]:
+        rev_page = revisions[rev_id]["rev_page"]
+        if most_edited.has_key(rev_page):
+            most_edited[rev_page] += 1
+        else:
+            most_edited[rev_page] = 1
+    
+    most_edited_list = []
+    for rev_page, edits in most_edited.items():
+        most_edited_list.append([edits, rev_page])
+    most_edited_list.sort()
+    most_edited_list.reverse()
+    
+    c = 0
+    for edits, rev_page in most_edited_list:
+        c += 1
+        page_title = pages[rev_page]["page_title"]
+        output += u"""<tr><td>%s</td><td><a href="../pages/page_%s.html">%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_page, page_title, preferences["siteUrl"], page_title, edits)
+    
+    output += u"""</table>"""
+    
+    return output
+
+def generatePagesTopUsersTable(page_id):
+    output = u"""<table>
+    <tr><th>#</th><th>User</th><th>Edits</th></tr>"""
+    
+    top_users = {}
+    for rev_id in pages[page_id]["revisions"]:
+        rev_user = revisions[rev_id]["rev_user"]
+        if top_users.has_key(rev_user):
+            top_users[rev_user] += 1
+        else:
+            top_users[rev_user] = 1
+    
+    top_users_list = []
+    for rev_user, edits in top_users.items():
+        top_users_list.append([edits, rev_user])
+    top_users_list.sort()
+    top_users_list.reverse()
+    
+    c = 0
+    for edits, rev_user in top_users_list:
+        c += 1
+        user_name = users[rev_user]["user_name"]
+        page_title = pages[page_id]["page_title"]
+        output += u"""<tr><td>%s</td><td><a href="../users/user_%s.html">%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_user, user_name, preferences["siteUrl"], page_title, edits)
+    
+    output += u"""</table>"""
     
     return output
 
@@ -945,9 +1009,9 @@ def generateGeneralAnalysis():
     <dt>Total visits:</dt>
     <dd>%s</dd>
     <dt>Total files:</dt>
-    <dd><a href="%s%s/Special:Imagelist">%s</a></dd>
+    <dd><a href="%s/%s/Special:Imagelist">%s</a></dd>
     <dt>Users:</dt>
-    <dd><a href="users.html">%s</a></dd>
+    <dd><a href="#users">%s</a></dd>
     <dt>Generated:</dt>
     <dd>%s</dd>
     </dl>
@@ -994,6 +1058,7 @@ def generatePagesAnalysis():
         <tr><th><b>Sections</b></th></tr>
         <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
         <tr><td><a href="#activity">Activity</a></td></tr>
+        <tr><td><a href="#topusers">Top users</a></td></tr>
         <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
         </table>
         <dl>
@@ -1014,11 +1079,15 @@ def generatePagesAnalysis():
         <img src="../../graphs/pages/page_%s_dayofweek_activity.png" alt="Day of week activity" />
         <img src="../../graphs/pages/page_%s_month_activity.png" alt="Month activity" />
         </center>
+        <h2 id="topusers">Top users</h2>
+        <center>
+        %s
+        </center>
         <h2 id="tagscloud">Tags cloud</h2>
         <center>
         %s
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, page_props["edits"], 0, 0, page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesCloud(page_id=page_id))
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, page_props["edits"], page_props["revisionsbyuserclass"]["anon"], page_props["revisionsbyuserclass"]["reg"], page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id))
         
         title = "%s: %s" % (preferences["siteName"], page_title)
         printHTML(type="pages", file="page_%s.html" % page_id, title=title, body=body)
@@ -1039,6 +1108,7 @@ def generateUsersAnalysis():
         <tr><th><b>Sections</b></th></tr>
         <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
         <tr><td><a href="#activity">Activity</a></td></tr>
+        <tr><td><a href="#mostedited">Most edited pages</a></td></tr>
         <tr><td><a href="#uploads">Uploads</a></td></tr>
         <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
         </table>
@@ -1062,6 +1132,10 @@ def generateUsersAnalysis():
         <img src="../../graphs/users/user_%s_dayofweek_activity.png" alt="Day of week activity" />
         <img src="../../graphs/users/user_%s_month_activity.png" alt="Month activity" />
         </center>
+        <h2 id="mostedited">Most edited pages</h2>
+        <center>
+        %s
+        </center>
         <h2 id="uploads">Uploads</h2>
         This user has uploaded %s files.<br/>
         <center>
@@ -1071,7 +1145,7 @@ def generateUsersAnalysis():
         <center>
         %s
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
