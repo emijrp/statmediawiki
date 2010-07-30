@@ -626,7 +626,10 @@ def printHTML(type, file="", title="", body=""):
     <h1>StatMediaWiki: %s</h1>
     %s
     <hr />
-    <center>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a></center>
+    <center>
+    <p>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a></p>
+    <p><a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88" /></a></p>
+    </center>
     </body>
     </html>""" % (stylesdir, title, title, body)
     
@@ -913,7 +916,7 @@ def generateGeneralAnalysis():
     cursor.execute("SELECT COUNT(*) AS count FROM %simage WHERE 1" % preferences["tablePrefix"])
     dict["totalfiles"] = cursor.fetchall()[0][0]
     dateGenerated = datetime.datetime.now().isoformat()
-    period = "%s &ndash %s" % (preferences["startDate"].isoformat(), preferences["endDate"].isoformat())
+    period = "%s &ndash; %s" % (preferences["startDate"].isoformat(), preferences["endDate"].isoformat())
     
     body = u"""<table class="sections">
     <tr><th><b>Sections</b></th></tr>
@@ -990,7 +993,7 @@ def generatePagesAnalysis():
         </table>
         <dl>
         <dt>Page:</dt>
-        <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&action=history">history</a>)</dd>
+        <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</dd>
         <dt>Edits:</dt>
         <dd>%s (By anonymous users: %s. By registered users: %s)</dd>
         <dt>Bytes:</dt>
@@ -1024,7 +1027,7 @@ def generateUsersAnalysis():
         
         gallery = u""
         for img_name in users[user_id]["images"]:
-            gallery += u"<a href='%s/%s/Image:%s'><img src='%s' width=200px /></a>&nbsp;&nbsp;&nbsp;" % (preferences["siteUrl"], preferences["subDir"], img_name, images[img_name]["img_url"])
+            gallery += u"""<a href='%s/%s/Image:%s'><img src="%s" width="200px" alt="%s"/></a>&nbsp;&nbsp;&nbsp;""" % (preferences["siteUrl"], preferences["subDir"], img_name, images[img_name]["img_url"], img_name)
         
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <table class="sections">
