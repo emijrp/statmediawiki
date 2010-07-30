@@ -873,7 +873,7 @@ def generateUsersTable():
     
     output += u"""<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s</td></tr>\n""" % (edits, editsinarticles, bytes, bytesinarticles, uploads)
     output += u"""</table>"""
-    output += u"""<ul><li id="note1">Note 1: This number can be greater than total bytes in the wiki, as some of the content inserted could have been deleted later.</li></ul>"""
+    output += u"""<ul><li id="note1">Note 1: This figure can be greater than the total bytes in the wiki, as byte erased are not discounted in this ranking.</li></ul>"""
     
     return output
 
