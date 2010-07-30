@@ -49,6 +49,7 @@ preferences["anonymous"] = False
 #todo:
 #con que numero se lanzan los sys.exit() cuando hay un fallo?
 #que las rutas ../../ no sean relativas, buscar algo como $IP o __file__ ?
+#len() devuelve bytes?
 
 #conv:
 #convenciones:
@@ -219,19 +220,33 @@ def loadPages():
     pages = {}
     
     conn, cursor = createConnCursor()
-    cursor.execute("select page_id, page_namespace, page_title, page_is_redirect from %spage" % preferences["tablePrefix"])
+    cursor.execute("select page_id, page_namespace, page_title, page_is_redirect, page_len, page_counter from %spage" % preferences["tablePrefix"])
     result = cursor.fetchall()
     for row in result:
         page_id = int(row[0])
         page_namespace = int(row[1])
         page_title = unicode(row[2], "utf-8")
         page_is_redirect = int(row[3])
+        page_len = int(row[4])
+        page_counter = int(row[5])
         pages[page_id] = {
             "page_namespace": page_namespace, 
             "page_title": page_title, 
             "page_is_redirect": page_is_redirect,
+            "page_len": page_len,
+            "page_counter": page_counter, #visits
+            "edits": 0,
         }
     print "Loaded %s pages" % len(pages.items())
+    
+    #count edits per page
+    for rev_id, rev_props in revisions.items():
+        rev_page = rev_props["rev_page"]
+        if pages.has_key(rev_page):
+            pages[rev_page]["edits"] += 1
+        else:
+            print "Page", rev_page, "not found"
+            sys.exit()
     
     destroyConnCursor(conn, cursor)
 
@@ -274,7 +289,7 @@ def loadRevisions():
         elif revisions.has_key(rev_parent_id):
             revisions[rev_id]["len_diff"] = len(rev_props["old_text"]) - len(revisions[rev_parent_id]["old_text"])
         else:
-            print "Revision", rev_parent_id, "no encontrada"
+            print "Revision", rev_parent_id, "not found"
             sys.exit()
     
     destroyConnCursor(conn, cursor)
@@ -794,7 +809,7 @@ def generateUsersTable():
     sortedUsers.sort()
     sortedUsers.reverse()
     
-    c=1
+    c = 1
     for revisionsNumber, user_id in sortedUsers:
         user_props = users[user_id]
         edits_percent = user_props["revisionsbynamespace"]["*"] / (edits / 100.0)
@@ -805,7 +820,37 @@ def generateUsersTable():
             output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, len(user_props["images"]))
         else:
             output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, user_id, len(user_props["images"]))
-        c+=1
+        c += 1
+    
+    output += """</table>"""
+    
+    return output
+
+def generatePagesTable():
+    output = u"""<table>
+    <tr><th>#</th><th>Page</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
+    
+    sortedPages = [] #by edits
+    
+    edits = 0
+    bytes = 0
+    visits = 0
+    for page_id, page_props in pages.items():
+        edits += page_props["edits"]
+        bytes += page_props["page_len"]
+        visits += page_props["page_counter"]
+        sortedPages.append([page_props["edits"], page_id])
+    sortedPages.sort()
+    sortedPages.reverse()
+    
+    c = 1
+    for edits, page_id in sortedPages:
+        page_props = pages[page_id]
+        edits_percent = page_props["edits"] / (edits / 100.0)
+        bytes_percent = page_props["page_len"] / (bytes / 100.0)
+        visits_percent = page_props["page_counter"] / (visits / 100.0)
+        output += u"""<tr><td>%s</td><td><a href="html/pages/page_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td></tr>\n""" % (c, page_id, page_props["page_title"], page_props["edits"], edits_percent, page_props["page_len"], bytes_percent, page_props["page_counter"], visits_percent)
+        c += 1
     
     output += """</table>"""
     
@@ -887,12 +932,13 @@ def generateGeneralAnalysis():
     </center>
     <h2 id="pages">Pages</h2>
     <center>
+    %s
     </center>
     <h2 id="tagscloud">Tags cloud</h2>
     <center>
     %s
     </center>
-    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable(), generateGeneralCloud())
+    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateGeneralCloud())
     
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
@@ -977,9 +1023,9 @@ def main():
     getParameters()
     initialize() #dbname required
     
-    loadPages()
     loadImages()
     loadRevisions() #require startDate and endDate initialized
+    loadPages() #revisions loaded required
     loadUsers() #revisions and uploads loaded required
     
     if preferences["anonymous"]:
