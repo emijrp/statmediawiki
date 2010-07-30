@@ -781,9 +781,9 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         users[user_id]["bytesbynamespace"]["*"] = count1
         users[user_id]["bytesbynamespace"][0] = count2
         
-    title = ""
-    fileprefix = ""
-    owner = ""
+    title = u""
+    fileprefix = u""
+    owner = u""
     if type == "general":
         title = u"Content evolution in %s" % preferences["siteName"]
         fileprefix = "general"
@@ -825,11 +825,13 @@ def generateUsersTable():
     editsinarticles = 0
     bytes = 0
     bytesinarticles = 0
+    uploads = 0
     for user_id, user_props in users.items():
         edits += user_props["revisionsbynamespace"]["*"]
         editsinarticles += user_props["revisionsbynamespace"][0]
         bytes += user_props["bytesbynamespace"]["*"]
         bytesinarticles += user_props["bytesbynamespace"][0]
+        uploads += len(user_props["images"])
         sortedUsers.append([user_props["revisionsbynamespace"]["*"], user_id])
     sortedUsers.sort()
     sortedUsers.reverse()
@@ -847,7 +849,9 @@ def generateUsersTable():
             output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, user_id, len(user_props["images"]))
         c += 1
     
-    output += """</table>"""
+    output += u"""<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s (100%%)</td><td>%s</td></tr>\n""" % (edits, editsinarticles, bytes, bytesinarticles, uploads)
+    output += u"""</table>"""
+    output += u"""<ul><li id="note1">Note 1: This number can be greater than total bytes in the wiki, as some of the content inserted could have been deleted later.</li></ul>"""
     
     return output
 
@@ -869,7 +873,7 @@ def generatePagesTable():
     sortedPages.reverse()
     
     c = 1
-    for edits, page_id in sortedPages:
+    for page_edits, page_id in sortedPages:
         page_props = pages[page_id]
         edits_percent = page_props["edits"] / (edits / 100.0)
         bytes_percent = page_props["page_len"] / (bytes / 100.0)
@@ -877,6 +881,7 @@ def generatePagesTable():
         output += u"""<tr><td>%s</td><td><a href="html/pages/page_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td></tr>\n""" % (c, page_id, page_props["page_title"], page_props["edits"], edits_percent, page_props["page_len"], bytes_percent, page_props["page_counter"], visits_percent)
         c += 1
     
+    output += """<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n""" % (edits, bytes, visits)
     output += """</table>"""
     
     return output
