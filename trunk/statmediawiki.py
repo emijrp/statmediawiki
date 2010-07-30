@@ -33,6 +33,7 @@ pages = {}
 preferences = {}
 users = {}
 revisions = {}
+namespaces = {-2: u"Media", -1: u"Special", 1: u"Talk", 2: u"User", 3: u"User talk", 4: u"Project", 5: u"Project talk", 6: u"File", 7: u"File talk", 8: u"MediaWiki", 9: u"MediaWiki talk", 10: u"Template", 11: u"Template talk", 12: u"Help", 13: u"Help talk", 14: u"Category", 15: u"Category talk"}
 
 preferences["outputDir"] = "output"
 preferences["indexFilename"] = "index.html"
@@ -225,7 +226,9 @@ def loadPages():
     for row in result:
         page_id = int(row[0])
         page_namespace = int(row[1])
-        page_title = unicode(row[2], "utf-8")
+        page_title = unicode(re.sub("_", " ", row[2]), "utf-8")
+        if page_namespace != 0:
+            page_title = u"%s:%s" % (namespaces[page_namespace], page_title)
         page_is_redirect = int(row[3])
         page_len = int(row[4])
         page_counter = int(row[5])
@@ -500,8 +503,8 @@ def generateGeneralTimeActivity():
 
 def generatePagesTimeActivity(page_id):
     page_title = pages[page_id]["page_title"] #todo namespaces
-    conds = ["rev_user=0", "rev_user!=0"] #anónimo o no
-    headers = ["Edits by anonymous users in %s" % page_title, "Edits by registered users in %s" % page_title]
+    conds = ["1", "rev_user=0", "rev_user!=0"] #todas, anónimas o registrados
+    headers = ["Edits in %s (all users)" % page_title, "Edits in %s (only anonymous users)" % page_title, "Edits in %s (only registered users)" % page_title]
     generateTimeActivity(time="hour", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
     generateTimeActivity(time="dayofweek", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
     generateTimeActivity(time="month", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
@@ -527,23 +530,22 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
                     continue
             else:
                 print u"Llamada a función tipo users sin user_id"
+                sys.exit()
         if type=="pages":
             if page_id:
                 if rev_props["rev_page"] != page_id:
                     continue
             else:
                 print u"Llamada a función tipo pages sin page_id"
+                sys.exit()
         
-        line = re.sub(ur"  +", ur" ", rev_props["rev_comment"])
-        tags = line.split(" ")
+        comment = rev_props["rev_comment"].lower().strip()
+        comment = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*\(\)\<\>\+\.\-]", ur" ", comment) #no commas, csv
+        comment = re.sub(ur"  +", ur" ", comment)
+        tags = comment.split(" ")
         for tag in tags:
-            #unuseful tags filter
-            tag = tag.lower()
-            tag = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*]", ur" ", tag) #no commas, csv
-            tag = re.sub(ur"  +", ur" ", tag)
-            if len(tag)<4:
+            if len(tag)<4: #unuseful tags filter
                 continue
-            #end filter
             if cloud.has_key(tag):
                 cloud[tag] += 1
             else:
@@ -587,7 +589,7 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
             fontsize = 100 + ((times - minTimes) * (maxSize - minSize)) / (maxTimes - minTimes)
         else:
             fontsize = 100 + (maxSize - minSize ) / 2
-        output += u"""<span style="font-size: %s%%">%s</span> &nbsp;&nbsp;&nbsp""" % (fontsize, tag)
+        output += u"""<span style="font-size: %s%%">%s</span> &nbsp;&nbsp;&nbsp;""" % (fontsize, tag)
     
     if not output:
         output += u"This user has made no comments in edits."
@@ -615,11 +617,11 @@ def printHTML(type, file="", title="", body=""):
     f = open(file, "w")
     output = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
-    <header>
+    <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="%s/style.css" type="text/css" media="all" />
     <title>StatMediaWiki: %s</title>
-    </header>
+    </head>
     <body>
     <h1>StatMediaWiki: %s</h1>
     %s
@@ -651,7 +653,7 @@ def printLinesGraph(title, file, labels, headers, rows):
     gp('set ylabel "%s"' % labels[1].encode("utf-8"))
     gp('set mytics 2')
     gp('set xtics rotate by 90')
-    gp('set xtics (%s)' % xticsperiod)
+    gp('set xtics (%s)' % xticsperiod.encode("utf-8"))
     plots = []
     c = 0
     for row in rows:
@@ -719,9 +721,9 @@ def generateContentEvolution(type, user_id=False, page_id=False):
     graph1 = []
     graph2 = []
     graph3 = []
-    bytes = 0
-    bytesinarticles = 0
-    bytesintalks = 0
+    count1 = 0
+    count2 = 0
+    count3 = 0
     while fecha < preferences["endDate"]:
         for rev_id, rev_props in revisions.items():
             if type == "general":
@@ -739,25 +741,41 @@ def generateContentEvolution(type, user_id=False, page_id=False):
             
             if rev_props["rev_timestamp"] < fecha and rev_props["rev_timestamp"] >= fecha - fechaincremento: # 00:00:00 < fecha < 23:59:59 
                 rev_page = rev_props["rev_page"]
-                if rev_props["len_diff"] < 1: #conv: solo contamos las diferencias positivas, de momento
-                    continue
-                #evolución de los artículos
-                if pages[rev_page]["page_namespace"] == 0:
-                    bytesinarticles += rev_props["len_diff"]
-                if pages[rev_page]["page_namespace"] == 1:
-                    bytesintalks += rev_props["len_diff"]
-                #evolución de todas las páginas
-                bytes += rev_props["len_diff"]
+                if type == "general":
+                    #más adelante quizás convenga poner la evolución del contenido según anónimos y registrados, para el caso general
+                    if pages[rev_page]["page_namespace"] == 0:
+                        count2 += rev_props["len_diff"]
+                    if pages[rev_page]["page_namespace"] == 1:
+                        count3 += rev_props["len_diff"]
+                    #evolución de todas las páginas
+                    count1 += rev_props["len_diff"]
+                elif type == "pages":
+                    if rev_props["rev_user"] == rev_props["rev_user_text"]: #anon, #todo: poner una variable is_anon para evitar esta comparación?
+                        count2 += rev_props["len_diff"]
+                    else:
+                        count3 += rev_props["len_diff"]
+                    count1 += rev_props["len_diff"]
+                elif type == "users":
+                    if rev_props["len_diff"] < 1:
+                        #conv: solo contamos las diferencias positivas para los usuarios, de momento
+                        #para el global y las páginas, sí hay retrocesos
+                        continue
+                    if pages[rev_page]["page_namespace"] == 0:
+                        count2 += rev_props["len_diff"]
+                    if pages[rev_page]["page_namespace"] == 1:
+                        count3 += rev_props["len_diff"]
+                    #evolución de todas las páginas
+                    count1 += rev_props["len_diff"]
         
-        graph1.append(bytes)
-        graph2.append(bytesinarticles)
-        graph3.append(bytesintalks)
+        graph1.append(count1)
+        graph2.append(count2)
+        graph3.append(count3)
         
         fecha += fechaincremento
     
     if type == "users":
-        users[user_id]["bytesbynamespace"]["*"] = bytes
-        users[user_id]["bytesbynamespace"][0] = bytesinarticles
+        users[user_id]["bytesbynamespace"]["*"] = count1
+        users[user_id]["bytesbynamespace"][0] = count2
         
     title = ""
     fileprefix = ""
@@ -778,7 +796,10 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         owner = page_title
     
     #falta csv
-    headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner, "%s content (only articles talks)" % owner]
+    if type == "pages":
+        headers = ["Date", "%s content (all users)" % owner, "%s content (only anonymous users)" % owner, "%s content (only registered users)" % owner]
+    else:
+        headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner, "%s content (only articles talks)" % owner]
     printGraphContentEvolution(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=[graph1, graph2, graph3])
 
 def generateGeneralContentEvolution():
@@ -885,6 +906,9 @@ def generateGeneralAnalysis():
     cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE page_namespace=0 AND page_is_redirect=0" % preferences["tablePrefix"])
     dict["totalbytesinarticles"] = cursor.fetchall()[0][0]
     
+    cursor.execute("SELECT SUM(page_counter) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
+    dict["totalvisits"] = cursor.fetchall()[0][0]
+    
     cursor.execute("SELECT COUNT(*) AS count FROM %simage WHERE 1" % preferences["tablePrefix"])
     dict["totalfiles"] = cursor.fetchall()[0][0]
     dateGenerated = datetime.datetime.now().isoformat()
@@ -909,12 +933,14 @@ def generateGeneralAnalysis():
     <dd>%s (In articles: %s)</dd>
     <dt>Total bytes:</dt>
     <dd>%s (In articles: %s)</dd>
+    <dt>Total visits:</dt>
+    <dd>%s</dd>
     <dt>Total files:</dt>
     <dd><a href="%s%s/Special:Imagelist">%s</a></dd>
     <dt>Users:</dt>
     <dd><a href="users.html">%s</a></dd>
     <dt>Generated:</dt>
-    <dd>%s</dt>
+    <dd>%s</dd>
     </dl>
     <h2 id="contentevolution">Content evolution</h2>
     <center>
@@ -938,11 +964,12 @@ def generateGeneralAnalysis():
     <center>
     %s
     </center>
-    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateGeneralCloud())
+    </body>
+    </html>
+    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], dict["totalvisits"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateGeneralCloud())
     
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
-    #generateGeneralCloud()
     
     printHTML(type="general", title=preferences["siteName"], body=body)
     
@@ -950,9 +977,46 @@ def generateGeneralAnalysis():
 
 def generatePagesAnalysis():
     for page_id, page_props in pages.items():
-        print u"Generando análisis para la página %s" % pages[page_id]["page_title"]
+        page_title = pages[page_id]["page_title"]
+        print u"Generando análisis para la página %s" % page_title
         generatePagesContentEvolution(page_id=page_id)
         generatePagesTimeActivity(page_id=page_id)
+        
+        body = u"""&lt;&lt; <a href="../../%s">Back</a>
+        <table class="sections">
+        <tr><th><b>Sections</b></th></tr>
+        <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
+        <tr><td><a href="#activity">Activity</a></td></tr>
+        <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
+        </table>
+        <dl>
+        <dt>Page:</dt>
+        <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&action=history">history</a>)</dd>
+        <dt>Edits:</dt>
+        <dd>%s (By anonymous users: %s. By registered users: %s)</dd>
+        <dt>Bytes:</dt>
+        <dd>%s</dd>
+        </dl>
+        <h2 id="contentevolution">Content evolution</h2>
+        <center>
+        <img src="../../graphs/pages/page_%s_content_evolution.png" />
+        </center>
+        <h2 id="activity">Activity</h2>
+        <center>
+        <img src="../../graphs/pages/page_%s_hour_activity.png" />
+        <img src="../../graphs/pages/page_%s_dayofweek_activity.png" />
+        <img src="../../graphs/pages/page_%s_month_activity.png" />
+        </center>
+        <h2 id="tagscloud">Tags cloud</h2>
+        <center>
+        %s
+        </center>
+        </body>
+        </html>
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, page_props["edits"], 0, 0, page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesCloud(page_id=page_id))
+        
+        title = "%s: %s" % (preferences["siteName"], page_title)
+        printHTML(type="pages", file="page_%s.html" % page_id, title=title, body=body)
 
 def generateUsersAnalysis():
     for user_id, user_props in users.items():
@@ -985,13 +1049,13 @@ def generateUsersAnalysis():
         </dl>
         <h2 id="contentevolution">Content evolution</h2>
         <center>
-        <img src="../../graphs/users/user_%s_content_evolution.png" />
+        <img src="../../graphs/users/user_%s_content_evolution.png" alt="Content evolution" />
         </center>
         <h2 id="activity">Activity</h2>
         <center>
-        <img src="../../graphs/users/user_%s_hour_activity.png" />
-        <img src="../../graphs/users/user_%s_dayofweek_activity.png" />
-        <img src="../../graphs/users/user_%s_month_activity.png" />
+        <img src="../../graphs/users/user_%s_hour_activity.png" alt="Hour activity" />
+        <img src="../../graphs/users/user_%s_dayofweek_activity.png" alt="Day of week activity" />
+        <img src="../../graphs/users/user_%s_month_activity.png" alt="Month activity" />
         </center>
         <h2 id="uploads">Uploads</h2>
         This user has uploaded %s files.<br/>
@@ -1002,13 +1066,15 @@ def generateUsersAnalysis():
         <center>
         %s
         </center>
+        </body>
+        </html>
         """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
 
 def generateAnalysis():
-    #generatePagesAnalysis()
+    generatePagesAnalysis()
     if not preferences["anonymous"]:
         generateUsersAnalysis()
     generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
