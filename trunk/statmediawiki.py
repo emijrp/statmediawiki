@@ -322,9 +322,9 @@ def initialize():
     destroyConnCursor(conn, cursor)
 
 def welcome():
-    print "-"*70
-    print u"""Welcome to StatMediaWiki. Web: http://statmediawiki.forja.rediris.es"""
-    print "-"*70
+    print "-"*75
+    print u"""Welcome to StatMediaWiki 1.0. Web: http://statmediawiki.forja.rediris.es"""
+    print "-"*75
 
 def usage():
     filename = "help.txt"
@@ -382,7 +382,9 @@ def getParameters():
     if not preferences["dbName"] or \
        not preferences["siteUrl"] or \
        not preferences["siteName"]:
-        usage()
+        print u"""Error. Parameters --dbname, --siteurl and --sitename are required. Write --help for help."""
+        sys.exit()
+        #usage()
         
     #fin gestionar falta parametros
 
@@ -820,7 +822,11 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         headers = ["Date", "%s content (all users)" % owner, "%s content (only anonymous users)" % owner, "%s content (only registered users)" % owner]
     else:
         headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner, "%s content (only articles talks)" % owner]
-    printGraphContentEvolution(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=[graph1, graph2, graph3])
+    
+    if type == "users" and preferences["anonymous"]:
+        pass #no print graph
+    else:
+        printGraphContentEvolution(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=[graph1, graph2, graph3])
 
 def generateGeneralContentEvolution():
     generateContentEvolution(type="general")
@@ -925,7 +931,7 @@ def generateUsersMostEditedTable(user_id):
         c += 1
         page_title = pages[rev_page]["page_title"]
         page_namespace = pages[rev_page]["page_namespace"]
-        output += u"""<tr><td>%s</td><td><a href="../pages/page_%s.html">%s</td><td>%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_page, page_title, namespaces[page_namespace], preferences["siteUrl"], page_title, edits)
+        output += u"""<tr><td>%s</td><td><a href="../pages/page_%s.html">%s</a></td><td>%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_page, page_title, namespaces[page_namespace], preferences["siteUrl"], page_title, edits)
     output += u"""<tr><td></td><td>Total</td><td></td><td>%s</td></tr>""" % (users[user_id]["revisionsbynamespace"]["*"])
     
     output += u"""</table>"""
@@ -958,7 +964,7 @@ def generatePagesTopUsersTable(page_id):
         c += 1
         user_name = users[rev_user]["user_name"]
         page_title = pages[page_id]["page_title"]
-        output += u"""<tr><td>%s</td><td><a href="../users/user_%s.html">%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_user, user_name, preferences["siteUrl"], page_title, edits)
+        output += u"""<tr><td>%s</td><td><a href="../users/user_%s.html">%s</a></td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_user, user_name, preferences["siteUrl"], page_title, edits)
     output += u"""<tr><td></td><td>Total</td><td>%s</td></tr>""" % (len(pages[page_id]["revisions"]))
     
     output += u"""</table>"""
@@ -1111,7 +1117,9 @@ def generateUsersAnalysis():
     for user_id, user_props in users.items():
         user_name = user_props["user_name"]
         print u"Generating analysis to user: %s" % user_name
-        generateUsersContentEvolution(user_id=user_id) #debe ir antes de rellenar el body, cuenta bytes
+        generateUsersContentEvolution(user_id=user_id) #debe ir antes de rellenar el body, cuenta bytes, y antes de cortar por anonymous
+        if preferences["anonymous"]:
+            continue
         generateUsersTimeActivity(user_id=user_id)
         
         gallery = u""
@@ -1163,12 +1171,12 @@ def generateUsersAnalysis():
         """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
-        printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
+        if not preferences["anonymous"]:
+            printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
 
 def generateAnalysis():
     generatePagesAnalysis()
-    if not preferences["anonymous"]:
-        generateUsersAnalysis()
+    generateUsersAnalysis()
     generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
 
 def bye():
