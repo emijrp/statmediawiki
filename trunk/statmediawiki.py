@@ -625,7 +625,8 @@ def printHTML(type, file="", title="", body=""):
     <body>
     <h1>StatMediaWiki: %s</h1>
     %s
-    <hr/><center>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a></center>
+    <hr />
+    <center>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a></center>
     </body>
     </html>""" % (stylesdir, title, title, body)
     
@@ -944,13 +945,13 @@ def generateGeneralAnalysis():
     </dl>
     <h2 id="contentevolution">Content evolution</h2>
     <center>
-    <img src="graphs/general/general_content_evolution.png" />
+    <img src="graphs/general/general_content_evolution.png" alt="Content evolution" />
     </center>
     <h2 id="activity">Activity</h2>
     <center>
-    <img src="graphs/general/general_hour_activity.png" />
-    <img src="graphs/general/general_dayofweek_activity.png" />
-    <img src="graphs/general/general_month_activity.png" />
+    <img src="graphs/general/general_hour_activity.png" alt="Hour activity" />
+    <img src="graphs/general/general_dayofweek_activity.png" alt="Day of week activity" />
+    <img src="graphs/general/general_month_activity.png" alt="Month activity" />
     </center>
     <h2 id="users">Users</h2>
     <center>
@@ -964,8 +965,6 @@ def generateGeneralAnalysis():
     <center>
     %s
     </center>
-    </body>
-    </html>
     """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], dict["totalvisits"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateGeneralCloud())
     
     generateGeneralContentEvolution()
@@ -999,20 +998,18 @@ def generatePagesAnalysis():
         </dl>
         <h2 id="contentevolution">Content evolution</h2>
         <center>
-        <img src="../../graphs/pages/page_%s_content_evolution.png" />
+        <img src="../../graphs/pages/page_%s_content_evolution.png" alt="Content evolution" />
         </center>
         <h2 id="activity">Activity</h2>
         <center>
-        <img src="../../graphs/pages/page_%s_hour_activity.png" />
-        <img src="../../graphs/pages/page_%s_dayofweek_activity.png" />
-        <img src="../../graphs/pages/page_%s_month_activity.png" />
+        <img src="../../graphs/pages/page_%s_hour_activity.png" alt="Hour activity" />
+        <img src="../../graphs/pages/page_%s_dayofweek_activity.png" alt="Day of week activity" />
+        <img src="../../graphs/pages/page_%s_month_activity.png" alt="Month activity" />
         </center>
         <h2 id="tagscloud">Tags cloud</h2>
         <center>
         %s
         </center>
-        </body>
-        </html>
         """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, page_props["edits"], 0, 0, page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesCloud(page_id=page_id))
         
         title = "%s: %s" % (preferences["siteName"], page_title)
@@ -1066,8 +1063,6 @@ def generateUsersAnalysis():
         <center>
         %s
         </center>
-        </body>
-        </html>
         """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
         
         title = "%s: User:%s" % (preferences["siteName"], user_name)
