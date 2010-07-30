@@ -33,14 +33,14 @@ pages = {}
 preferences = {}
 users = {}
 revisions = {}
-namespaces = {-2: u"Media", -1: u"Special", 1: u"Talk", 2: u"User", 3: u"User talk", 4: u"Project", 5: u"Project talk", 6: u"File", 7: u"File talk", 8: u"MediaWiki", 9: u"MediaWiki talk", 10: u"Template", 11: u"Template talk", 12: u"Help", 13: u"Help talk", 14: u"Category", 15: u"Category talk"}
+namespaces = {-2: u"Media", -1: u"Special", 0: "Main", 1: u"Talk", 2: u"User", 3: u"User talk", 4: u"Project", 5: u"Project talk", 6: u"File", 7: u"File talk", 8: u"MediaWiki", 9: u"MediaWiki talk", 10: u"Template", 11: u"Template talk", 12: u"Help", 13: u"Help talk", 14: u"Category", 15: u"Category talk"}
 
 preferences["outputDir"] = "output"
 preferences["indexFilename"] = "index.html"
-preferences["siteName"] = "YourWikiSite"
-preferences["siteUrl"] = "http://youwikisite.org"
+preferences["siteName"] = ""
+preferences["siteUrl"] = ""
 preferences["subDir"] = "index.php" #MediaWiki subdir, usually "index.php" in http://osl.uca.es/wikihaskell/index.php/Main_Page
-preferences["dbName"] = "yourwikidb"
+preferences["dbName"] = ""
 preferences["tablePrefix"] = "" #Usually empty
 preferences["startDate"] = "" #auto, start point for date range
 preferences["endDate"] = "" #auto, end point for date range
@@ -322,10 +322,15 @@ def initialize():
     destroyConnCursor(conn, cursor)
 
 def welcome():
-    pass
+    print "-"*70
+    print u"""Welcome to StatMediaWiki. Web: http://statmediawiki.forja.rediris.es"""
+    print "-"*70
 
 def usage():
-    f=open("help.txt", "r")
+    filename = "help.txt"
+    if preferences["currentPath"]:
+        filename = "%s/%s" % (preferences["currentPath"], filename)
+    f=open(filename, "r")
     print f.read()
     f.close()
     sys.exit() #mostramos ayuda y salimos
@@ -374,7 +379,11 @@ def getParameters():
             assert False, "unhandled option"
 
     #gestionar falta de parametros
-
+    if not preferences["dbName"] or \
+       not preferences["siteUrl"] or \
+       not preferences["siteName"]:
+        usage()
+        
     #fin gestionar falta parametros
 
 def manageOutputDir():
@@ -864,7 +873,7 @@ def generateUsersTable():
 
 def generatePagesTable():
     output = u"""<table>
-    <tr><th>#</th><th>Page</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
+    <tr><th>#</th><th>Page</th><th>Namespace</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
     
     sortedPages = [] #by edits
     
@@ -885,17 +894,17 @@ def generatePagesTable():
         edits_percent = page_props["edits"] / (edits / 100.0)
         bytes_percent = page_props["page_len"] / (bytes / 100.0)
         visits_percent = page_props["page_counter"] / (visits / 100.0)
-        output += u"""<tr><td>%s</td><td><a href="html/pages/page_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td></tr>\n""" % (c, page_id, page_props["page_title"], page_props["edits"], edits_percent, page_props["page_len"], bytes_percent, page_props["page_counter"], visits_percent)
+        output += u"""<tr><td>%s</td><td><a href="html/pages/page_%s.html">%s</a></td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td></tr>\n""" % (c, page_id, page_props["page_title"], namespaces[page_props["page_namespace"]], page_props["edits"], edits_percent, page_props["page_len"], bytes_percent, page_props["page_counter"], visits_percent)
         c += 1
     
-    output += """<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n""" % (edits, bytes, visits)
+    output += """<tr><td></td><td>Total</td><td></td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n""" % (edits, bytes, visits)
     output += """</table>"""
     
     return output
 
 def generateUsersMostEditedTable(user_id):
     output = u"""<table>
-    <tr><th>#</th><th>Page</th><th>Edits</th></tr>"""
+    <tr><th>#</th><th>Page</th><th>Namespace</th><th>Edits</th></tr>"""
     
     most_edited = {}
     for rev_id in users[user_id]["revisions"]:
@@ -915,7 +924,9 @@ def generateUsersMostEditedTable(user_id):
     for edits, rev_page in most_edited_list:
         c += 1
         page_title = pages[rev_page]["page_title"]
-        output += u"""<tr><td>%s</td><td><a href="../pages/page_%s.html">%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_page, page_title, preferences["siteUrl"], page_title, edits)
+        page_namespace = pages[rev_page]["page_namespace"]
+        output += u"""<tr><td>%s</td><td><a href="../pages/page_%s.html">%s</td><td>%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_page, page_title, namespaces[page_namespace], preferences["siteUrl"], page_title, edits)
+    output += u"""<tr><td></td><td>Total</td><td></td><td>%s</td></tr>""" % (users[user_id]["revisionsbynamespace"]["*"])
     
     output += u"""</table>"""
     
@@ -948,13 +959,14 @@ def generatePagesTopUsersTable(page_id):
         user_name = users[rev_user]["user_name"]
         page_title = pages[page_id]["page_title"]
         output += u"""<tr><td>%s</td><td><a href="../users/user_%s.html">%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_user, user_name, preferences["siteUrl"], page_title, edits)
+    output += u"""<tr><td></td><td>Total</td><td>%s</td></tr>""" % (len(pages[page_id]["revisions"]))
     
     output += u"""</table>"""
     
     return output
 
 def generateGeneralAnalysis():
-    print "Generando análisis general"
+    print "Generating general analysis"
     conn, cursor = createConnCursor()
     
     dict = {}
@@ -1052,7 +1064,7 @@ def generateGeneralAnalysis():
 def generatePagesAnalysis():
     for page_id, page_props in pages.items():
         page_title = pages[page_id]["page_title"]
-        print u"Generando análisis para la página %s" % page_title
+        print u"Generating analysis to the page: %s" % page_title
         generatePagesContentEvolution(page_id=page_id)
         generatePagesTimeActivity(page_id=page_id)
         
@@ -1098,7 +1110,7 @@ def generatePagesAnalysis():
 def generateUsersAnalysis():
     for user_id, user_props in users.items():
         user_name = user_props["user_name"]
-        print u"Generando análisis para el usuario %s" % user_name
+        print u"Generating analysis to user: %s" % user_name
         generateUsersContentEvolution(user_id=user_id) #debe ir antes de rellenar el body, cuenta bytes
         generateUsersTimeActivity(user_id=user_id)
         
@@ -1160,7 +1172,7 @@ def generateAnalysis():
     generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
 
 def bye():
-    print "StatMediaWiki has finished correctly. Killing process to exit program."
+    print "StatMediaWiki has finished correctly. Closing Gnuplot. Killing process to exit program."
     os.system("kill -9 %s" % os.getpid())
 
 def main():
