@@ -1,4 +1,4 @@
-StatMediaWiki is a GPL beta-stage fully-functional software to collect and aggregate information available in a MediWiki installation.
+StatMediaWiki is a GPL stable fully-functional software to collect and aggregate information available in a MediWiki installation.
 
 StatMediaWiki is coded in Python, so it needs a Python interpreter to run. It additionally requires python-gnuplot package, that you can easily install in you Debian-based distribution using aptitude.
 
