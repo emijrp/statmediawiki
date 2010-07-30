@@ -547,7 +547,7 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
                 sys.exit()
         
         comment = rev_props["rev_comment"].lower().strip()
-        comment = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*\(\)\<\>\+\.\-]", ur" ", comment) #no commas, csv
+        comment = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*\(\)\<\>\+\.\-\#\_\&]", ur" ", comment) #no commas, csv
         comment = re.sub(ur"  +", ur" ", comment)
         tags = comment.split(" ")
         for tag in tags:
@@ -922,6 +922,9 @@ def generateUsersMostEditedTable(user_id):
     return output
 
 def generatePagesTopUsersTable(page_id):
+    if preferences["anonymous"]:
+        return u"""<p>This is an anonymous analysis. This information will not be showed.</p>\n"""
+    
     output = u"""<table>
     <tr><th>#</th><th>User</th><th>Edits</th></tr>"""
     
@@ -1001,7 +1004,7 @@ def generateGeneralAnalysis():
     <dt>Report period:</dt>
     <dd>%s &ndash; %s</dd>
     <dt>Total pages:</dt>
-    <dd>%s (Articles: %s)</dd>
+    <dd><a href="#pages">%s</a> (Articles: %s)</dd>
     <dt>Total edits:</dt>
     <dd>%s (In articles: %s)</dd>
     <dt>Total bytes:</dt>
