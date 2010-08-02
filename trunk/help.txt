@@ -1,24 +1,30 @@
-StatMediaWiki is a GPL stable fully-functional software to collect and aggregate information available in a MediWiki installation.
+StatMediaWiki is a GPL stable fully-functional software to collect and aggregate information available in a MediaWiki installation.
 
 StatMediaWiki is coded in Python, so it needs a Python interpreter to run. It additionally requires python-gnuplot package, that you can easily install in you Debian-based distribution using aptitude.
 
-The system needs a file ~/.my.cnf (in HOME directory) containing database connection settings:
+The system needs read-access to the MediaWiki intallation database. Connections settings must be in the file ~/.my.cnf (in HOME directory):
 
 user = user_able_to_read_the_db
 password = user_password
 host = bbdd_host
 
 StatMediaWiki supports the following options:
-* --outputdir: absolute path to the directory where the report will be generated (by default, output)
-* --index: name of the main (initial) file of the report (by default, index.php)
+* --outputdir: absolute path to the directory where the report will be generated (by default, "output")
+* --index: name of the main (initial) file of the report (by default, "index.php")
 * --sitename: name of the wiki that will be show on the title of the report
 * --siteurl: URL of the wiki
-* --subdir: path that has to be added to the URL to get to the wiki (by default /index.php)
+* --subdir: path that has to be added to the URL to get to the wiki (by default "/index.php")
 * --dbname: name of the database of the wiki
-* --tableprefix: prefix of the tables in the database (only required if you indicated one when installing MediaWiki)
-* --anonymous: make an anonymous analysis (it hides user names and other details, see below)
+* --tableprefix: prefix of the tables in the database (only required if indicated one when installing MediaWiki)
+* --anonymous: make an anonymous analysis (hiding user names and other details, see below)
 
-This is a sample invokation to StatMediaWiki:
+StatMediaWiki has two operation modes: standard and anonymous
+
+* Standard analysis: the lines in the content evolution charts may fall (they do not have to be strictly increasing). That can be caused because the content of a certain page decreases (for example, because some paragraphs are joined and simplified). However, user contribution never falls, as it count user contributions: when the user writes in the wiki, he contributes, no matter if lately the text is eared or modified.
+
+* Anonymous analysis: there is no chart of HTML page for any user (so "graphs/users" and "html/users" directories are empty). Nick are anonymized in the ranking of the whole site, and have no links. In every individual page analysis the ranking of user remains empty (if not it would be too easy to break the anonymization and knowing who is who).
+
+This is a sample invocation to StatMediaWiki:
  python /home/user/statmediawiki.py --outputdir="/home/user/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb
 
 Further reading:
