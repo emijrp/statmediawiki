@@ -16,6 +16,7 @@ StatMediaWiki supports the following options:
 * --subdir: path that has to be added to the URL to get to the wiki (by default /index.php)
 * --dbname: name of the database of the wiki
 * --tableprefix: prefix of the tables in the database (only required if you indicated one when installing MediaWiki)
+* --anonymous: make an anonymous analysis (it hides user names and other details, see below)
 
 This is a sample invokation to StatMediaWiki:
  python /home/user/statmediawiki.py --outputdir="/home/user/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb

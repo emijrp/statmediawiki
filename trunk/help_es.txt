@@ -16,12 +16,13 @@ Las opciones disponibles son las siguientes:
 * --subdir: ruta adicional tras la URL del wiki (por defecto /index.php)
 * --dbname: nombre de la base de datos que contiene el wiki
 * --tableprefix: prefijo de las tablas de la base de datos, si se escogió uno durante la instalación de MediaWiki
+* --anonymous: realiza un análisis anónimo (oculta los nombres de usuario y otros detalles, ver más abajo)
 
 Hay dos modos de análisis: estándar y anónimo
 
-* Análisis estádar: las gráficas de evolución de contenido globales y por páginas pueden tener retrocesos (la línea cae) si en esa fecha la cantidad de contenido del wiki o de la página en concreto disminuyó (por ejemplo, alguien mejora y simplifica la redacción de un artículo, entonces la línea cae, hay menos bytes). Pero las gráficas de los usuarios nunca cae (lo que en un momento aportó (aunque sea basura), no se le resta, aunque un usuario posterior se lo borre). Esto fue lo que hablamos en su día.
+* Análisis estándar: las gráficas de evolución de contenido globales y por páginas pueden tener retrocesos (la línea cae) si en esa fecha la cantidad de contenido del wiki o de la página en concreto disminuyó (por ejemplo, alguien mejora y simplifica la redacción de un artículo, entonces la línea cae, hay menos bytes). Pero las gráficas de los usuarios nunca caen (lo que en un momento aportó, no se le resta, aunque un usuario posterior se lo borre).
 
-* Análisis anónimo: en el análisis anónimo no se genera ninguna gráfica ni html para usuarios (los directorios graphs/users/ y html/users/ quedan vacios). Los nicks de la tabla global está anonimizados y no enlazan a nada (se le pasa md5 y un poco de ruido). Y en los análisis para las páginas del wiki (por ejemplo [3]) la sección de los usuarios que más han aportado a esa página queda vacío (si se mostrara, bastaría con ir al historial de esa página y contar para saber: si el usuario hizo 4 ediciones en esta página y solo un usuario tiene 4 ediciones en ese historial, entonces ab3b51bbab5bb42 es menganito).
+* Análisis anónimo: en el análisis anónimo no se genera ninguna gráfica ni fichero HTML para usuarios (los directorios graphs/users/ y html/users/ quedan vacios). Los nicks de la tabla global está anonimizados y no enlazan a nada. Y en los análisis para las páginas del wiki la sección de los usuarios que más han aportado a esa página queda vacío.
 
 Para finalizar, un ejemplo de llamada a StatMediaWiki:
    python /home/usuario/statmediawiki.py --outputdir="/home/usuario/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb
