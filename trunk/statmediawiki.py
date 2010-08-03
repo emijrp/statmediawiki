@@ -60,10 +60,10 @@ preferences["anonymous"] = False
 t1=time.time()
 
 def createConnCursor():
-    conn = MySQLdb.connect(host='localhost', db=preferences["dbName"], read_default_file='/home/emijrp/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
+    conn = MySQLdb.connect(db=preferences["dbName"], read_default_file='/home/emijrp/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
     cursor = conn.cursor()
     try:
-        conn = MySQLdb.connect(host='localhost', db=preferences["dbName"], read_default_file='/home/emijrp/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
+        conn = MySQLdb.connect(db=preferences["dbName"], read_default_file='/home/emijrp/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
         cursor = conn.cursor()
     except:
         print "Hubo un error al conectarse a la base de datos"
