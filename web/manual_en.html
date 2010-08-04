@@ -113,17 +113,17 @@
         <h1>StatMediaWiki - Universidad de Cádiz</h1>
 
         <div id="lateralIzquierdo">
-			<h2>Idioma</h2>
+			<h2>Language</h2>
 			<ul class="selectorIdioma">
 				<li class="idiomaESP"><a href="index.html">Español</a></li>
 				<li class="idiomaENG">English</li>
 			</ul>
-            <h2>Menú principal</h2>
+            <h2>Main menu</h2>
 
             <ul>
                 <li><a href="#">Aim (soon available)</a></li>
 		<li><a href="http://osl.uca.es/statmediawiki/">Demo</a></li>
-		<li><a href="manual_en.html">Manual</a></li>
+		<li>Manual</li>
 		<li><a href="#">Development (soon available)</a></li>
 		<li><a href="http://forja.rediris.es/projects/statmediawiki">Source code</a></li>
 		<li><a href="papers.html">Papers</a></li>
@@ -133,11 +133,19 @@
         <div id="lateralDerecho">
 			<div class="noticia">
 				<h2>Manual</h2>
-				<p><b>StatMediaWiki</b> is a GPL beta-stage fully-functional software to collect and aggregate information available in a MediWiki installation.</p>
+				<p><b>StatMediaWiki</b> is a GPL-licensed stable and fully-functional software to collect and aggregate information available in a MediWiki installation.</p>
 
-<p>StatMediaWiki is coded in Python, so it needs a Python interpreter to run. It additionally requires python-gnuplot package, that you can easily install in you Debian-based distribution using aptitude.</p>
+<p>StatMediaWiki is coded in Python, so it needs a Python interpreter to run. It additionally requires python-gnuplot package, that you can easily install in you Debian-based distribution using aptitude or Synaptic.</p>
 
-<p>The following options are supported:</p>
+<p>The system needs read-access to the MediaWiki installation database. Connection settings are stored in ~/.my.cnf (in the HOME directory):</p>
+
+<ul>
+<li>user = user_able_to_read_the_db</li>
+<li>password = user_password</li>
+<li>host = bbdd_host</li>
+</ul>
+
+<p>StatMediaWiki supports the following options:</p>
 <ul>
 <li>--outputdir: absolute path to the directory where the report will be generated</li>
 <li>--index: name of the main (initial) file of the report (by default, index.php)</li>
@@ -146,16 +154,13 @@
 <li>--subdir: path that has to be added to the URL to get to the wiki (by default /index.php)</li>
 <li>--dbname: name of the database of the wiki</li>
 <li>--tableprefix: prefix of the tables in the database (only required if you indicated one when installing MediaWiki)</li>
-<li>--startdate: report starting date (format YYYY-MM-DD)</li>
-<li>--enddate: report finishing date (format YYYY-MM-DD)</li>
 </ul>
 
-<p>The script needs a file ~/.my.cnf (in HOME directory) containing database connection settings:</p>
+<p>StatMediaWiki has two operation modes: standard and anonymous</p>
 
 <ul>
-<li>user = user_able_to_read_the_db</li>
-<li>password = user_password</li>
-<li>host = bbdd_host</li>
+<li>Standard analysis: the lines in the content evolution charts may fall (they do not have to be strictly increasing). That can be caused because the content of a certain page decreases (for example, because some paragraphs are joined and simplified). However, user contribution never falls, as it counts user contributions: when the user writes in the wiki, he contributes, no matter if later on the text is erased or modified.</li>
+<li>Anonymous analysis: there is no HTML chart for any specific user, so the "graphs/users" and "html/users" directories are empty. Nicknames are anonymized in the ranking of the whole site, and have no links. In the analysis of each page, the user ranking is left empty: otherwise, it would be trivial to mine the identities of the users from it.</li>
 </ul>
 
 <p>This is a sample invokation to StatMediaWiki:</p>

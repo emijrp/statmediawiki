@@ -1,6 +1,6 @@
 StatMediaWiki is a GPL-licensed stable and fully-functional software to collect and aggregate information available in a MediaWiki installation.
 
-StatMediaWiki is coded in Python, so it needs a Python interpreter to run. It additionally requires the python-gnuplot package. It can be easily installed in an Debian-based distribution using aptitude.
+StatMediaWiki is coded in Python, so it needs a Python interpreter to run. It additionally requires the python-gnuplot package. It can be easily installed in an Debian-based distribution using aptitude or Synaptic.
 
 The system needs read-access to the MediaWiki installation database. Connection settings are stored in ~/.my.cnf (in the HOME directory):
 
