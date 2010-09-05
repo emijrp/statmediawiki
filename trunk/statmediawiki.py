@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -102,7 +102,7 @@ def anonimize():
     global images
     global revisions
     global users
-    
+
     users_ = {}
     anonymous_table = {}
     #create anonymous table which is destroyed after exit this function
@@ -116,20 +116,20 @@ def anonimize():
             user_name_ = noise(user_name)
         anonymous_table[str(user_id)] = user_id_
         anonymous_table[user_name] = user_name_
-        
+
         user_props_ = user_props
         user_props_["user_name"] = user_name_
-        
+
         users_[user_id_] = user_props_
     users = users_
-    
+
     #anonimize images dict
     for img_name, img_props in images.items():
         img_props_ = img_props
         img_props_["img_user"] = anonymous_table[str(img_props_["img_user"])]
         img_props_["img_user_text"] = anonymous_table[img_props_["img_user_text"]]
         images[img_name] = img_props_
-    
+
     #anonimize revisions dict
     for rev_id, rev_props in revisions.items():
         rev_props_ = rev_props
@@ -140,7 +140,7 @@ def anonimize():
 def loadImages():
     global images
     images = {}
-    
+
     conn, cursor = createConnCursor()
     cursor.execute("SELECT img_name, img_user, img_user_text, img_timestamp, img_size FROM %simage WHERE 1" % preferences["tablePrefix"])
     result = cursor.fetchall()
@@ -153,30 +153,30 @@ def loadImages():
         img_timestamp = row[3]
         img_size = int(row[4])
         images[img_name] = {
-            "img_user": img_user, 
-            "img_user_text": img_user_text, 
-            "img_timestamp": img_timestamp, 
-            "img_size": img_size, 
+            "img_user": img_user,
+            "img_user_text": img_user_text,
+            "img_timestamp": img_timestamp,
+            "img_size": img_size,
             "img_url": getImageUrl(img_name),
         }
     print "Loaded %s images" % len(images.items())
-    
+
     destroyConnCursor(conn, cursor)
 
 def getUserRevisions(user_id):
     user_revisions = []
-    
+
     user_name = users[user_id]["user_name"]
     for rev_id, rev_props in revisions.items():
         if user_name == rev_props["rev_user_text"]:
             user_revisions.append(rev_id)
-    
+
     return user_revisions
 
 def loadUsers():
     global users
     users = {}
-    
+
     conn, cursor = createConnCursor()
     queries = [
         "SELECT DISTINCT rev_user, rev_user_text FROM %srevision WHERE 1" % (preferences["tablePrefix"]),
@@ -199,13 +199,13 @@ def loadUsers():
                     "bytesbynamespace": {"*": 0, 0: 0},
                 }
     print "Loaded %s users" % len(users.items())
-    
+
     #cargamos listas de images y revisiones para cada usuario
     #no puede hacerse en el bucle anterior porque getUserImages() y la otra función, llaman a users y necesitan que users esté relleno ya
     for user_id, user_props in users.items():
         users[user_id]["images"] = getUserImages(user_id)
         users[user_id]["revisions"] = getUserRevisions(user_id)
-    
+
     #revisions by namespace
     for rev_id, rev_props in revisions.items():
         rev_page = rev_props["rev_page"]
@@ -213,13 +213,13 @@ def loadUsers():
         users[rev_user]["revisionsbynamespace"]["*"] += 1
         if pages[rev_page]["page_namespace"] == 0:
             users[rev_user]["revisionsbynamespace"][0] += 1
-    
+
     destroyConnCursor(conn, cursor)
 
 def loadPages():
     global pages
     pages = {}
-    
+
     conn, cursor = createConnCursor()
     cursor.execute("select page_id, page_namespace, page_title, page_is_redirect, page_len, page_counter from %spage" % preferences["tablePrefix"])
     result = cursor.fetchall()
@@ -233,8 +233,8 @@ def loadPages():
         page_len = int(row[4])
         page_counter = int(row[5])
         pages[page_id] = {
-            "page_namespace": page_namespace, 
-            "page_title": page_title, 
+            "page_namespace": page_namespace,
+            "page_title": page_title,
             "page_is_redirect": page_is_redirect,
             "page_len": page_len,
             "page_counter": page_counter, #visits
@@ -243,7 +243,7 @@ def loadPages():
             "edits": 0,
         }
     print "Loaded %s pages" % len(pages.items())
-    
+
     #count edits per page
     for rev_id, rev_props in revisions.items():
         rev_page = rev_props["rev_page"]
@@ -257,12 +257,12 @@ def loadPages():
         else:
             print "Page", rev_page, "not found"
             sys.exit()
-    
+
     destroyConnCursor(conn, cursor)
 
 def loadRevisions():
     global revisions
-    
+
     conn, cursor = createConnCursor()
     cursor.execute("select rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text from %srevision, %stext where old_id=rev_text_id" % (preferences["tablePrefix"], preferences["tablePrefix"]))
     result = cursor.fetchall()
@@ -279,17 +279,17 @@ def loadRevisions():
         old_text = unicode(row[7].tostring(), "utf-8")
         revisions[rev_id] = {
             "rev_id": rev_id, #no es un error
-            "rev_page": rev_page, 
-            "rev_user": rev_user, 
-            "rev_user_text": rev_user_text, 
-            "rev_timestamp": datetime.datetime(year=int(rev_timestamp[:4]), month=int(rev_timestamp[4:6]), day=int(rev_timestamp[6:8]), hour=int(rev_timestamp[8:10]), minute=int(rev_timestamp[10:12]), second=int(rev_timestamp[12:14])), 
+            "rev_page": rev_page,
+            "rev_user": rev_user,
+            "rev_user_text": rev_user_text,
+            "rev_timestamp": datetime.datetime(year=int(rev_timestamp[:4]), month=int(rev_timestamp[4:6]), day=int(rev_timestamp[6:8]), hour=int(rev_timestamp[8:10]), minute=int(rev_timestamp[10:12]), second=int(rev_timestamp[12:14])),
             "rev_comment": rev_comment,
             "rev_parent_id": rev_parent_id,
-            "old_text": old_text, 
+            "old_text": old_text,
             "len_diff": 0,
         }
     print "Loaded %s revisions" % len(revisions.items())
-    
+
     #len_diff, incremento de tamaño respecto a la versión anterior (si es negativo es decremento)
     for rev_id, rev_props in revisions.items():
         #que pasa con los rev_parent_id que apuntan a revisiones borradas?
@@ -301,24 +301,24 @@ def loadRevisions():
         else:
             print "Revision", rev_parent_id, "not found"
             sys.exit()
-    
+
     destroyConnCursor(conn, cursor)
 
 def initialize():
     global preferences
-    
+
     conn, cursor = createConnCursor()
-    
+
     if not preferences["startDate"]:
         cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp ASC LIMIT 1" % (preferences["tablePrefix"]))
         a = cursor.fetchall()[0][0]
         preferences["startDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
-    
+
     if not preferences["endDate"]:
         cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (preferences["tablePrefix"]))
         a = cursor.fetchall()[0][0]
         preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=23, minute=59, second=59)
-    
+
     destroyConnCursor(conn, cursor)
 
 def welcome():
@@ -337,7 +337,7 @@ def usage():
 
 def getParameters():
     global preferences
-    
+
     #console params
     try:
         opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "anonymous", "outputdir=", "index=", "sitename=", "subdir=", "siteurl=", "dbname=", "tableprefix=", "startdate=", "enddate="])
@@ -385,7 +385,7 @@ def getParameters():
         print u"""Error. Parameters --dbname, --siteurl and --sitename are required. Write --help for help."""
         sys.exit()
         #usage()
-        
+
     #fin gestionar falta parametros
 
 def manageOutputDir():
@@ -423,7 +423,7 @@ def copyFiles():
     #os.system("cp %s/csv/general/*.csv %s/csv/general" % (preferences["currentPath"], preferences["outputDir"]))
     #os.system("cp %s/csv/pages/*.csv %s/csv/pages" % (preferences["currentPath"], preferences["outputDir"]))
     #os.system("cp %s/csv/users/*.csv %s/csv/users" % (preferences["currentPath"], preferences["outputDir"]))
-    
+
 def printCSV(type, file, header, rows):
     #Type puede ser: general, users o pages
     #File es un nombre de fichero con extensión .
@@ -434,12 +434,12 @@ def printCSV(type, file, header, rows):
     for row in rows:
         output = ",".join(row)
         output += "\n"
-        f.write(output.encode("utf-8")) 
+        f.write(output.encode("utf-8"))
     f.close()
 
 def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, page_id=False):
     results = {}
-    
+
     conn, cursor = createConnCursor()
     for cond in conds:
         cursor.execute("SELECT %s(rev_timestamp) AS time, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE %s GROUP BY time ORDER BY time" % (time, preferences["tablePrefix"], preferences["tablePrefix"], cond))
@@ -449,7 +449,7 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
             if time in ["dayofweek", "month"]:
                 timestamp = timestamp - 1
             results[cond][str(timestamp)] = str(edits)
-    
+
     headers = [time] + headers
     fileprefix = "%s_%s" % (fileprefix, time)
     rows = []
@@ -459,7 +459,7 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
         range_ = range(7)
     elif time == "month":
         range_ = range(12)
-    
+
     row0=[]
     row1=[]
     row2=[]
@@ -480,7 +480,7 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
             cond2 = results[conds[2]][period]
         row3.append(cond2)
     rows=[row0, row1, row2, row3]
-    
+
     title = ""
     if type=="general":
         if time=="hour":
@@ -505,11 +505,11 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
             title = u"Day of week activity in %s" % page_title
         elif time=="month":
             title = u"Month activity in %s" % page_title
-    
+
     #printCSV(type=type, file=file, header=header, rows=rows)
     #print rows
     printGraphTimeActivity(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=rows)
-    
+
     destroyConnCursor(conn, cursor)
 
 def generateGeneralTimeActivity():
@@ -540,7 +540,7 @@ def generateUsersTimeActivity(user_id):
 
 def generateCloud(type, fileprefix, user_id=False, page_id=False):
     cloud = {}
-    
+
     for rev_id, rev_props in revisions.items():
         if type=="users":
             if user_id:
@@ -556,7 +556,7 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
             else:
                 print u"Llamada a función tipo pages sin page_id"
                 sys.exit()
-        
+
         comment = rev_props["rev_comment"].lower().strip()
         comment = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*\(\)\<\>\+\.\-\#\_\&]", ur" ", comment) #no commas, csv
         comment = re.sub(ur"  +", ur" ", comment)
@@ -568,27 +568,27 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
                 cloud[tag] += 1
             else:
                 cloud[tag] = 1
-    
+
     cloudList = []
     for tag, times in cloud.items():
        cloudList.append([times, tag])
-    
+
     cloudList.sort()
     cloudList.reverse()
-    
+
     """header = ['word', 'frequency']
     rows = []
     c = 0
-    
+
     for times, tag in cloudList:
         c+=1
         if c>50:
             break
         rows.append([tag, str(times)])
     """
-    
+
     limit = 50
-    
+
     minSize = 100 #min fontsize
     maxSize = 300 #max fontsize
     maxTimes = 0
@@ -598,7 +598,7 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
             maxTimes = times
         if minTimes>times:
             minTimes = times
-    
+
     output = u""
     cloudListShuffle = cloudList[:limit]
     random.shuffle(cloudListShuffle)
@@ -608,19 +608,19 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
         else:
             fontsize = 100 + (maxSize - minSize ) / 2
         output += u"""<span style="font-size: %s%%">%s</span> &nbsp;&nbsp;&nbsp;""" % (fontsize, tag)
-    
+
     if not output:
         output += u"This user has made no comments in edits."
     #printCSV(type=type, file=file, header=header, rows=rows)
-    
+
     return output
 
 def generateGeneralCloud():
     return generateCloud(type="general", fileprefix="general")
-    
+
 def generateUsersCloud(user_id):
     return generateCloud(type="users", fileprefix="user_%s" % user_id, user_id=user_id)
-    
+
 def generatePagesCloud(page_id):
     return generateCloud(type="pages", fileprefix="page_%d" % page_id, page_id=page_id)
 
@@ -631,7 +631,7 @@ def printHTML(type, file="", title="", body=""):
         stylesdir = "../../%s" % stylesdir
     else:
         file = "%s/%s" % (preferences["outputDir"], preferences["indexFilename"])
-    
+
     f = open(file, "w")
     output = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
@@ -650,7 +650,7 @@ def printHTML(type, file="", title="", body=""):
     </center>
     </body>
     </html>""" % (stylesdir, title, title, body)
-    
+
     f.write(output.encode("utf-8"))
     f.close()
 
@@ -665,7 +665,7 @@ def printLinesGraph(title, file, labels, headers, rows):
         fecha += fechaincremento
         c += 1
     xticsperiod = xticsperiod[:len(xticsperiod)-1]
-    
+
     gp = Gnuplot.Gnuplot()
     gp('set data style lines')
     gp('set grid ytics mytics')
@@ -690,7 +690,7 @@ def printLinesGraph(title, file, labels, headers, rows):
     elif len(plots) == 4:
         gp.plot(plots[0], plots[1], plots[2], plots[3])
 
-    gp.hardcopy(filename=file, terminal="png") 
+    gp.hardcopy(filename=file, terminal="png")
     gp.close()
 
 def printBarsGraph(title, file, headers, rows):
@@ -760,8 +760,8 @@ def generateContentEvolution(type, user_id=False, page_id=False):
                     print "Error: no hay page_id"
                 if rev_props["rev_page"] != page_id:
                     continue #nos la saltamos, no es de esta página
-            
-            if rev_props["rev_timestamp"] < fecha and rev_props["rev_timestamp"] >= fecha - fechaincremento: # 00:00:00 < fecha < 23:59:59 
+
+            if rev_props["rev_timestamp"] < fecha and rev_props["rev_timestamp"] >= fecha - fechaincremento: # 00:00:00 < fecha < 23:59:59
                 rev_page = rev_props["rev_page"]
                 if type == "general":
                     #más adelante quizás convenga poner la evolución del contenido según anónimos y registrados, para el caso general
@@ -788,17 +788,17 @@ def generateContentEvolution(type, user_id=False, page_id=False):
                         count3 += rev_props["len_diff"]
                     #evolución de todas las páginas
                     count1 += rev_props["len_diff"]
-        
+
         graph1.append(count1)
         graph2.append(count2)
         graph3.append(count3)
-        
+
         fecha += fechaincremento
-    
+
     if type == "users":
         users[user_id]["bytesbynamespace"]["*"] = count1
         users[user_id]["bytesbynamespace"][0] = count2
-        
+
     title = u""
     fileprefix = u""
     owner = u""
@@ -816,13 +816,13 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         title = u"Content evolution in %s" % page_title
         fileprefix = "page_%s" % page_id
         owner = page_title
-    
+
     #falta csv
     if type == "pages":
         headers = ["Date", "%s content (all users)" % owner, "%s content (only anonymous users)" % owner, "%s content (only registered users)" % owner]
     else:
         headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner, "%s content (only articles talks)" % owner]
-    
+
     if type == "users" and preferences["anonymous"]:
         pass #no print graph
     else:
@@ -830,19 +830,19 @@ def generateContentEvolution(type, user_id=False, page_id=False):
 
 def generateGeneralContentEvolution():
     generateContentEvolution(type="general")
-    
+
 def generateUsersContentEvolution(user_id):
     generateContentEvolution(type="users", user_id=user_id)
-    
+
 def generatePagesContentEvolution(page_id):
     generateContentEvolution(type="pages", page_id=page_id)
 
 def generateUsersTable():
     output = u"""<table>
     <tr><th>#</th><th>User</th><th>Edits</th><th>Edits in articles</th><th>Bytes added</th><th>Bytes added in articles</th><th>Uploads</th></tr>"""
-    
+
     sortedUsers = [] #by edits
-    
+
     edits = 0
     editsinarticles = 0
     bytes = 0
@@ -857,7 +857,7 @@ def generateUsersTable():
         sortedUsers.append([user_props["revisionsbynamespace"]["*"], user_id])
     sortedUsers.sort()
     sortedUsers.reverse()
-    
+
     c = 1
     for revisionsNumber, user_id in sortedUsers:
         user_props = users[user_id]
@@ -870,19 +870,19 @@ def generateUsersTable():
         else:
             output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, user_id, len(user_props["images"]))
         c += 1
-    
+
     output += u"""<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s</td></tr>\n""" % (edits, editsinarticles, bytes, bytesinarticles, uploads)
     output += u"""</table>"""
     output += u"""<ul><li id="note1">Note 1: This figure can be greater than the total bytes in the wiki, as byte erased are not discounted in this ranking.</li></ul>"""
-    
+
     return output
 
 def generatePagesTable():
     output = u"""<table>
     <tr><th>#</th><th>Page</th><th>Namespace</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
-    
+
     sortedPages = [] #by edits
-    
+
     edits = 0
     bytes = 0
     visits = 0
@@ -893,7 +893,7 @@ def generatePagesTable():
         sortedPages.append([page_props["edits"], page_id])
     sortedPages.sort()
     sortedPages.reverse()
-    
+
     c = 1
     for page_edits, page_id in sortedPages:
         page_props = pages[page_id]
@@ -902,16 +902,16 @@ def generatePagesTable():
         visits_percent = page_props["page_counter"] / (visits / 100.0)
         output += u"""<tr><td>%s</td><td><a href="html/pages/page_%s.html">%s</a></td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td></tr>\n""" % (c, page_id, page_props["page_title"], namespaces[page_props["page_namespace"]], page_props["edits"], edits_percent, page_props["page_len"], bytes_percent, page_props["page_counter"], visits_percent)
         c += 1
-    
+
     output += """<tr><td></td><td>Total</td><td></td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n""" % (edits, bytes, visits)
     output += """</table>"""
-    
+
     return output
 
 def generateUsersMostEditedTable(user_id):
     output = u"""<table>
     <tr><th>#</th><th>Page</th><th>Namespace</th><th>Edits</th></tr>"""
-    
+
     most_edited = {}
     for rev_id in users[user_id]["revisions"]:
         rev_page = revisions[rev_id]["rev_page"]
@@ -919,13 +919,13 @@ def generateUsersMostEditedTable(user_id):
             most_edited[rev_page] += 1
         else:
             most_edited[rev_page] = 1
-    
+
     most_edited_list = []
     for rev_page, edits in most_edited.items():
         most_edited_list.append([edits, rev_page])
     most_edited_list.sort()
     most_edited_list.reverse()
-    
+
     c = 0
     for edits, rev_page in most_edited_list:
         c += 1
@@ -933,18 +933,18 @@ def generateUsersMostEditedTable(user_id):
         page_namespace = pages[rev_page]["page_namespace"]
         output += u"""<tr><td>%s</td><td><a href="../pages/page_%s.html">%s</a></td><td>%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_page, page_title, namespaces[page_namespace], preferences["siteUrl"], page_title, edits)
     output += u"""<tr><td></td><td>Total</td><td></td><td>%s</td></tr>""" % (users[user_id]["revisionsbynamespace"]["*"])
-    
+
     output += u"""</table>"""
-    
+
     return output
 
 def generatePagesTopUsersTable(page_id):
     if preferences["anonymous"]:
         return u"""<p>This is an anonymous analysis. This information will not be showed.</p>\n"""
-    
+
     output = u"""<table>
     <tr><th>#</th><th>User</th><th>Edits</th></tr>"""
-    
+
     top_users = {}
     for rev_id in pages[page_id]["revisions"]:
         rev_user = revisions[rev_id]["rev_user"]
@@ -952,13 +952,13 @@ def generatePagesTopUsersTable(page_id):
             top_users[rev_user] += 1
         else:
             top_users[rev_user] = 1
-    
+
     top_users_list = []
     for rev_user, edits in top_users.items():
         top_users_list.append([edits, rev_user])
     top_users_list.sort()
     top_users_list.reverse()
-    
+
     c = 0
     for edits, rev_user in top_users_list:
         c += 1
@@ -966,48 +966,48 @@ def generatePagesTopUsersTable(page_id):
         page_title = pages[page_id]["page_title"]
         output += u"""<tr><td>%s</td><td><a href="../users/user_%s.html">%s</a></td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_user, user_name, preferences["siteUrl"], page_title, edits)
     output += u"""<tr><td></td><td>Total</td><td>%s</td></tr>""" % (len(pages[page_id]["revisions"]))
-    
+
     output += u"""</table>"""
-    
+
     return output
 
 def generateGeneralAnalysis():
     print "Generating general analysis"
     conn, cursor = createConnCursor()
-    
+
     dict = {}
-    
+
     cursor.execute("SELECT COUNT(user_id) AS count FROM %suser WHERE 1" % preferences["tablePrefix"])
     dict["totalusers"] = cursor.fetchall()[0][0]
-    
+
     #número de usuarios a partir de las revisiones y de la tabla de usuarios, len(user.items())
     cursor.execute("SELECT COUNT(rev_id) AS count FROM %srevision WHERE 1" % preferences["tablePrefix"])
     dict["totaledits"] = cursor.fetchall()[0][0]
-    
+
     #todo: con un inner join mejor?
     cursor.execute("SELECT COUNT(rev_id) AS count FROM %srevision WHERE rev_page IN (SELECT page_id FROM %spage WHERE page_namespace=0)" % (preferences["tablePrefix"], preferences["tablePrefix"]))
     dict["totaleditsinarticles"] = cursor.fetchall()[0][0]
-    
+
     cursor.execute("SELECT COUNT(page_id) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
     dict["totalpages"] = cursor.fetchall()[0][0]
-    
+
     cursor.execute("SELECT COUNT(*) AS count FROM %spage WHERE page_namespace=0 AND page_is_redirect=0" % preferences["tablePrefix"])
     dict["totalarticles"] = cursor.fetchall()[0][0]
-    
+
     cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
     dict["totalbytes"] = cursor.fetchall()[0][0]
-    
+
     cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE page_namespace=0 AND page_is_redirect=0" % preferences["tablePrefix"])
     dict["totalbytesinarticles"] = cursor.fetchall()[0][0]
-    
+
     cursor.execute("SELECT SUM(page_counter) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
     dict["totalvisits"] = cursor.fetchall()[0][0]
-    
+
     cursor.execute("SELECT COUNT(*) AS count FROM %simage WHERE 1" % preferences["tablePrefix"])
     dict["totalfiles"] = cursor.fetchall()[0][0]
     dateGenerated = datetime.datetime.now().isoformat()
     period = "%s &ndash; %s" % (preferences["startDate"].isoformat(), preferences["endDate"].isoformat())
-    
+
     body = u"""<table class="sections">
     <tr><th><b>Sections</b></th></tr>
     <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
@@ -1059,12 +1059,12 @@ def generateGeneralAnalysis():
     %s
     </center>
     """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], dict["totalvisits"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateGeneralCloud())
-    
+
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
-    
+
     printHTML(type="general", title=preferences["siteName"], body=body)
-    
+
     destroyConnCursor(conn, cursor)
 
 def generatePagesAnalysis():
@@ -1073,7 +1073,7 @@ def generatePagesAnalysis():
         print u"Generating analysis to the page: %s" % page_title
         generatePagesContentEvolution(page_id=page_id)
         generatePagesTimeActivity(page_id=page_id)
-        
+
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <table class="sections">
         <tr><th><b>Sections</b></th></tr>
@@ -1109,7 +1109,7 @@ def generatePagesAnalysis():
         %s
         </center>
         """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, page_props["edits"], page_props["revisionsbyuserclass"]["anon"], page_props["revisionsbyuserclass"]["reg"], page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id))
-        
+
         title = "%s: %s" % (preferences["siteName"], page_title)
         printHTML(type="pages", file="page_%s.html" % page_id, title=title, body=body)
 
@@ -1121,11 +1121,11 @@ def generateUsersAnalysis():
         if preferences["anonymous"]:
             continue
         generateUsersTimeActivity(user_id=user_id)
-        
+
         gallery = u""
         for img_name in users[user_id]["images"]:
             gallery += u"""<a href='%s/%s/Image:%s'><img src="%s" width="200px" alt="%s"/></a>&nbsp;&nbsp;&nbsp;""" % (preferences["siteUrl"], preferences["subDir"], img_name, images[img_name]["img_url"], img_name)
-        
+
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <table class="sections">
         <tr><th><b>Sections</b></th></tr>
@@ -1169,7 +1169,7 @@ def generateUsersAnalysis():
         %s
         </center>
         """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
-        
+
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         if not preferences["anonymous"]:
             printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
@@ -1185,22 +1185,22 @@ def bye():
 
 def main():
     welcome()
-    
+
     getParameters()
     initialize() #dbname required
-    
+
     loadImages()
     loadRevisions() #require startDate and endDate initialized
     loadPages() #revisions loaded required
     loadUsers() #revisions and uploads loaded required
-    
+
     if preferences["anonymous"]:
         anonimize()
-    
+
     manageOutputDir()
     generateAnalysis()
     copyFiles()
-    
+
     bye()
 
 if __name__ == "__main__":
