@@ -424,11 +424,12 @@ def copyFiles():
     #os.system("cp %s/csv/pages/*.csv %s/csv/pages" % (preferences["currentPath"], preferences["outputDir"]))
     #os.system("cp %s/csv/users/*.csv %s/csv/users" % (preferences["currentPath"], preferences["outputDir"]))
 
-def printCSV(type, file, header, rows):
-    #Type puede ser: general, users o pages
-    #File es un nombre de fichero con extensión .
-    f = open("%s/csv/%s/%s" % (preferences["outputDir"], type, file), "w")
-    output = ",".join(header)
+def printCSV(type, subtype, fileprefix, headers, rows):
+    # Type puede ser: general, users o pages
+    file = "%s/csv/%s/%s_%s.csv" % (preferences["outputDir"], type,
+                                    fileprefix, subtype)
+    f = open(file, "w")
+    output = ",".join(headers)
     output += "\n"
     f.write(output.encode("utf-8"))
     for row in rows:
@@ -506,9 +507,11 @@ def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, 
         elif time=="month":
             title = u"Month activity in %s" % page_title
 
-    #printCSV(type=type, file=file, header=header, rows=rows)
-    #print rows
-    printGraphTimeActivity(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=rows)
+    # Print rows
+    printCSV(type=type, subtype="activity", fileprefix=fileprefix,
+             headers=headers, rows=rows)
+    printGraphTimeActivity(type=type, fileprefix=fileprefix, title=title,
+                           headers=headers, rows=rows)
 
     destroyConnCursor(conn, cursor)
 
@@ -576,16 +579,15 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
     cloudList.sort()
     cloudList.reverse()
 
-    """header = ['word', 'frequency']
-    rows = []
-    c = 0
+    # header = ['word', 'frequency']
+    # rows = []
+    # c = 0
 
-    for times, tag in cloudList:
-        c+=1
-        if c>50:
-            break
-        rows.append([tag, str(times)])
-    """
+    # for times, tag in cloudList:
+    #     c+=1
+    #     if c>50:
+    #         break
+    #     rows.append([tag, str(times)])
 
     limit = 50
 
@@ -611,7 +613,6 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
 
     if not output:
         output += u"This user has made no comments in edits."
-    #printCSV(type=type, file=file, header=header, rows=rows)
 
     return output
 
@@ -826,7 +827,11 @@ def generateContentEvolution(type, user_id=False, page_id=False):
     if type == "users" and preferences["anonymous"]:
         pass #no print graph
     else:
-        printGraphContentEvolution(type=type, fileprefix=fileprefix, title=title, headers=headers, rows=[graph1, graph2, graph3])
+        rows = [graph1, graph2, graph3]
+        printCSV(type=type, subtype="content_evolution", fileprefix=fileprefix,
+                 headers=headers, rows=rows)
+        printGraphContentEvolution(type=type, fileprefix=fileprefix,
+                                   title=title, headers=headers, rows=rows)
 
 def generateGeneralContentEvolution():
     generateContentEvolution(type="general")
