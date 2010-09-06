@@ -433,7 +433,7 @@ def printCSV(type, subtype, fileprefix, headers, rows):
     output += "\n"
     f.write(output.encode("utf-8"))
     for row in rows:
-        output = ",".join(row)
+        output = ",".join(str(e) for e in row)
         output += "\n"
         f.write(output.encode("utf-8"))
     f.close()
