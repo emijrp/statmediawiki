@@ -424,6 +424,15 @@ def copyFiles():
     #os.system("cp %s/csv/pages/*.csv %s/csv/pages" % (preferences["currentPath"], preferences["outputDir"]))
     #os.system("cp %s/csv/users/*.csv %s/csv/users" % (preferences["currentPath"], preferences["outputDir"]))
 
+# Generamos una columna virtual con fechas a partir de una fecha
+# determinada, con un salto determinado entre elementos (por omision,
+# un dia)
+def generadorColumnaFechas(startDate, delta=datetime.timedelta(days=1)):
+    currentDate = startDate
+    while True:
+        yield currentDate
+        currentDate += delta
+
 def printCSV(type, subtype, fileprefix, headers, rows):
     # Type puede ser: general, users o pages
     file = "%s/csv/%s/%s_%s.csv" % (preferences["outputDir"], type,
@@ -433,19 +442,10 @@ def printCSV(type, subtype, fileprefix, headers, rows):
     output += "\n"
     f.write(output.encode("utf-8"))
 
-    # Generamos una columna virtual con las fechas (se toma una
-    # muestra diaria desde la fecha inicial señalada por el usuario)
-    def generadorColumnaFechas():
-        currentDate = preferences["startDate"]
-        delta = datetime.timedelta(days=1)
-        while True:
-            yield currentDate
-            currentDate += delta
-
     # Cada "fila" tiene los datos de una columna, en realidad. Con
     # zip() hacemos la transpuesta de la matriz e imprimimos el CSV
     # correctamente.
-    for row in zip(generadorColumnaFechas(), *rows):
+    for row in zip(*rows):
         output = ",".join(str(e) for e in row) + "\n"
         f.write(output.encode("utf-8"))
     f.close()
@@ -839,11 +839,13 @@ def generateContentEvolution(type, user_id=False, page_id=False):
     if type == "users" and preferences["anonymous"]:
         pass #no print graph
     else:
-        rows = [graph1, graph2, graph3]
         printCSV(type=type, subtype="content_evolution", fileprefix=fileprefix,
-                 headers=headers, rows=rows)
+                 headers=headers,
+                 rows=[generadorColumnaFechas(preferences["startDate"]),
+                       graph1, graph2, graph3])
         printGraphContentEvolution(type=type, fileprefix=fileprefix,
-                                   title=title, headers=headers, rows=rows)
+                                   title=title, headers=headers,
+                                   rows=[graph1, graph2, graph3])
 
 def generateGeneralContentEvolution():
     generateContentEvolution(type="general")
