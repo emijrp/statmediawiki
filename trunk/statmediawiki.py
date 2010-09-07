@@ -432,12 +432,21 @@ def printCSV(type, subtype, fileprefix, headers, rows):
     output = ",".join(headers)
     output += "\n"
     f.write(output.encode("utf-8"))
+
+    # Generamos una columna virtual con las fechas (se toma una
+    # muestra diaria desde la fecha inicial señalada por el usuario)
+    def generadorColumnaFechas():
+        currentDate = preferences["startDate"]
+        delta = datetime.timedelta(days=1)
+        while True:
+            yield currentDate
+            currentDate += delta
+
     # Cada "fila" tiene los datos de una columna, en realidad. Con
-    # zip(*rows) hacemos la transpuesta de la matriz e imprimimos el
-    # CSV correctamente.
-    for row in zip(*rows):
-        output = ",".join(str(e) for e in row)
-        output += "\n"
+    # zip() hacemos la transpuesta de la matriz e imprimimos el CSV
+    # correctamente.
+    for row in zip(generadorColumnaFechas(), *rows):
+        output = ",".join(str(e) for e in row) + "\n"
         f.write(output.encode("utf-8"))
     f.close()
 
