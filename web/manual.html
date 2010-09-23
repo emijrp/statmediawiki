@@ -139,34 +139,34 @@
 
 <p>StatMediaWiki está desarrollado en <b>Python</b>, por lo que para su ejecución se requiere disponer del intérprete de este lenguaje. También requiere el paquete <b>python-gnuplot</b>, que puede ser instalado en distribuciones basadas en Debian con aptitude o Synaptic.</p>
 
-<p>Durante su funcionamiento, StatMediaWiki necesita acceso de lectura a la base de datos de la instalación MediaWiki. Para ello, debemos crear un fichero de configuración en nuestro directorio HOME, llamado .my.cnf. El formato de este fichero debe ser:</p>
+<p>Durante su funcionamiento, StatMediaWiki necesita acceso de lectura a la base de datos de la instalación MediaWiki. Para ello, debemos crear un fichero de configuración en nuestro directorio <tt>home</tt>, llamado <tt>.my.cnf</tt>. El formato de este fichero debe ser:</p>
 
 <ul>
-<li>user = usuario_con_acceso_a_la_bbdd</li>
-<li>password = password_del_usuario</li>
-<li>host = host_de_la_bbdd</li>
+<li><tt>user = usuario_con_acceso_a_la_bbdd</tt></li>
+<li><tt>password = password_del_usuario</tt></li>
+<li><tt>host = host_de_la_bbdd</tt></li>
 </ul>
 
 <p>Las opciones disponibles son las siguientes:</p>
 <ul>
-<li>--outputdir: ruta absoluta del directorio donde se almacenará el informe generado</li>
-<li>--index: nombre del fichero que se desea que sea la portada del informe (por defecto index.php)</li>
-<li>--sitename: nombre del wiki que figurará en el título del informe</li>
-<li>--siteurl: URL del wiki</li>
-<li>--subdir: ruta adicional tras la URL del wiki (por defecto /index.php)</li>
-<li>--dbname: nombre de la base de datos que contiene el wiki</li>
-<li>--tableprefix: prefijo de las tablas de la base de datos, si se escogió uno durante la instalación de MediaWiki</li>
+<li><tt>--outputdir:</tt> ruta absoluta del directorio donde se almacenará el informe generado</li>
+<li><tt>--index:</tt> nombre del fichero que se desea que sea la portada del informe (por defecto index.php)</li>
+<li><tt>--sitename:</tt> nombre del wiki que figurará en el título del informe</li>
+<li><tt>--siteurl:</tt> URL del wiki</li>
+<li><tt>--subdir:</tt> ruta adicional tras la URL del wiki (por defecto /index.php)</li>
+<li><tt>--dbname:</tt> nombre de la base de datos que contiene el wiki</li>
+<li><tt>--tableprefix:</tt> prefijo de las tablas de la base de datos, si se escogió uno durante la instalación de MediaWiki</li>
 </ul>
 
 <p>StatMediaWiki tiene dos modos de análisis: estándar y anónimo.</p>
 <ul>
 <li>Análisis estándar: las gráficas de evolución de contenido globales y por páginas pueden tener retrocesos (la línea cae) si en esa fecha la cantidad de contenido del wiki o de la página en concreto disminuyó (por ejemplo, alguien mejora y simplifica la redacción de un artículo, entonces la línea cae, hay menos bytes). Pero las gráficas de los usuarios nunca caen: lo que en un momento aportó, no se le resta, aunque un usuario posterior se lo borre.</li>
-<li>Análisis anónimo: en el análisis anónimo no se genera ninguna gráfica ni fichero HTML para usuarios (los directorios graphs/users/ y html/users/ quedan vacíos). Los usuarios de la tabla global está anonimizados y no enlazan a nada. Y en los análisis para las páginas del wiki la sección de los usuarios que más han aportado a esa página queda vacío.</li>
+<li>Análisis anónimo: en el análisis anónimo no se genera ninguna gráfica ni fichero HTML para usuarios (los directorios <tt>graphs/users/</tt> y <tt>html/users/</tt> quedan vacíos). Los usuarios de la tabla global está anonimizados y no enlazan a nada. Y en los análisis para las páginas del wiki la sección de los usuarios que más han aportado a esa página queda vacío.</li>
 </ul>
 
 <p>Por ejemplo, una llamada a StatMediaWiki podría ser la siguiente:</p>
 <ul>
-<li>python /home/usuario/statmediawiki.py --outputdir="/home/usuario/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb --startdate=2010-01-01 --enddate=2010-31-03</li>
+<li><tt>python /home/usuario/statmediawiki.py --outputdir="/home/usuario/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb --startdate=2010-01-01 --enddate=2010-31-03</tt></li>
 </ul>
 
 <p>Más información:</p>

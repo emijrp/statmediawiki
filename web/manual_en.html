@@ -139,35 +139,35 @@
 
 <p>StatMediaWiki is coded in Python, so it needs a Python interpreter to run. It additionally requires python-gnuplot package, that you can easily install in you Debian-based distribution using aptitude or Synaptic.</p>
 
-<p>The system needs read-access to the MediaWiki installation database. Connection settings are stored in ~/.my.cnf (in the HOME directory):</p>
+<p>The system needs read-access to the MediaWiki installation database. Connection settings are stored in <tt>~/.my.cnf</tt> (in the HOME directory):</p>
 
 <ul>
-<li>user = user_able_to_read_the_db</li>
-<li>password = user_password</li>
-<li>host = bbdd_host</li>
+<li><tt>user = user_able_to_read_the_db</tt></li>
+<li><tt>password = user_password</tt></li>
+<li><tt>host = bbdd_host</tt></li>
 </ul>
 
 <p>StatMediaWiki supports the following options:</p>
 <ul>
-<li>--outputdir: absolute path to the directory where the report will be generated</li>
-<li>--index: name of the main (initial) file of the report (by default, index.php)</li>
-<li>--sitename: name of the wiki that will be show on the title of the report</li>
-<li>--siteurl: URL of the wiki</li>
-<li>--subdir: path that has to be added to the URL to get to the wiki (by default /index.php)</li>
-<li>--dbname: name of the database of the wiki</li>
-<li>--tableprefix: prefix of the tables in the database (only required if you indicated one when installing MediaWiki)</li>
+<li><tt>--outputdir:</tt> absolute path to the directory where the report will be generated</li>
+<li><tt>--index:</tt> name of the main (initial) file of the report (by default, index.php)</li>
+<li><tt>--sitename:</tt> name of the wiki that will be show on the title of the report</li>
+<li><tt>--siteurl:</tt> URL of the wiki</li>
+<li><tt>--subdir:</tt> path that has to be added to the URL to get to the wiki (by default /index.php)</li>
+<li><tt>--dbname:</tt> name of the database of the wiki</li>
+<li><tt>--tableprefix:</tt> prefix of the tables in the database (only required if you indicated one when installing MediaWiki)</li>
 </ul>
 
 <p>StatMediaWiki has two operation modes: standard and anonymous</p>
 
 <ul>
 <li>Standard analysis: the lines in the content evolution charts may fall (they do not have to be strictly increasing). That can be caused because the content of a certain page decreases (for example, because some paragraphs are joined and simplified). However, user contribution never falls, as it counts user contributions: when the user writes in the wiki, he contributes, no matter if later on the text is erased or modified.</li>
-<li>Anonymous analysis: there is no HTML chart for any specific user, so the "graphs/users" and "html/users" directories are empty. Nicknames are anonymized in the ranking of the whole site, and have no links. In the analysis of each page, the user ranking is left empty: otherwise, it would be trivial to mine the identities of the users from it.</li>
+<li>Anonymous analysis: there is no HTML chart for any specific user, so the <tt>graphs/users</tt> and <tt>html/users</tt> directories are empty. Nicknames are anonymized in the ranking of the whole site, and have no links. In the analysis of each page, the user ranking is left empty: otherwise, it would be trivial to mine the identities of the users from it.</li>
 </ul>
 
 <p>This is a sample invokation to StatMediaWiki:</p>
 <ul>
-<li>python /home/user/statmediawiki.py --outputdir="/home/user/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb --startdate=2010-01-01 --enddate=2010-31-03</li>
+<li><tt>python /home/user/statmediawiki.py --outputdir="/home/user/analysis/mywiki" --sitename=MyWiki --siteurl=http://mywiki.org --dbname=wikidb --startdate=2010-01-01 --enddate=2010-31-03</tt></li>
 </ul>
 
 <p>Further reading:</p>
