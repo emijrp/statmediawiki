@@ -1,6 +1,11 @@
 This is the to-do wishlist ;-)
 
 * Generate info for categories: tags cloud, statistics for every category and a graph using Graphviz [1] or a similar system.
+* Generate Pareto charts
+* Generate Pie charts
+* Generate dynamic charts
 * Generate deeper statistics, suggestions are welcome!
+
+
 
 [1] http://www.graphviz.org/Gallery.php
