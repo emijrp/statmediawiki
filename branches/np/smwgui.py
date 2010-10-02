@@ -32,7 +32,7 @@ class App:
         #analysis
         analysismenu = Menu(menu)
         menu.add_cascade(label="Analysing", menu=analysismenu)
-        analysismenu.add_command(label="Summary", command=self.summary)
+        analysismenu.add_command(label="Summary", command=lambda: self.analysis('summary'))
         activitymenu = Menu(analysismenu)
         analysismenu.add_cascade(label="Activity", menu=activitymenu)
         activityyearly = Menu(activitymenu)
@@ -88,7 +88,6 @@ class App:
                 smwdownloader.download(gfather, gfamily, glang)
     
     def analysis(self, analysis):
-        import smwqueries
         global gfather
         global glang
         global gfamily
@@ -105,10 +104,15 @@ class App:
         conn = sqlite3.connect(filedbname)
         cursor = conn.cursor()
         
-        if analysis == 'activity-all':
-            smwqueries.activity(cursor, '%s @ %s' % (glang, gfamily))
+        if analysis == 'summary':
+            import smwsummary
+            smwsummary.summary(cursor)
+        elif analysis == 'activity-all':
+            import smwactivity
+            smwactivity.activity(cursor, '%s @ %s' % (glang, gfamily))
         elif analysis == 'activity-yearly':
-            smwqueries.activityyearly(cursor)
+            import smwactivity
+            smwactivity.activityyearly(cursor)
         
         cursor.close()
         conn.close()
