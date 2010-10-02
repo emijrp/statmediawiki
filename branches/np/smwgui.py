@@ -21,7 +21,7 @@ class App:
         gfamily = ''
         glang = ''
     
-        frame = Frame(master, width=300, height=100)
+        frame = Frame(master)
         frame.pack()
         # create a menu
         menu = Menu(frame)
@@ -236,6 +236,7 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
+    root.geometry('300x100+0+0')
     root.title('StatMediaWiki NP')
     #top = Toplevel() #otra ventana
     status = Label(root, text="...", bd=1, relief=SUNKEN, anchor=W)
