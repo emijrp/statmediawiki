@@ -136,10 +136,19 @@ class App:
             smwsummary.summary(cursor)
         elif analysis == 'activity-all':
             import smwactivity
-            smwactivity.activity(cursor, '%s @ %s' % (glang, gfamily))
+            smwactivity.activityall(cursor, '%s @ %s' % (glang, gfamily))
         elif analysis == 'activity-yearly':
             import smwactivity
-            smwactivity.activityyearly(cursor)
+            smwactivity.activityyearly(cursor, '%s @ %s' % (glang, gfamily))
+        elif analysis == 'activity-monthly':
+            import smwactivity
+            smwactivity.activitymonthly(cursor, '%s @ %s' % (glang, gfamily))
+        elif analysis == 'activity-dow':
+            import smwactivity
+            smwactivity.activitydow(cursor, '%s @ %s' % (glang, gfamily))
+        elif analysis == 'activity-hourly':
+            import smwactivity
+            smwactivity.activityhourly(cursor, '%s @ %s' % (glang, gfamily))
         
         cursor.close()
         conn.close()
