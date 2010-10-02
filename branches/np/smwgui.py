@@ -41,28 +41,36 @@ class App:
         #begin global
         globalmenu = Menu(analysismenu)
         analysismenu.add_cascade(label="Global", menu=globalmenu)
-        globalmenu.add_command(label="Summary", command=lambda: self.analysis('summary'))
+        globalmenu.add_command(label="Summary", command=lambda: self.analysis('global-summary'))
         #begin activity
         globalactivitymenu = Menu(globalmenu)
         globalmenu.add_cascade(label="Activity", menu=globalactivitymenu)
-        globalactivitymenu.add_command(label="All", command=lambda: self.analysis('activity-all'))
+        globalactivitymenu.add_command(label="All", command=lambda: self.analysis('global-activity-all'))
         globalactivitymenu.add_separator()
-        globalactivitymenu.add_command(label="Yearly", command=lambda: self.analysis('activity-yearly'))
-        globalactivitymenu.add_command(label="Monthly", command=lambda: self.analysis('activity-monthly'))
-        globalactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('activity-dow'))
-        globalactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('activity-hourly'))
+        globalactivitymenu.add_command(label="Yearly", command=lambda: self.analysis('global-activity-yearly'))
+        globalactivitymenu.add_command(label="Monthly", command=lambda: self.analysis('global-activity-monthly'))
+        globalactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('global-activity-dow'))
+        globalactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('global-activity-hourly'))
         #end activity
         #end global
         
         #begin user-by-user
         userbyusermenu = Menu(analysismenu)
         analysismenu.add_cascade(label="User-by-user", menu=userbyusermenu)
+        useractivitymenu = Menu(userbyusermenu)
+        userbyusermenu.add_cascade(label="Activity", menu=useractivitymenu)
+        useractivitymenu.add_command(label="All", command=lambda: self.analysis('user-activity-all'))
+        useractivitymenu.add_separator()
         
+        usergraphsmenu = Menu(userbyusermenu)
+        userbyusermenu.add_cascade(label="Graphs", menu=usergraphsmenu)
+        usergraphsmenu.add_command(label="Edited pages", command=lambda: self.analysis('user-graphs-editedpages'))
         #end user-by-user
         
         #begin page-by-page
         pagebypagemenu = Menu(analysismenu)
         analysismenu.add_cascade(label="Page-by-page", menu=pagebypagemenu)
+        
         #end page-by-page
         
         #begin others
@@ -150,24 +158,32 @@ class App:
         conn = sqlite3.connect(filedbname)
         cursor = conn.cursor()
         
-        if analysis == 'summary':
+        #global
+        if analysis == 'global-summary':
             import smwsummary
-            smwsummary.summary(cursor)
-        elif analysis == 'activity-all':
+            smwsummary.summary(cursor=cursor)
+        elif analysis == 'global-activity-all':
             import smwactivity
-            smwactivity.activityall(cursor, '%s @ %s' % (glang, gfamily))
-        elif analysis == 'activity-yearly':
+            smwactivity.activityall(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+        elif analysis == 'global-activity-yearly':
             import smwactivity
-            smwactivity.activityyearly(cursor, '%s @ %s' % (glang, gfamily))
-        elif analysis == 'activity-monthly':
+            smwactivity.activityyearly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+        elif analysis == 'global-activity-monthly':
             import smwactivity
-            smwactivity.activitymonthly(cursor, '%s @ %s' % (glang, gfamily))
-        elif analysis == 'activity-dow':
+            smwactivity.activitymonthly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+        elif analysis == 'global-activity-dow':
             import smwactivity
-            smwactivity.activitydow(cursor, '%s @ %s' % (glang, gfamily))
-        elif analysis == 'activity-hourly':
+            smwactivity.activitydow(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+        elif analysis == 'global-activity-hourly':
             import smwactivity
-            smwactivity.activityhourly(cursor, '%s @ %s' % (glang, gfamily))
+            smwactivity.activityhourly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+        #user
+        elif analysis == 'user-activity-all':
+            import smwactivity
+            smwactivity.activityall(cursor=cursor, range='user', title='%s @ %s' % (glang, gfamily))
+        #elif analysis == 'user-graphs-editedpages':
+        #    import smwgraphs
+        #    smwgraphs.editedpages(cursor)
         
         cursor.close()
         conn.close()
