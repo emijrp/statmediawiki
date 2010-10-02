@@ -8,6 +8,10 @@ from Tkinter import *
 import tkMessageBox
 import tkSimpleDialog
 
+# TODO:
+# corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
+# 
+
 class App:
     def __init__(self, master):
         gfather = ''
@@ -23,7 +27,7 @@ class App:
         #preprocessing
         preprocessingmenu = Menu(menu)
         menu.add_cascade(label="Preprocessing", menu=preprocessingmenu)
-        preprocessingmenu.add_command(label="My wiki", command=self.callback)
+        preprocessingmenu.add_command(label="My wiki", command=self.mywiki)
         preprocessingmenu.add_command(label="Wikimedia", command=self.wikimedia)
         preprocessingmenu.add_command(label="Wikia", command=self.wikia)
         preprocessingmenu.add_separator()
@@ -54,6 +58,29 @@ class App:
     
     def callback(self):
         print "called the callback!"
+    
+    def mywiki(self):
+        import smwparser
+        import MySQLdb
+        
+        mywikiconn = None
+        mywikicursor = None
+        try:
+            host = tkSimpleDialog.askstring("Which host?", "Put a host", initialvalue="localhost")
+            user = tkSimpleDialog.askstring("Which database user?", "Put a user", initialvalue="myuser")
+            passwd = tkSimpleDialog.askstring("Which database user?", "Put the password for user '%s'" % user, initialvalue="mypass")
+            db = tkSimpleDialog.askstring("Which database?", "What is the database name where your wiki is installed?", initialvalue="mydbname")
+            mywikiconn = MySQLdb.connect(host=host,user=user, passwd=passwd,db=db)
+            mywikicursor = mywikiconn.cursor()
+        except:
+            print "Hubo un error al conectarse a la base de datos"
+        
+        path = 'dumps/sqlitedbs'
+        filename = 'mywiki.db'
+        smwparser.parseMyWikiMySQL(mywikicursor, path, filename)
+        
+        mywikicursor.close()
+        mywikiconn.close()
     
     def wikimedia(self):
         global gfather
