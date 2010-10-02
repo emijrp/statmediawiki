@@ -9,6 +9,7 @@ import os
 import tkMessageBox
 
 #TODO: unificar las funciones parsemywiki y parsemediawiki en la medida de lo posible, ahora mismo hay mucho código repetido
+#sugerencias de tablas: una para usuarios para poder tener a mano una lista rapida con todos los usuarios para mostrar en listbox o algo así
 
 def createDB(cursor):
     cursor.execute('''create table revision (title text, id integer, username text, timestamp timestamp, revisionid integer)''')

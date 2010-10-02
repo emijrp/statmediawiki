@@ -3,10 +3,12 @@
 
 import os
 import sqlite3
+import thread
 
 from Tkinter import *
 import tkMessageBox
 import tkSimpleDialog
+import pylab
 
 # TODO:
 # almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
@@ -165,22 +167,28 @@ class App:
         elif analysis == 'global-activity-all':
             import smwactivity
             smwactivity.activityall(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+            pylab.show()
         elif analysis == 'global-activity-yearly':
             import smwactivity
             smwactivity.activityyearly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+            pylab.show()
         elif analysis == 'global-activity-monthly':
             import smwactivity
             smwactivity.activitymonthly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+            pylab.show()
         elif analysis == 'global-activity-dow':
             import smwactivity
             smwactivity.activitydow(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+            pylab.show()
         elif analysis == 'global-activity-hourly':
             import smwactivity
             smwactivity.activityhourly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+            pylab.show()
         #user
         elif analysis == 'user-activity-all':
             import smwactivity
             smwactivity.activityall(cursor=cursor, range='user', title='%s @ %s' % (glang, gfamily))
+            pylab.show()
         #elif analysis == 'user-graphs-editedpages':
         #    import smwgraphs
         #    smwgraphs.editedpages(cursor)

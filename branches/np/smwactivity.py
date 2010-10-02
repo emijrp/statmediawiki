@@ -5,17 +5,21 @@ import sqlite3
 import time
 import xmlreader
 import sys
-import numpy as np
-import pylab as p
+import numpy
+import pylab
 import thread
 
 #cada script .py es un analisis (usuarios ordenados por ediciones por ejemplo) y permiten ser llamados desde otro modulo (mediante llamada a función) o desde consola y con salida por pantalla, csv, svg ,png eps si corresponde, etc
 
-def activity(cursor, range='', title='', subtitle='', color='', xlabel='', timesplit=''):
+def activity(cursor=None, range='', title='', subtitle='', color='', xlabel='', timesplit=''):
+    if not cursor:
+        print "ERROR, NO CURSOR"
+        return
+    
     t1=time.time()
     
-    fig = p.figure()
-    p.suptitle(title)
+    fig = pylab.figure()
+    pylab.suptitle(title)
     
     subfig = fig.add_subplot(1,1,1)
     a = []
@@ -30,11 +34,11 @@ def activity(cursor, range='', title='', subtitle='', color='', xlabel='', times
         x.append(int(row[0]))
         y.append(int(row[1]))
     
-    rects = subfig.bar(np.arange(len(x)), y, color=color, align='center')
+    rects = subfig.bar(numpy.arange(len(x)), y, color=color, align='center')
     subfig.legend()
     subfig.set_title(subtitle)
     subfig.set_xlabel(xlabel)
-    subfig.set_xticks(np.arange(len(x)))
+    subfig.set_xticks(numpy.arange(len(x)))
     subfig.set_xticklabels([str(i) for i in x])
     subfig.set_ylabel('Edits')
     
@@ -44,19 +48,17 @@ def activity(cursor, range='', title='', subtitle='', color='', xlabel='', times
         subfig.text(rect.get_x()+rect.get_width()/2., height+(maxheight/50), str(height), ha='center', va='bottom')
     
     print title, 'generated in', time.time()-t1, 'secs'
-    
-    p.show()
 
-def activityyearly(cursor, range='', title=''):
+def activityyearly(cursor=None, range='', title=''):
     activity(cursor=cursor, range=range, title=title, subtitle='Activity by year', color='#88aa33', xlabel='Year', timesplit='Y')
 
-def activitymonthly(cursor, range='', title=''):
+def activitymonthly(cursor=None, range='', title=''):
     activity(cursor=cursor, range=range, title=title, subtitle='Activity by month', color='#aa3388', xlabel='Month', timesplit='m')
 
-def activitydow(cursor, range='', title=''):
+def activitydow(cursor=None, range='', title=''):
     activity(cursor=cursor, range=range, title=title, subtitle='Activity by day of week', color='#3388aa', xlabel='Day of week', timesplit='w')
 
-def activityhourly(cursor, range='', title=''):
+def activityhourly(cursor=None, range='', title=''):
     activity(cursor=cursor, range=range, title=title, subtitle='Activity by hour', color='#1177bb', xlabel='Hour', timesplit='H')
 
 def activityall(cursor=None, range='', title=''):
@@ -69,3 +71,4 @@ def activityall(cursor=None, range='', title=''):
     activitymonthly(cursor=cursor, range=range, title=title)
     activitydow(cursor=cursor, range=range, title=title)
     activityhourly(cursor=cursor, range=range, title=title)
+
