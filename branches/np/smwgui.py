@@ -25,7 +25,7 @@ class App:
         menu.add_cascade(label="Preprocessing", menu=preprocessingmenu)
         preprocessingmenu.add_command(label="My wiki", command=self.callback)
         preprocessingmenu.add_command(label="Wikimedia", command=self.wikimedia)
-        preprocessingmenu.add_command(label="Wikia", command=self.callback)
+        preprocessingmenu.add_command(label="Wikia", command=self.wikia)
         preprocessingmenu.add_separator()
         preprocessingmenu.add_command(label="Exit", command=root.quit)
 
@@ -66,42 +66,47 @@ class App:
         t = project.split('.')
         if len(t) == 3:
             if t[1] in ['wikipedia', 'wiktionary']:
+                gfather = 'wikimedia'
                 gfamily = t[1]
                 glang = t[0]
-                smwdownloader.download('wikimedia', t[1], t[0])
+                smwdownloader.download(gfather, gfamily, glang)
     
-    def downloader(self, family, lang):
+    def wikia(self):
         global gfather
         global gfamily
         global glang
         
         import smwdownloader
         
-        gfather = ''
-        gfamily = family
-        glang = lang
-        if gfamily in ['wikipedia', 'wiktionary']:
-            gfather = 'wikimedia'
-        else:
-            sys.exit()
-        print 'Downloading', gfamily, glang, 'from', gfather
-        smwdownloader.download(gfather, gfamily, glang)
-
+        project = tkSimpleDialog.askstring("Which project?", "Put an URL like below", initialvalue="inciclopedia.wikia.com")
+        t = project.split('.')
+        if len(t) == 3:
+            if t[1] in ['wikia']:
+                gfather = 'wikia'
+                gfamily = t[1]
+                glang = t[0]
+                smwdownloader.download(gfather, gfamily, glang)
+    
     def analysis(self, analysis):
         import smwqueries
+        global gfather
         global glang
         global gfamily
         
-        filename = '%swiki-latest-pages-meta-history.xml.7z' % (glang)
-        print '--',filename
-        filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.7z')[0])
+        filename = ''
+        filedbname = ''
+        if gfather == 'wikimedia':
+            filename = '%swiki-latest-pages-meta-history.xml.7z' % (glang)
+            filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.7z')[0])
+        elif gfather == 'wikia':
+            filename = '%s-pages_full.xml.gz' % (glang)
+            filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.gz')[0])
         
-        print filedbname
         conn = sqlite3.connect(filedbname)
         cursor = conn.cursor()
         
         if analysis == 'activity-all':
-            smwqueries.activity(cursor)
+            smwqueries.activity(cursor, '%s @ %s' % (glang, gfamily))
         elif analysis == 'activity-yearly':
             smwqueries.activityyearly(cursor)
         

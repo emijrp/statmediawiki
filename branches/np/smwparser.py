@@ -14,7 +14,7 @@ def parseWikimediaXML(path, filename):
     pathsqlitedbs = '%s/sqlitedbs' % (path)
     if not os.path.exists(pathsqlitedbs):
         os.makedirs(pathsqlitedbs)
-    filenamedb = '%s/%s.db' % (pathsqlitedbs, filename.split('.xml.7z')[0])
+    filenamedb = '%s/%s.db' % (pathsqlitedbs, filename.split('.xml.')[0])
     
     if os.path.exists(filenamedb):
         print 'Ya existe un preprocesado para este proyecto'

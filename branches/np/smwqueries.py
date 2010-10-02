@@ -38,14 +38,16 @@ def activityyearly(cursor):
 	
 	p.show()
 
-def activity(cursor):
+def activity(cursor, title=''):
 	#a = cursor.execute('select username, count(*) from revision group by username order by count(*) desc limit 30')
 	#a = cursor.execute("select title, revisionid, timestamp from revision where timestamp<datetime('2004-06-12 10:00:00') limit 30")
 	#a = cursor.execute("select title, revisionid, timestamp, datetime(strftime('%Y-%m-%dT%H:%M:%S', timestamp)) from revision where 1 limit 30")
 	
+	
 	t1=time.time()
 	
 	fig = p.figure()
+	p.suptitle(title)
 	
 	#year
 	yearfig = fig.add_subplot(2,2,1)
