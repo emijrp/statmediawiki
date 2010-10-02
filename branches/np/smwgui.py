@@ -9,8 +9,9 @@ import tkMessageBox
 import tkSimpleDialog
 
 # TODO:
+# almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
-# 
+# capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
 
 class App:
     def __init__(self, master):
@@ -36,21 +37,39 @@ class App:
         #analysis
         analysismenu = Menu(menu)
         menu.add_cascade(label="Analysing", menu=analysismenu)
-        analysismenu.add_command(label="Summary", command=lambda: self.analysis('summary'))
-        activitymenu = Menu(analysismenu)
-        analysismenu.add_cascade(label="Activity", menu=activitymenu)
-        activityyearly = Menu(activitymenu)
-        activitymenu.add_command(label="Yearly", command=lambda: self.analysis('activity-yearly'))
-        activitymonthly = Menu(activitymenu)
-        activitymenu.add_command(label="Monthly", command=lambda: self.analysis('activity-monthly'))
-        activitydow = Menu(activitymenu)
-        activitymenu.add_command(label="Day of week", command=lambda: self.analysis('activity-dow'))
-        activityhourly = Menu(activitymenu)
-        activitymenu.add_command(label="Hourly", command=lambda: self.analysis('activity-hourly'))
-        activitymenu.add_separator()
-        activityall = Menu(activitymenu)
-        activitymenu.add_command(label="All", command=lambda: self.analysis('activity-all'))
-
+        
+        #begin global
+        globalmenu = Menu(analysismenu)
+        analysismenu.add_cascade(label="Global", menu=globalmenu)
+        globalmenu.add_command(label="Summary", command=lambda: self.analysis('summary'))
+        #begin activity
+        globalactivitymenu = Menu(globalmenu)
+        globalmenu.add_cascade(label="Activity", menu=globalactivitymenu)
+        globalactivitymenu.add_command(label="All", command=lambda: self.analysis('activity-all'))
+        globalactivitymenu.add_separator()
+        globalactivitymenu.add_command(label="Yearly", command=lambda: self.analysis('activity-yearly'))
+        globalactivitymenu.add_command(label="Monthly", command=lambda: self.analysis('activity-monthly'))
+        globalactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('activity-dow'))
+        globalactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('activity-hourly'))
+        #end activity
+        #end global
+        
+        #begin user-by-user
+        userbyusermenu = Menu(analysismenu)
+        analysismenu.add_cascade(label="User-by-user", menu=userbyusermenu)
+        
+        #end user-by-user
+        
+        #begin page-by-page
+        pagebypagemenu = Menu(analysismenu)
+        analysismenu.add_cascade(label="Page-by-page", menu=pagebypagemenu)
+        #end page-by-page
+        
+        #begin others
+        
+        
+        #end others
+        
         #help
         helpmenu = Menu(menu)
         menu.add_cascade(label="Help", menu=helpmenu)
@@ -163,6 +182,7 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
+    root.title('StatMediaWiki NP')
     #top = Toplevel() #otra ventana
     status = Label(root, text="...", bd=1, relief=SUNKEN, anchor=W)
     status.pack(side=BOTTOM, fill=X)

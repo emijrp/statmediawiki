@@ -10,7 +10,7 @@ import pylab as p
 
 #cada script .py es un analisis (usuarios ordenados por ediciones por ejemplo) y permiten ser llamados desde otro modulo (mediante llamada a función) o desde consola y con salida por pantalla, csv, svg ,png eps si corresponde, etc
 
-def activity(cursor, title='', subtitle='', xlabel='', timesplit=''):
+def activity(cursor, title='', subtitle='', color='', xlabel='', timesplit=''):
     t1=time.time()
     
     fig = p.figure()
@@ -25,7 +25,7 @@ def activity(cursor, title='', subtitle='', xlabel='', timesplit=''):
         x.append(int(row[0]))
         y.append(int(row[1]))
     
-    rects = subfig.bar(np.arange(len(x)), y, color='#88aa33', align='center')
+    rects = subfig.bar(np.arange(len(x)), y, color=color, align='center')
     subfig.legend()
     subfig.set_title(subtitle)
     subfig.set_xlabel(xlabel)
@@ -41,16 +41,16 @@ def activity(cursor, title='', subtitle='', xlabel='', timesplit=''):
     p.show()
 
 def activityyearly(cursor, title=''):
-    activity(cursor=cursor, title=title, subtitle='Activity by year', xlabel='Year', timesplit='Y')
+    activity(cursor=cursor, title=title, subtitle='Activity by year', color='#88aa33', xlabel='Year', timesplit='Y')
 
 def activitymonthly(cursor, title=''):
-    activity(cursor=cursor, title=title, subtitle='Activity by month', xlabel='Month', timesplit='m')
+    activity(cursor=cursor, title=title, subtitle='Activity by month', color='#aa3388', xlabel='Month', timesplit='m')
 
 def activitydow(cursor, title=''):
-    activity(cursor=cursor, title=title, subtitle='Activity by day of week', xlabel='Day of week', timesplit='w')
+    activity(cursor=cursor, title=title, subtitle='Activity by day of week', color='#3388aa', xlabel='Day of week', timesplit='w')
 
 def activityhourly(cursor, title=''):
-    activity(cursor=cursor, title=title, subtitle='Activity by hour', xlabel='Hour', timesplit='H')
+    activity(cursor=cursor, title=title, subtitle='Activity by hour', color='#1177bb', xlabel='Hour', timesplit='H')
 
 def activityall(cursor, title=''):
     #a = cursor.execute('select username, count(*) from revision group by username order by count(*) desc limit 30')
