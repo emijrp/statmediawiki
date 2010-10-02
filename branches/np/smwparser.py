@@ -6,13 +6,14 @@ import time
 import xmlreader
 import sys
 import os
+import hashlib
 import tkMessageBox
 
 #TODO: unificar las funciones parsemywiki y parsemediawiki en la medida de lo posible, ahora mismo hay mucho código repetido
 #sugerencias de tablas: una para usuarios para poder tener a mano una lista rapida con todos los usuarios para mostrar en listbox o algo así
 
 def createDB(cursor):
-    cursor.execute('''create table revision (title text, id integer, username text, timestamp timestamp, revisionid integer)''')
+    cursor.execute('''create table revision (title text, id integer, username text, timestamp timestamp, revisionid, md5 integer)''')
 
 def parseWikimediaXML(path, filename):
     xml = xmlreader.XmlDump('%s/%s' % (path, filename), allrevisions=True)
@@ -43,10 +44,11 @@ def parseWikimediaXML(path, filename):
     tt=time.time()
     for x in xml.parse():
         timestamp = datetime.datetime(year=int(x.timestamp[0:4]), month=int(x.timestamp[5:7]), day=int(x.timestamp[8:10]), hour=int(x.timestamp[11:13]), minute=int(x.timestamp[14:16]), second=int(x.timestamp[17:19]))
-        t = (x.title, x.id, x.username, timestamp, x.revisionid)
+        md5 = hashlib.md5(x.text.encode('utf-8')).hexdigest()
+        t = (x.title, x.id, x.username, timestamp, x.revisionid, md5)
     
         if not None in t and not '' in t:
-            cursor.execute('insert into revision values (?,?,?,?,?)', t)
+            cursor.execute('insert into revision values (?,?,?,?,?,?)', t)
             i+=1
         else:
             print t

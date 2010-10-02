@@ -24,7 +24,7 @@ def activity(cursor=None, range='', entity='', title='', subtitle='', color='', 
     subfig = fig.add_subplot(1,1,1)
     a = []
     if range == 'global':
-        a = cursor.execute("select strftime(?, timestamp) as time, count(*) as count from revision where 1 group by time order by time asc", (timesplit))
+        a = cursor.execute("select strftime(?, timestamp) as time, count(*) as count from revision where 1 group by time order by time asc", (timesplit, ))
     elif range == 'user':
         a = cursor.execute("select strftime(?, timestamp) as time, count(*) as count from revision where username=? group by time order by time asc", (timesplit, entity))
     elif range == 'page':
