@@ -34,7 +34,7 @@ class App:
         preprocessingmenu.add_command(label="Wikimedia", command=self.wikimedia)
         preprocessingmenu.add_command(label="Wikia", command=self.wikia)
         preprocessingmenu.add_separator()
-        preprocessingmenu.add_command(label="Exit", command=root.quit)
+        preprocessingmenu.add_command(label="Exit", command=master.quit)
 
         #analysis
         analysismenu = Menu(menu)
@@ -63,6 +63,10 @@ class App:
         userbyusermenu.add_cascade(label="Activity", menu=useractivitymenu)
         useractivitymenu.add_command(label="All", command=lambda: self.analysis('user-activity-all'))
         useractivitymenu.add_separator()
+        useractivitymenu.add_command(label="Yearly", command=lambda: self.analysis('user-activity-yearly'))
+        useractivitymenu.add_command(label="Monthly", command=lambda: self.analysis('user-activity-monthly'))
+        useractivitymenu.add_command(label="Day of week", command=lambda: self.analysis('user-activity-dow'))
+        useractivitymenu.add_command(label="Hourly", command=lambda: self.analysis('user-activity-hourly'))
         
         usergraphsmenu = Menu(userbyusermenu)
         userbyusermenu.add_cascade(label="Graphs", menu=usergraphsmenu)
@@ -72,6 +76,14 @@ class App:
         #begin page-by-page
         pagebypagemenu = Menu(analysismenu)
         analysismenu.add_cascade(label="Page-by-page", menu=pagebypagemenu)
+        pageactivitymenu = Menu(pagebypagemenu)
+        pagebypagemenu.add_cascade(label="Activity", menu=pageactivitymenu)
+        pageactivitymenu.add_command(label="All", command=lambda: self.analysis('page-activity-all'))
+        pageactivitymenu.add_separator()
+        pageactivitymenu.add_command(label="Yearly", command=lambda: self.analysis('page-activity-yearly'))
+        pageactivitymenu.add_command(label="Monthly", command=lambda: self.analysis('page-activity-monthly'))
+        pageactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('pager-activity-dow'))
+        pageactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('page-activity-hourly'))
         
         #end page-by-page
         
@@ -164,34 +176,52 @@ class App:
         if analysis == 'global-summary':
             import smwsummary
             smwsummary.summary(cursor=cursor)
-        elif analysis == 'global-activity-all':
+        elif analysis.startswith('global-activity'):
             import smwactivity
-            smwactivity.activityall(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
-            pylab.show()
-        elif analysis == 'global-activity-yearly':
-            import smwactivity
-            smwactivity.activityyearly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
-            pylab.show()
-        elif analysis == 'global-activity-monthly':
-            import smwactivity
-            smwactivity.activitymonthly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
-            pylab.show()
-        elif analysis == 'global-activity-dow':
-            import smwactivity
-            smwactivity.activitydow(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
-            pylab.show()
-        elif analysis == 'global-activity-hourly':
-            import smwactivity
-            smwactivity.activityhourly(cursor=cursor, range='global', title='%s @ %s' % (glang, gfamily))
+            if analysis == 'global-activity-all':
+                smwactivity.activityall(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+            elif analysis == 'global-activity-yearly':
+                smwactivity.activityyearly(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+            elif analysis == 'global-activity-monthly':
+                smwactivity.activitymonthly(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+            elif analysis == 'global-activity-dow':
+                smwactivity.activitydow(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+            elif analysis == 'global-activity-hourly':
+                smwactivity.activityhourly(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
             pylab.show()
         #user
-        elif analysis == 'user-activity-all':
+        elif analysis.startswith('user-activity'):
             import smwactivity
-            smwactivity.activityall(cursor=cursor, range='user', title='%s @ %s' % (glang, gfamily))
+            entity = tkSimpleDialog.askstring("What username?", "Introduce a username", initialvalue="")
+            if analysis == 'user-activity-all':
+                smwactivity.activityall(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+            elif analysis == 'user-activity-yearly':
+                smwactivity.activityyearly(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+            elif analysis == 'user-activity-monthly':
+                smwactivity.activitymonthly(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+            elif analysis == 'user-activity-dow':
+                smwactivity.activitydow(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+            elif analysis == 'user-activity-hourly':
+                smwactivity.activityhourly(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
             pylab.show()
         #elif analysis == 'user-graphs-editedpages':
         #    import smwgraphs
         #    smwgraphs.editedpages(cursor)
+        #page
+        elif analysis.startswith('page-activity'):
+            import smwactivity
+            entity = tkSimpleDialog.askstring("What page?", "Introduce a page", initialvalue="")
+            if analysis == 'page-activity-all':
+                smwactivity.activityall(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+            elif analysis == 'page-activity-yearly':
+                smwactivity.activityyearly(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+            elif analysis == 'page-activity-monthly':
+                smwactivity.activitymonthly(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+            elif analysis == 'page-activity-dow':
+                smwactivity.activitydow(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+            elif analysis == 'page-activity-hourly':
+                smwactivity.activityhourly(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+            pylab.show()
         
         cursor.close()
         conn.close()
