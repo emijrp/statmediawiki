@@ -225,42 +225,36 @@ class App:
         #    smwgraphs.editedpages(cursor)
         #page
         elif analysis.startswith('page'):
+            import smwlist
+            askframe = Tk()
+            askframe.geometry('300x500')
+            scrollbar = Scrollbar(askframe)
+            scrollbar.pack(side=RIGHT, fill=Y)
+            listbox = Listbox(askframe, width=300, height=30)
+            listbox.pack()
+            list = smwlist.listofpagesandedits(cursor=cursor)
+            for title, edits in list:
+                i = '%s (%s edits)' % (title, edits)
+                listbox.insert(END, i)
+            listbox.config(yscrollcommand=scrollbar.set)
+            scrollbar.config(command=listbox.yview)
             if analysis.startswith('page-activity'):
                 import smwactivity
-                entity = tkSimpleDialog.askstring("What page?", "Introduce a page", initialvalue="")
                 if analysis == 'page-activity-all':
-                    smwactivity.activityall(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activityall(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 elif analysis == 'page-activity-yearly':
-                    smwactivity.activityyearly(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activityyearly(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 elif analysis == 'page-activity-monthly':
-                    smwactivity.activitymonthly(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activitymonthly(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 elif analysis == 'page-activity-dow':
-                    smwactivity.activitydow(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activitydow(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 elif analysis == 'page-activity-hourly':
-                    smwactivity.activityhourly(cursor=cursor, range='page', entity=entity, title='Page:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activityhourly(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 pylab.show()
             elif analysis == 'page-graph':
                 import smwgraph
-                import smwlist
-                #entity = tkSimpleDialog.askstring("What page?", "Introduce a page", initialvalue="")
-                askframe = Tk()
-                askframe.geometry('300x500')
-                scrollbar = Scrollbar(askframe)
-                scrollbar.pack(side=RIGHT, fill=Y)
-                listbox = Listbox(askframe, width=300, height=30)
-                listbox.pack()
-                list = smwlist.listofpagesandedits(cursor=cursor)
-                for title, edits in list:
-                    i = '%s (%s edits)' % (title, edits)
-                    listbox.insert(END, i)
-                # attach listbox to scrollbar
-                listbox.config(yscrollcommand=scrollbar.set)
-                scrollbar.config(command=listbox.yview)
-                #meter boton de ok
-                #print listbox.curselection() #cogerlo con listbox.get(number)
-                b = Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0]))
-                b.pack()
-                askframe.mainloop()
+                smwgraph.graph(cursor=cursor, range='page', entity=entity)
+            askframe.mainloop()
         
         cursor.close()
         conn.close()
