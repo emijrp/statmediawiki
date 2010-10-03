@@ -2,8 +2,10 @@
 # File: menu1.py
 
 import os
+import platform
 import sqlite3
 import thread
+import webbrowser
 
 from Tkinter import *
 import tkMessageBox
@@ -16,12 +18,16 @@ import pylab
 # capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
 # hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?)
 
+LINUX = platform.system() == 'Linux'
+
 class App:
     def __init__(self, master):
         gfather = ''
         gfamily = ''
         glang = ''
-    
+        
+        homepage = 'http://statmediawiki.forja.rediris.es'
+        
         frame = Frame(master)
         frame.pack()
         # create a menu
@@ -100,7 +106,9 @@ class App:
         #help
         helpmenu = Menu(menu)
         menu.add_cascade(label="Help", menu=helpmenu)
-        helpmenu.add_command(label="About...", command=self.callback)
+        helpmenu.add_command(label="About", command=self.callback)
+        helpmenu.add_command(label="Help index", command=self.callback)
+        helpmenu.add_command(label="StatMediaWiki homepage", command=lambda: webbrowser.open_new_tab(homepage))
     
     def callback(self):
         print "called the callback!"
