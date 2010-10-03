@@ -17,7 +17,10 @@ import pylab
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
 # capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
 # hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?)
+# log de domas?
+# conectarse a irc y poder hacer estadisticas en vivo?
 
+VERSION = '0.0.1' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 
 class App:
@@ -96,6 +99,12 @@ class App:
         
         #end page-by-page
         
+        #begin view
+        viewmenu = Menu(menu)
+        menu.add_cascade(label="View", menu=viewmenu)
+        viewmenu.add_command(label="Console", command=self.callback)
+        #end view
+        
         #begin others
         
         
@@ -109,7 +118,7 @@ class App:
         helpmenu.add_command(label="StatMediaWiki homepage", command=lambda: webbrowser.open_new_tab(homepage))
     
     def callback(self):
-        print "called the callback!"
+        print "Feature doesn't developed"
     
     def mywiki(self):
         import smwparser
@@ -297,7 +306,7 @@ if __name__ == "__main__":
     labellogo = Label(root, image=imagelogo)
     labellogo.grid(row=0, column=0, rowspan=3, sticky=W)
     #description
-    desc=Label(root, text="StatMediaWiki NP (version 0.0.1)\nThis program is free software (GPL v3 or later).", font=("Arial", 7))
+    desc=Label(root, text="StatMediaWiki NP (version %s)\nThis program is free software (GPL v3 or later)." % (VERSION), font=("Arial", 7))
     desc.grid(row=2, column=1, columnspan=2)
     #quickbuttoms
     button1 = Button(root, text="Load", command=lambda: 1, width=12)
@@ -309,7 +318,7 @@ if __name__ == "__main__":
     button4 = Button(root, text="Button #4", command=lambda: 1, width=12)
     button4.grid(row=1, column=2)
     #statusbar
-    status = Label(root, text="...", bd=1, justify=LEFT, relief=SUNKEN, width=65)
+    status = Label(root, text="Status: OK", bd=1, justify=LEFT, relief=SUNKEN, width=65)
     status.grid(row=3, column=0, columnspan=3, sticky=W)
     #status.config(text="AA")
     root.protocol("WM_DELETE_WINDOW", askclose)
