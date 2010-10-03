@@ -241,7 +241,24 @@ class App:
                 pylab.show()
             elif analysis == 'page-graph':
                 import smwgraph
-                entity = tkSimpleDialog.askstring("What page?", "Introduce a page", initialvalue="")
+                import smwlist
+                #entity = tkSimpleDialog.askstring("What page?", "Introduce a page", initialvalue="")
+                askframe = Tk()
+                askframe.geometry('300x500')
+                scrollbar = Scrollbar(askframe)
+                scrollbar.pack(side=RIGHT, fill=Y)
+                listbox = Listbox(askframe, width=300, height=30)
+                listbox.pack()
+                for i in smwlist.listofpages(cursor=cursor):
+                    listbox.insert(END, i)
+                # attach listbox to scrollbar
+                listbox.config(yscrollcommand=scrollbar.set)
+                scrollbar.config(command=listbox.yview)
+                #meter boton de ok
+                #print listbox.curselection() #cogerlo con listbox.get(number)
+                b = Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=listbox.get(listbox.curselection())))
+                b.pack()
+                askframe.mainloop()
                 smwgraph.graph(cursor=cursor, range='page', entity=entity)
         
         cursor.close()
