@@ -33,7 +33,18 @@ def summary(cursor):
     
     frame = Tk()
     frame.title('Summary')
-    msg = Label(frame, text=output)
-    msg.pack(expand=YES, fill=BOTH)
-    msg.config(relief=SUNKEN, width=40, height=7, bg='beige')
+    frame.geometry('250x300+300+100')
+    
+    scrollbar = Scrollbar(frame)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    #fix: con un label sería mejor?
+    text = Text(frame, wrap=WORD, yscrollcommand=scrollbar.set)
+    text.insert(INSERT, output)
+    text.config(state=NORMAL) #si lo pongo en solo lectura (DISABLED), no deja copiar/pegar con ctrl-c
+    text.pack()
+    scrollbar.config(command=text.yview)
+
+    #msg = Label(frame, text=output)
+    #msg.pack(expand=YES, fill=BOTH)
+    #msg.config(relief=SUNKEN, width=40, height=7, bg='beige')
     
