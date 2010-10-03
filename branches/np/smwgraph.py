@@ -41,10 +41,15 @@ def graph(cursor=None, range='', entity=''):
         relations.append([previd, currentid, user])
     
     output = ''
+    c=0
     for id1, id2, user in relations:
-        output += '"%s" -> "%s" [label="%s"];\n' % (id1, id2, user)
+        c+=1
+        if c!=len(relations):
+            output += '"%s" -> "%s" [label="%s"];\n' % (id1, id2, user)
+        else:
+            output += '"%s" -> "%s" [label="LAST EDIT: %s"];\n' % (id1, id2, user)
     
-    output = 'digraph G {\n %s\n}' % (output)
+    output = 'digraph G {\n size="150,150" \n%s\n}' % (output)
     f.write(output.encode('utf-8'))
     
     f.close()

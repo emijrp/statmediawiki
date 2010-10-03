@@ -261,7 +261,6 @@ class App:
                 b = Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0]))
                 b.pack()
                 askframe.mainloop()
-                smwgraph.graph(cursor=cursor, range='page', entity=entity)
         
         cursor.close()
         conn.close()
