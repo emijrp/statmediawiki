@@ -249,14 +249,17 @@ class App:
                 scrollbar.pack(side=RIGHT, fill=Y)
                 listbox = Listbox(askframe, width=300, height=30)
                 listbox.pack()
-                for i in smwlist.listofpages(cursor=cursor):
+                list = smwlist.listofpagesandedits(cursor=cursor)
+                for title, edits in list:
+                    i = '%s (%s edits)' % (title, edits)
                     listbox.insert(END, i)
                 # attach listbox to scrollbar
                 listbox.config(yscrollcommand=scrollbar.set)
                 scrollbar.config(command=listbox.yview)
                 #meter boton de ok
                 #print listbox.curselection() #cogerlo con listbox.get(number)
-                b = Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=listbox.get(listbox.curselection())))
+                b = Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=list[listbox.curselection()[0]][0
+                ]))
                 b.pack()
                 askframe.mainloop()
                 smwgraph.graph(cursor=cursor, range='page', entity=entity)
