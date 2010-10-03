@@ -24,7 +24,7 @@ import pylab
 # * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
 # * 
 
-VERSION = '0.0.1' #StatMediaWiki version
+VERSION = '0.0.2' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 
 class DialogListbox(Toplevel):
