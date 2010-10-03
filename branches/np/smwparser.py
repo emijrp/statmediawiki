@@ -12,8 +12,43 @@ import tkMessageBox
 #TODO: unificar las funciones parsemywiki y parsemediawiki en la medida de lo posible, ahora mismo hay mucho código repetido
 #sugerencias de tablas: una para usuarios para poder tener a mano una lista rapida con todos los usuarios para mostrar en listbox o algo así
 
-def createDB(cursor):
-    cursor.execute('''create table revision (title text, id integer, username text, timestamp timestamp, revisionid, md5 integer)''')
+def createDB(conn=None, cursor=None):
+    cursor.execute('''create table revision (title text, id integer, username text, timestamp timestamp, revisionid integer, md5 text)''')
+    cursor.execute('''create table page (title text, editcount integer)''')
+    cursor.execute('''create table user (username text, editcount integer)''')
+    conn.commit()
+
+def generatePageTable(conn, cursor):
+    a = cursor.execute("select title, count(*) as count from revision where 1 group by title")
+    c=0
+    pages = []
+    for row in a:
+        c+=1
+        pages.append([row[0], row[1]])
+    
+    for title, editcount in pages:
+        cursor.execute('insert into page values (?,?)', (title, editcount))
+    conn.commit()
+    
+    print "GENERADA TABLA AUXILIAR PARA PAGINAS: %d" % (c)
+
+def generateUserTable(conn, cursor):
+    a = cursor.execute("select username, count(*) as count from revision where 1 group by username")
+    c=0
+    users = []
+    for row in a:
+        c+=1
+        users.append([row[0], row[1]])
+    
+    for user, editcount in users:
+        cursor.execute('insert into user values (?,?)', (user, editcount))
+    conn.commit()
+    
+    print "GENERADA TABLA AUXILIAR PARA USUARIOS: %d" % (c)
+
+def generateAuxTables(conn=None, cursor=None):
+    generatePageTable(conn=conn, cursor=cursor)
+    generateUserTable(conn=conn, cursor=cursor)
 
 def parseWikimediaXML(path, filename):
     xml = xmlreader.XmlDump('%s/%s' % (path, filename), allrevisions=True)
@@ -35,7 +70,7 @@ def parseWikimediaXML(path, filename):
     cursor = conn.cursor()
     
     # Create table
-    createDB(cursor)
+    createDB(conn=conn, cursor=cursor)
     
     limit = 10000
     c = 0
@@ -61,8 +96,11 @@ def parseWikimediaXML(path, filename):
     conn.commit() #para cuando son menos de limit o el resto
     print 'Total revisions', c, 'Inserted', i, 'Total time', time.time()-tt, 'seg', (time.time()-tt)/60.0, 'min'
     
+    #tablas auxiliares
+    generateAuxTables(conn=conn, cursor=cursor)
     # We can also close the cursor if we are done with it
     cursor.close()
+    conn.close()
     
     print 'OK!'
     tkMessageBox.showinfo("OK", "Parsing complete")
@@ -114,8 +152,12 @@ def parseMyWikiMySQL(mywikicursor, path, filename):
     conn.commit() #para cuando son menos de limit o el resto
     print 'Total revisions', c, 'Inserted', i, 'Total time', time.time()-tt, 'seg', (time.time()-tt)/60.0, 'min'
     
+    #tablas auxiliares
+    generateAuxTables(conn=conn, cursor=cursor)
+    
     # We can also close the cursor if we are done with it
     cursor.close()
+    conn.close()
     
     print 'OK!'
     tkMessageBox.showinfo("OK", "Parsing complete")

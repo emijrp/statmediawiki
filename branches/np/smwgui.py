@@ -14,6 +14,7 @@ import pylab
 # almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
 # capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
+# hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?)
 
 class App:
     def __init__(self, master):
@@ -202,24 +203,37 @@ class App:
                 smwgraph.graph(cursor=cursor)
         #user
         elif analysis.startswith('user'):
+            import smwlist
+            askframe = Tk()
+            askframe.title('Select a user')
+            askframe.geometry('300x500')
+            scrollbar = Scrollbar(askframe)
+            scrollbar.pack(side=RIGHT, fill=Y)
+            listbox = Listbox(askframe, width=300, height=30)
+            listbox.pack()
+            list = smwlist.listofusersandedits(cursor=cursor)
+            for user, edits in list:
+                i = '%s (%s edits)' % (user, edits)
+                listbox.insert(END, i)
+            listbox.config(yscrollcommand=scrollbar.set)
+            scrollbar.config(command=listbox.yview)
             if analysis.startswith('user-activity'):
                 import smwactivity
-                entity = tkSimpleDialog.askstring("What username?", "Introduce a username", initialvalue="")
                 if analysis == 'user-activity-all':
-                    smwactivity.activityall(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activityall(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 elif analysis == 'user-activity-yearly':
-                    smwactivity.activityyearly(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activityyearly(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 elif analysis == 'user-activity-monthly':
-                    smwactivity.activitymonthly(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activitymonthly(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 elif analysis == 'user-activity-dow':
-                    smwactivity.activitydow(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activitydow(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 elif analysis == 'user-activity-hourly':
-                    smwactivity.activityhourly(cursor=cursor, range='user', entity=entity, title='User:%s @ %s.%s' % (entity, glang, gfamily))
+                    Button(askframe, text="OK", command=lambda: smwactivity.activityhourly(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 pylab.show()
             elif analysis == 'user-graph':
                 import smwgraph
-                entity = tkSimpleDialog.askstring("What username?", "Introduce a username", initialvalue="")
-                smwgraph.graphUserEdits(cursor=cursor, range='user', entity=entity)
+                Button(askframe, text="OK", command=lambda: smwgraph.graphUserEdits(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0])).pack()
+            askframe.mainloop()
         #elif analysis == 'user-graphs-editedpages':
         #    import smwgraphs
         #    smwgraphs.editedpages(cursor)
@@ -227,6 +241,7 @@ class App:
         elif analysis.startswith('page'):
             import smwlist
             askframe = Tk()
+            askframe.title('Select a page')
             askframe.geometry('300x500')
             scrollbar = Scrollbar(askframe)
             scrollbar.pack(side=RIGHT, fill=Y)
