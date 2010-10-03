@@ -24,8 +24,6 @@ import pylab
 # * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
 # * 
 
-# hacerme una clase para los dialogs-listbox http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
-
 VERSION = '0.0.1' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 
@@ -40,7 +38,7 @@ class DialogListbox(Toplevel):
         self.result = None
         
         body = Frame(self)
-        body.pack(padx=0, pady=0)
+        body.grid(row=0, column=0)
         self.listbox()
         self.grab_set()
         
@@ -222,7 +220,8 @@ class App:
         global site
         global wiki
         
-        list = ['recipes', 'inciclopedia']
+        list = ['answers', 'dc', 'eq2', 'inciclopedia', 'familypedia', 'icehockey', 'lyrics', 'marveldatabase', 'memory-beta', 'memoryalpha', 'psychology', 'recipes', 'swfanon', 'starwars', 'uncyclopedia', 'vintagepatterns', 'wow']
+        list.sort()
         d = DialogListbox(self.master, title='Select a Wikia project', list=list)
         if d.result:
             site = 'wikia'
