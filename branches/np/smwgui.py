@@ -28,10 +28,8 @@ class App:
         
         homepage = 'http://statmediawiki.forja.rediris.es'
         
-        frame = Frame(master)
-        frame.pack()
         # create a menu
-        menu = Menu(frame)
+        menu = Menu(master)
         master.config(menu=menu)
 
         #preprocessing
@@ -292,19 +290,27 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
-    root.geometry('300x130+0+0')
+    root.geometry('525x104+0+0')
     root.title('StatMediaWiki NP')
     #logo
-    canvas = Canvas(width = 254, height = 82)
-    canvas.pack(expand = YES, fill = BOTH)
-    logo = PhotoImage(file = 'logo.gif')
-    canvas.create_image(0, 0, image = logo, anchor = NW)
+    imagelogo = PhotoImage(file = 'logo.gif')
+    labellogo = Label(root, image=imagelogo)
+    labellogo.grid(row=0, column=0, rowspan=3, sticky=W)
     #description
-    desc=Label(root, text="StatMediaWiki NP (version 0.0.1)\n(c) 2010 - Present\nThis program is free software (GPL v3 or later)", justify=LEFT)
-    desc.pack(side=TOP, anchor=W)
-    #top = Toplevel() #otra ventana
-    status = Label(root, text="...", bd=1, relief=SUNKEN, anchor=W)
-    status.pack(side=BOTTOM, fill=X)
+    desc=Label(root, text="StatMediaWiki NP (version 0.0.1)\nThis program is free software (GPL v3 or later).", font=("Arial", 7))
+    desc.grid(row=2, column=1, columnspan=2)
+    #quickbuttoms
+    button1 = Button(root, text="Load", command=lambda: 1, width=12)
+    button1.grid(row=0, column=1)
+    button2 = Button(root, text="Button #2", command=lambda: 1, width=12)
+    button2.grid(row=1, column=1)
+    button3 = Button(root, text="Button #3", command=lambda: 1, width=12)
+    button3.grid(row=0, column=2)
+    button4 = Button(root, text="Button #4", command=lambda: 1, width=12)
+    button4.grid(row=1, column=2)
+    #statusbar
+    status = Label(root, text="...", bd=1, justify=LEFT, relief=SUNKEN, width=65)
+    status.grid(row=3, column=0, columnspan=3, sticky=W)
     #status.config(text="AA")
     root.protocol("WM_DELETE_WINDOW", askclose)
     app = App(root)
