@@ -258,8 +258,7 @@ class App:
                 scrollbar.config(command=listbox.yview)
                 #meter boton de ok
                 #print listbox.curselection() #cogerlo con listbox.get(number)
-                b = Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=list[listbox.curselection()[0]][0
-                ]))
+                b = Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0]))
                 b.pack()
                 askframe.mainloop()
                 smwgraph.graph(cursor=cursor, range='page', entity=entity)
@@ -277,8 +276,16 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
-    root.geometry('300x100+0+0')
+    root.geometry('300x130+0+0')
     root.title('StatMediaWiki NP')
+    #logo
+    canvas = Canvas(width = 254, height = 82)
+    canvas.pack(expand = YES, fill = BOTH)
+    logo = PhotoImage(file = 'logo.gif')
+    canvas.create_image(0, 0, image = logo, anchor = NW)
+    #description
+    desc=Label(root, text="StatMediaWiki NP (version 0.0.1)\n(c) 2010 - Present\nThis program is free software (GPL v3 or later)", justify=LEFT)
+    desc.pack(side=TOP, anchor=W)
     #top = Toplevel() #otra ventana
     status = Label(root, text="...", bd=1, relief=SUNKEN, anchor=W)
     status.pack(side=BOTTOM, fill=X)
