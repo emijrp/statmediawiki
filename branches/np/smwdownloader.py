@@ -27,6 +27,10 @@ def downloadWikimediaDump(wiki):
     smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
 
 def downloadWikiaDump(wiki):
+    dumpsdir = 'dumps'
+    if not os.path.exists(dumpsdir):
+        os.makedirs(dumpsdir)
+    
     filename = '%s-pages_full.xml.gz' % (wiki)
     url = '' # la capturamos de Special:Statistics ya que a veces cambia (ver recipes.wikia.com)
     f = urllib.urlopen('http://%s.wikia.com/wiki/Special:Statistics' % (wiki))
@@ -37,6 +41,7 @@ def downloadWikiaDump(wiki):
         url = m[0]
     else:
         print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
+    os.system('wget %s -O %s/%s -c' % (url, dumpsdir, filename))
     print 'Download OK!'
     tkMessageBox.showinfo("OK", "Download complete")
     smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)

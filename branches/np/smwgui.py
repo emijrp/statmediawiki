@@ -52,17 +52,17 @@ class DialogListbox(Toplevel):
         box = Frame(self)
         
         scrollbar = Scrollbar(box)
-        scrollbar.pack(side=RIGHT, fill=Y)
-        self.listbox = Listbox(box, width=300, height=30)
-        self.listbox.pack()
+        scrollbar.grid(row=0, column=2, sticky=N+S)
+        self.listbox = Listbox(box, width=35, height=31)
+        self.listbox.grid(row=0, column=0, columnspan=2, sticky=W)
         [self.listbox.insert(END, item) for item in self.list]
         self.listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.listbox.yview)
             
         w1 = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
-        w1.pack(side=LEFT, padx=5, pady=5)
+        w1.grid(row=1, column=0, sticky=W)
         w2 = Button(box, text="Cancel", width=10, command=self.cancel)
-        w2.pack(side=LEFT, padx=5, pady=5)
+        w2.grid(row=1, column=1, sticky=E)
         
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
