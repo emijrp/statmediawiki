@@ -88,7 +88,7 @@ class App:
         pageactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('pager-activity-dow'))
         pageactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('page-activity-hourly'))
         
-        pagebypagemenu.add_command(label="Graph", command=lambda: self.analysis('page-graph'))
+        pagebypagemenu.add_command(label="Edit history graph", command=lambda: self.analysis('page-edithistorygraph'))
         
         #end page-by-page
         
@@ -266,7 +266,7 @@ class App:
                 elif analysis == 'page-activity-hourly':
                     Button(askframe, text="OK", command=lambda: smwactivity.activityhourly(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
                 pylab.show()
-            elif analysis == 'page-graph':
+            elif analysis == 'page-edithistorygraph':
                 import smwgraph
                 Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0])).pack()
             askframe.mainloop()
