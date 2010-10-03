@@ -50,7 +50,7 @@ def generateAuxTables(conn=None, cursor=None):
     generatePageTable(conn=conn, cursor=cursor)
     generateUserTable(conn=conn, cursor=cursor)
 
-def parseWikimediaXML(path, filename):
+def parseMediaWikiXMLDump(path, filename):
     xml = xmlreader.XmlDump('%s/%s' % (path, filename), allrevisions=True)
     
     pathsqlitedbs = '%s/sqlitedbs' % (path)
@@ -105,7 +105,7 @@ def parseWikimediaXML(path, filename):
     print 'OK!'
     tkMessageBox.showinfo("OK", "Parsing complete")
 
-def parseMyWikiMySQL(mywikicursor, path, filename):
+def parseMediaWikiMySQLConnect(mywikicursor, path, filename):
     import MySQLdb
     
     if not os.path.exists(path):

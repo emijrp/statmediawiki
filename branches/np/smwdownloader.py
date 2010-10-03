@@ -7,38 +7,51 @@ import tkMessageBox
 
 import smwparser
 
-def download(father, family, lang):
+def downloadWikimediaDump(wiki):
     #añadir posibilidad de descargar otros a parte del last
     #verificar md5
-    names = {'wikipedia': 'wiki', 'wiktionary': 'wikt'}
-    
     dumpsdir = 'dumps'
     if not os.path.exists(dumpsdir):
         os.makedirs(dumpsdir)
     
     filename = ''
     url = ''
-    if father == 'wikimedia':
-        filename = '%s%s-latest-pages-meta-history.xml.7z' % (lang, names[family])
-        url = 'http://download.wikimedia.org/%s%s/latest/%s' % (lang, names[family], filename)
-    elif father == 'wikia':
-        filename = '%s-pages_full.xml.gz' % (lang)
-        url = '' # la capturamos de Special:Statistics ya que a veces cambia (ver recipes.wikia.com)
-        f = urllib.urlopen('http://%s.wikia.com/wiki/Special:Statistics' % lang)
-        raw = f.read()
-        f.close()
-        m = re.findall(ur'(http://wiki-stats.wikia.com/./../[^\/]+?/pages_full.xml.gz)', raw) 
-        if m:
-            url = m[0]
-        else:
-            print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
-        
+    filename = '%s-latest-pages-meta-history.xml.7z' % (wiki)
+    url = 'http://download.wikimedia.org/%s/latest/%s' % (wiki, filename)
     os.system('wget %s -O %s/%s -c' % (url, dumpsdir, filename))
     
     #chequear md5
     
-    print 'OK!'
+    print 'Download OK!'
     tkMessageBox.showinfo("OK", "Download complete")
-    smwparser.parseWikimediaXML(path=dumpsdir, filename=filename)
-    
+    smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
 
+def downloadWikiaDump(wiki):
+    filename = '%s-pages_full.xml.gz' % (wiki)
+    url = '' # la capturamos de Special:Statistics ya que a veces cambia (ver recipes.wikia.com)
+    f = urllib.urlopen('http://%s.wikia.com/wiki/Special:Statistics' % (wiki))
+    raw = f.read()
+    f.close()
+    m = re.findall(ur'(http://wiki-stats.wikia.com/./../[^\/]+?/pages_full.xml.gz)', raw) 
+    if m:
+        url = m[0]
+    else:
+        print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
+    print 'Download OK!'
+    tkMessageBox.showinfo("OK", "Download complete")
+    smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
+    
+def downloadWikimediaList():
+    projects = []
+    
+    f = urllib.urlopen('http://download.wikimedia.org/backup-index.html')
+    raw = f.read()
+    f.close()
+    
+    m = re.findall(ur'<a href="([^\/]+?)/\d{8}">', raw)
+    if m:
+        [projects.append(i) for i in m]
+    
+    projects.sort()
+    
+    return projects

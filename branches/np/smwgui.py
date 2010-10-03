@@ -16,23 +16,83 @@ import pylab
 # almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
 # capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
-# hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?)
+# hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?) http://download.wikimedia.org/backup-index.html http://community.wikia.com/wiki/Hub:Big_wikis http://community.wikia.com/index.php?title=Special:Newwikis&dir=prev&limit=500&showall=0 http://www.mediawiki.org/wiki/Sites_using_MediaWiki
 # log de domas?
 # conectarse a irc y poder hacer estadisticas en vivo?
+#
+# Ideas para análisis:
+# * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
+# * 
+
+# hacerme una clase para los dialogs-listbox http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 
 VERSION = '0.0.1' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 
+class DialogListbox(Toplevel):
+    #Following this tutorial http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
+    def __init__(self, parent, title = None, list = []):
+        Toplevel.__init__(self, parent)
+        self.transient = parent
+        self.title = title
+        self.parent = parent
+        self.list = list
+        self.result = None
+        
+        body = Frame(self)
+        body.pack(padx=0, pady=0)
+        self.listbox()
+        self.grab_set()
+        
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+        self.geometry('300x550')
+        self.wait_window(self)
+    
+    def listbox(self):
+        box = Frame(self)
+        
+        scrollbar = Scrollbar(box)
+        scrollbar.pack(side=RIGHT, fill=Y)
+        self.listbox = Listbox(box, width=300, height=30)
+        self.listbox.pack()
+        [self.listbox.insert(END, item) for item in self.list]
+        self.listbox.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.listbox.yview)
+            
+        w1 = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
+        w1.pack(side=LEFT, padx=5, pady=5)
+        w2 = Button(box, text="Cancel", width=10, command=self.cancel)
+        w2.pack(side=LEFT, padx=5, pady=5)
+        
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.cancel)
+        
+        box.pack()
+    
+    def ok(self, event=None):
+        self.withdraw()
+        self.update_idletasks()
+        self.apply()
+        self.cancel()
+
+    def cancel(self, event=None):
+        self.parent.focus_set()
+        self.destroy()
+
+    def apply(self):
+        self.result = self.list[int(self.listbox.curselection()[0])]
+ 
 class App:
     def __init__(self, master):
-        gfather = ''
-        gfamily = ''
-        glang = ''
+        self.master = master
+        
+        site = ''
+        wiki = ''
         
         homepage = 'http://statmediawiki.forja.rediris.es'
         
         # create a menu
-        menu = Menu(master)
+        menu = Menu(self.master)
         master.config(menu=menu)
 
         #preprocessing
@@ -138,55 +198,48 @@ class App:
         
         path = 'dumps/sqlitedbs'
         filename = 'mywiki.db'
-        smwparser.parseMyWikiMySQL(mywikicursor, path, filename)
+        smwparser.parseMediaWikiMySQLConnect(mywikicursor, path, filename)
         
         mywikicursor.close()
         mywikiconn.close()
     
     def wikimedia(self):
-        global gfather
-        global gfamily
-        global glang
-        
         import smwdownloader
         
-        project = tkSimpleDialog.askstring("Which project?", "Put an URL like below", initialvalue="kw.wikipedia.org")
-        t = project.split('.')
-        if len(t) == 3:
-            if t[1] in ['wikipedia', 'wiktionary']:
-                gfather = 'wikimedia'
-                gfamily = t[1]
-                glang = t[0]
-                smwdownloader.download(gfather, gfamily, glang)
+        global site
+        global wiki
+        
+        list = smwdownloader.downloadWikimediaList()
+        d = DialogListbox(self.master, title='Select a Wikimedia project', list=list)
+        if d.result:
+            site = 'wikimedia'
+            wiki = d.result
+            smwdownloader.downloadWikimediaDump(wiki)
     
     def wikia(self):
-        global gfather
-        global gfamily
-        global glang
-        
         import smwdownloader
         
-        project = tkSimpleDialog.askstring("Which project?", "Put an URL like below", initialvalue="inciclopedia.wikia.com")
-        t = project.split('.')
-        if len(t) == 3:
-            if t[1] in ['wikia']:
-                gfather = 'wikia'
-                gfamily = t[1]
-                glang = t[0]
-                smwdownloader.download(gfather, gfamily, glang)
+        global site
+        global wiki
+        
+        list = ['recipes', 'inciclopedia']
+        d = DialogListbox(self.master, title='Select a Wikia project', list=list)
+        if d.result:
+            site = 'wikia'
+            wiki = d.result
+            smwdownloader.downloadWikiaDump(wiki)
     
     def analysis(self, analysis):
-        global gfather
-        global glang
-        global gfamily
+        global site
+        global wiki
         
         filename = ''
         filedbname = ''
-        if gfather == 'wikimedia':
-            filename = '%swiki-latest-pages-meta-history.xml.7z' % (glang)
+        if site == 'wikimedia':
+            filename = '%s-latest-pages-meta-history.xml.7z' % (wiki)
             filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.7z')[0])
-        elif gfather == 'wikia':
-            filename = '%s-pages_full.xml.gz' % (glang)
+        elif site == 'wikia':
+            filename = '%s-pages_full.xml.gz' % (wiki)
             filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.gz')[0])
         
         conn = sqlite3.connect(filedbname)
@@ -200,91 +253,73 @@ class App:
             elif analysis.startswith('global-activity'):
                 import smwactivity
                 if analysis == 'global-activity-all':
-                    smwactivity.activityall(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+                    smwactivity.activityall(cursor=cursor, range='global', title=wiki)
                 elif analysis == 'global-activity-yearly':
-                    smwactivity.activityyearly(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+                    smwactivity.activityyearly(cursor=cursor, range='global', title=wiki)
                 elif analysis == 'global-activity-monthly':
-                    smwactivity.activitymonthly(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+                    smwactivity.activitymonthly(cursor=cursor, range='global', title=wiki)
                 elif analysis == 'global-activity-dow':
-                    smwactivity.activitydow(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+                    smwactivity.activitydow(cursor=cursor, range='global', title=wiki)
                 elif analysis == 'global-activity-hourly':
-                    smwactivity.activityhourly(cursor=cursor, range='global', title='%s.%s' % (glang, gfamily))
+                    smwactivity.activityhourly(cursor=cursor, range='global', title=wiki)
                 pylab.show()
             elif analysis == 'global-pareto':
                 import smwpareto
-                smwpareto.pareto(cursor=cursor, title='%s.%s' % (glang, gfamily))
+                smwpareto.pareto(cursor=cursor, title=wiki)
             elif analysis == 'global-graph':
                 import smwgraph
                 smwgraph.graph(cursor=cursor)
         #user
         elif analysis.startswith('user'):
             import smwlist
-            askframe = Tk()
-            askframe.title('Select a user')
-            askframe.geometry('300x500')
-            scrollbar = Scrollbar(askframe)
-            scrollbar.pack(side=RIGHT, fill=Y)
-            listbox = Listbox(askframe, width=300, height=30)
-            listbox.pack()
-            list = smwlist.listofusersandedits(cursor=cursor)
-            for user, edits in list:
-                i = '%s (%s edits)' % (user, edits)
-                listbox.insert(END, i)
-            listbox.config(yscrollcommand=scrollbar.set)
-            scrollbar.config(command=listbox.yview)
-            if analysis.startswith('user-activity'):
-                import smwactivity
-                if analysis == 'user-activity-all':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activityall(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                elif analysis == 'user-activity-yearly':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activityyearly(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                elif analysis == 'user-activity-monthly':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activitymonthly(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                elif analysis == 'user-activity-dow':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activitydow(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                elif analysis == 'user-activity-hourly':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activityhourly(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0], title='User:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                pylab.show()
+            list = smwlist.listofusers(cursor=cursor)
+            d = DialogListbox(self.master, title="AAA", list=list)
+            user = d.result
+            
+            if user:
+                if analysis.startswith('user-activity'):
+                    import smwactivity
+                    if analysis == 'user-activity-all':
+                        smwactivity.activityall(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                    elif analysis == 'user-activity-yearly':
+                        smwactivity.activityyearly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                    elif analysis == 'user-activity-monthly':
+                        smwactivity.activitymonthly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                    elif analysis == 'user-activity-dow':
+                        smwactivity.activitydow(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                    elif analysis == 'user-activity-hourly':
+                        smwactivity.activityhourly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                    pylab.show()
             elif analysis == 'user-graph':
                 import smwgraph
-                Button(askframe, text="OK", command=lambda: smwgraph.graphUserEdits(cursor=cursor, range='user', entity=list[int(listbox.curselection()[0])][0])).pack()
-            askframe.mainloop()
+                smwgraph.graphUserEdits(cursor=cursor, range='user', entity=user)
         #elif analysis == 'user-graphs-editedpages':
         #    import smwgraphs
         #    smwgraphs.editedpages(cursor)
         #page
         elif analysis.startswith('page'):
             import smwlist
-            askframe = Tk()
-            askframe.title('Select a page')
-            askframe.geometry('300x500')
-            scrollbar = Scrollbar(askframe)
-            scrollbar.pack(side=RIGHT, fill=Y)
-            listbox = Listbox(askframe, width=300, height=30)
-            listbox.pack()
-            list = smwlist.listofpagesandedits(cursor=cursor)
-            for title, edits in list:
-                i = '%s (%s edits)' % (title, edits)
-                listbox.insert(END, i)
-            listbox.config(yscrollcommand=scrollbar.set)
-            scrollbar.config(command=listbox.yview)
-            if analysis.startswith('page-activity'):
-                import smwactivity
-                if analysis == 'page-activity-all':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activityall(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                elif analysis == 'page-activity-yearly':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activityyearly(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                elif analysis == 'page-activity-monthly':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activitymonthly(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                elif analysis == 'page-activity-dow':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activitydow(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                elif analysis == 'page-activity-hourly':
-                    Button(askframe, text="OK", command=lambda: smwactivity.activityhourly(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0], title='Page:%s @ %s.%s' % (list[int(listbox.curselection()[0])][0], glang, gfamily))).pack()
-                pylab.show()
-            elif analysis == 'page-edithistorygraph':
-                import smwgraph
-                Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0])).pack()
-            askframe.mainloop()
+            list = smwlist.listofpages(cursor=cursor)
+            d = DialogListbox(root, title="AAA", list=list)
+            page = d.result
+            
+            if page:
+                if analysis.startswith('page-activity'):
+                    import smwactivity
+                    if analysis == 'page-activity-all':
+                        smwactivity.activityall(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                    elif analysis == 'page-activity-yearly':
+                        smwactivity.activityyearly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                    elif analysis == 'page-activity-monthly':
+                        smwactivity.activitymonthly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                    elif analysis == 'page-activity-dow':
+                        smwactivity.activitydow(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                    elif analysis == 'page-activity-hourly':
+                        smwactivity.activityhourly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                    pylab.show()
+                elif analysis == 'page-edithistorygraph':
+                    import smwgraph
+                    smwgraph.graph(cursor=cursor, range='page', entity=page)
         
         cursor.close()
         conn.close()
