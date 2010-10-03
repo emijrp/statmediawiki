@@ -253,7 +253,7 @@ class App:
                 pylab.show()
             elif analysis == 'page-graph':
                 import smwgraph
-                smwgraph.graph(cursor=cursor, range='page', entity=entity)
+                Button(askframe, text="OK", command=lambda: smwgraph.graph(cursor=cursor, range='page', entity=list[int(listbox.curselection()[0])][0])).pack()
             askframe.mainloop()
         
         cursor.close()
