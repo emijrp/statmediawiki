@@ -19,11 +19,11 @@ def summary(cursor):
     for row in a:
         revisions = row[0]
     
-    a = cursor.execute("select count(distinct title) as count from revision where 1")
+    a = cursor.execute("select count(distinct title) as count from page where 1")
     for row in a:
         pages = row[0]
     
-    a = cursor.execute("select count(distinct username) as count from revision where 1")
+    a = cursor.execute("select count(distinct username) as count from user where 1")
     for row in a:
         users = row[0]
     

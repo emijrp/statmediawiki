@@ -333,7 +333,7 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
-    root.geometry('525x104+0+0')
+    root.geometry('505x104+0+0')
     root.title('StatMediaWiki NP')
     #logo
     imagelogo = PhotoImage(file = 'logo.gif')
@@ -352,8 +352,8 @@ if __name__ == "__main__":
     button4 = Button(root, text="Button #4", command=lambda: 1, width=12)
     button4.grid(row=1, column=2)
     #statusbar
-    status = Label(root, text="Status: OK", bd=1, justify=LEFT, relief=SUNKEN, width=65)
-    status.grid(row=3, column=0, columnspan=3, sticky=W)
+    status = Label(root, text="Status: OK", bd=1, justify=LEFT, relief=SUNKEN)
+    status.grid(row=3, column=0, columnspan=3, sticky=W+E)
     #status.config(text="AA")
     root.protocol("WM_DELETE_WINDOW", askclose)
     app = App(root)
