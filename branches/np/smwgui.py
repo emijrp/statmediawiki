@@ -183,6 +183,7 @@ class App:
         pageactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('page-activity-hourly'))
         
         pagebypagemenu.add_command(label="Edit history graph", command=lambda: self.analysis('page-edithistorygraph'))
+        pagebypagemenu.add_command(label="GeoIP location", command=lambda: self.analysis('page-geoiplocation'))
         
         #end page-by-page
         
@@ -357,6 +358,10 @@ class App:
                 elif analysis == 'page-edithistorygraph':
                     import smwgraph
                     smwgraph.graph(cursor=cursor, range='page', entity=page)
+                elif analysis == 'page-geoiplocation':
+                    import smwgeolocation
+                    smwgeolocation.GeoLocationGraph(cursor=cursor, range='page', entity=page, title=self.wiki)
+                    pylab.show()
         
         cursor.close()
         conn.close()

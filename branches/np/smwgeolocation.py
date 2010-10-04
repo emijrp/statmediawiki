@@ -76,7 +76,7 @@ def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', co
     if range == 'global':
         a = cursor.execute("select username from revision where ipedit=?", (1, ))
     elif range == 'page':
-        pass
+        a = cursor.execute("select username from revision where ipedit=? and title=?", (1, entity))
     
     x, y = [], []
     geo = GeoLocation()
