@@ -15,6 +15,18 @@ import tkMessageBox
 
 #fix filtrar Mediawiki default (que aparece como ip)
 
+"""
+
+regexps para el parser
+re.compile(ur"\b\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\]\b") # enlaces (esto incluye los iws, descontarlos después?)
+re.compile(ur"\b(http|ftp)s?://") #externos
+#imágenes y ficheros
+#categorías
+#iws
+re.compile(ur"#\s*(REDIRECT|locale)\s*\[\[[^\|\]]+?(\|[^\|\]]*?)?\]\]")
+
+"""
+
 def createDB(conn=None, cursor=None):
     cursor.execute('''create table revision (title text, id integer, username text, ipedit integer, timestamp timestamp, revisionid integer, md5 text)''')
     cursor.execute('''create table page (title text, editcount integer)''') #fix, poner si es ip basándonos en ipedit?

@@ -64,7 +64,7 @@ class DialogListbox(Toplevel):
         [self.listbox.insert(END, item) for item in self.list]
         self.listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.listbox.yview)
-            
+        
         w1 = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
         w1.grid(row=1, column=0, sticky=W)
         w2 = Button(box, text="Cancel", width=10, command=self.cancel)
