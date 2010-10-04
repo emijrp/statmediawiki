@@ -85,29 +85,27 @@ class DialogListbox(Toplevel):
 class App:
     def __init__(self, master):
         self.master = master
-        
-        site = ''
-        wiki = ''
-        
-        homepage = 'http://statmediawiki.forja.rediris.es'
+        self.site = ''
+        self.wiki = ''
+        self.homepage = 'http://statmediawiki.forja.rediris.es'
         
         # interface elements
         #description
-        desc=Label(self.master, text="StatMediaWiki NP (version %s)\nThis program is free software (GPL v3 or later)." % (VERSION), font=("Arial", 7))
-        desc.grid(row=2, column=1, columnspan=2)
+        self.desc=Label(self.master, text="StatMediaWiki NP (version %s)\nThis program is free software (GPL v3 or later)." % (VERSION), font=("Arial", 7))
+        self.desc.grid(row=2, column=1, columnspan=2)
         #quickbuttoms
-        button1 = Button(self.master, text="Load", command=self.callback, width=12)
-        button1.grid(row=0, column=1)
-        button2 = Button(self.master, text="Button #2", command=self.callback, width=12)
-        button2.grid(row=1, column=1)
-        button3 = Button(self.master, text="Button #3", command=self.callback, width=12)
-        button3.grid(row=0, column=2)
-        button4 = Button(self.master, text="Button #4", command=self.callback, width=12)
-        button4.grid(row=1, column=2)
+        self.button1 = Button(self.master, text="Load", command=self.callback, width=12)
+        self.button1.grid(row=0, column=1)
+        self.button2 = Button(self.master, text="Button #2", command=self.callback, width=12)
+        self.button2.grid(row=1, column=1)
+        self.button3 = Button(self.master, text="Button #3", command=self.callback, width=12)
+        self.button3.grid(row=0, column=2)
+        self.button4 = Button(self.master, text="Button #4", command=self.callback, width=12)
+        self.button4.grid(row=1, column=2)
         #statusbar
-        status = Label(self.master, text="Status: OK", bd=1, justify=LEFT, relief=SUNKEN)
-        status.grid(row=3, column=0, columnspan=3, sticky=W+E)
-        #status.config(text="AA")
+        self.status = Label(self.master, text="StatMediaWiki is ready for work", bd=1, justify=LEFT, relief=SUNKEN)
+        self.status.grid(row=3, column=0, columnspan=3, sticky=W+E)
+        #self.status.config(text="AA")
         
         # create a menu
         menu = Menu(self.master)
@@ -228,41 +226,40 @@ class App:
     def wikimedia(self):
         import smwdownloader
         
-        global site
-        global wiki
-        
+        self.status.config(text="Loading list of Wikimedia wikis")
         list = smwdownloader.downloadWikimediaList()
+        self.status.config(text="Loaded list of Wikimedia wikis")
         d = DialogListbox(self.master, title='Select a Wikimedia project', list=list)
         if d.result:
             site = 'wikimedia'
             wiki = d.result
-            smwdownloader.downloadWikimediaDump(wiki)
+            self.status.config(text="Downloading data for %s" % (self.wiki))
+            smwdownloader.downloadWikimediaDump(self.wiki)
+            self.status.config(text="Downloaded data for %s OK!" % (self.wiki))
     
     def wikia(self):
         import smwdownloader
         
-        global site
-        global wiki
-        
+        self.status.config(text="Loading list of Wikia wikis")
         list = ['answers', 'dc', 'eq2', 'inciclopedia', 'familypedia', 'icehockey', 'lyrics', 'marveldatabase', 'memory-beta', 'memoryalpha', 'psychology', 'recipes', 'swfanon', 'starwars', 'uncyclopedia', 'vintagepatterns', 'wow']
         list.sort()
+        self.status.config(text="Loaded list of Wikia wikis")
         d = DialogListbox(self.master, title='Select a Wikia project', list=list)
         if d.result:
-            site = 'wikia'
+            self.site = 'wikia'
             wiki = d.result
-            smwdownloader.downloadWikiaDump(wiki)
+            self.status.config(text="Downloading data for %s" % (self.wiki))
+            smwdownloader.downloadWikiaDump(self.wiki)
+            self.status.config(text="Downloaded data for %s OK!" % (self.wiki))
     
     def analysis(self, analysis):
-        global site
-        global wiki
-        
         filename = ''
         filedbname = ''
         if site == 'wikimedia':
-            filename = '%s-latest-pages-meta-history.xml.7z' % (wiki)
+            filename = '%s-latest-pages-meta-history.xml.7z' % (self.wiki)
             filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.7z')[0])
         elif site == 'wikia':
-            filename = '%s-pages_full.xml.gz' % (wiki)
+            filename = '%s-pages_full.xml.gz' % (self.wiki)
             filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.gz')[0])
         
         conn = sqlite3.connect(filedbname)
@@ -276,19 +273,19 @@ class App:
             elif analysis.startswith('global-activity'):
                 import smwactivity
                 if analysis == 'global-activity-all':
-                    smwactivity.activityall(cursor=cursor, range='global', title=wiki)
+                    smwactivity.activityall(cursor=cursor, range='global', title=self.wiki)
                 elif analysis == 'global-activity-yearly':
-                    smwactivity.activityyearly(cursor=cursor, range='global', title=wiki)
+                    smwactivity.activityyearly(cursor=cursor, range='global', title=self.wiki)
                 elif analysis == 'global-activity-monthly':
-                    smwactivity.activitymonthly(cursor=cursor, range='global', title=wiki)
+                    smwactivity.activitymonthly(cursor=cursor, range='global', title=self.wiki)
                 elif analysis == 'global-activity-dow':
-                    smwactivity.activitydow(cursor=cursor, range='global', title=wiki)
+                    smwactivity.activitydow(cursor=cursor, range='global', title=self.wiki)
                 elif analysis == 'global-activity-hourly':
-                    smwactivity.activityhourly(cursor=cursor, range='global', title=wiki)
+                    smwactivity.activityhourly(cursor=cursor, range='global', title=self.wiki)
                 pylab.show()
             elif analysis == 'global-pareto':
                 import smwpareto
-                smwpareto.pareto(cursor=cursor, title=wiki)
+                smwpareto.pareto(cursor=cursor, title=self.wiki)
             elif analysis == 'global-graph':
                 import smwgraph
                 smwgraph.graph(cursor=cursor)
@@ -303,15 +300,15 @@ class App:
                 if analysis.startswith('user-activity'):
                     import smwactivity
                     if analysis == 'user-activity-all':
-                        smwactivity.activityall(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                        smwactivity.activityall(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, self.wiki))
                     elif analysis == 'user-activity-yearly':
-                        smwactivity.activityyearly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                        smwactivity.activityyearly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, self.wiki))
                     elif analysis == 'user-activity-monthly':
-                        smwactivity.activitymonthly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                        smwactivity.activitymonthly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, self.wiki))
                     elif analysis == 'user-activity-dow':
-                        smwactivity.activitydow(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                        smwactivity.activitydow(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, self.wiki))
                     elif analysis == 'user-activity-hourly':
-                        smwactivity.activityhourly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, wiki))
+                        smwactivity.activityhourly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, self.wiki))
                     pylab.show()
             elif analysis == 'user-graph':
                 import smwgraph
@@ -330,15 +327,15 @@ class App:
                 if analysis.startswith('page-activity'):
                     import smwactivity
                     if analysis == 'page-activity-all':
-                        smwactivity.activityall(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                        smwactivity.activityall(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, self.wiki))
                     elif analysis == 'page-activity-yearly':
-                        smwactivity.activityyearly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                        smwactivity.activityyearly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, self.wiki))
                     elif analysis == 'page-activity-monthly':
-                        smwactivity.activitymonthly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                        smwactivity.activitymonthly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, self.wiki))
                     elif analysis == 'page-activity-dow':
-                        smwactivity.activitydow(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                        smwactivity.activitydow(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, self.wiki))
                     elif analysis == 'page-activity-hourly':
-                        smwactivity.activityhourly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, wiki))
+                        smwactivity.activityhourly(cursor=cursor, range='page', entity=page, title='Page:%s @ %s' % (page, self.wiki))
                     pylab.show()
                 elif analysis == 'page-edithistorygraph':
                     import smwgraph
