@@ -29,7 +29,9 @@ def downloadWikimediaDump(wiki):
     url = ''
     filename = '%s-latest-pages-meta-history.xml.7z' % (wiki)
     url = 'http://download.wikimedia.org/%s/latest/%s' % (wiki, filename)
-    f = urllib.urlretrieve(url, '%s/%s' % (dumpsdir, filename), reporthook=downloadProgress)
+    pathfilename = '%s/%s' % (dumpsdir, filename)
+    if not os.path.exists(pathfilename):
+        f = urllib.urlretrieve(url, pathfilename, reporthook=downloadProgress)
     
     #chequear md5
     
@@ -51,7 +53,9 @@ def downloadWikiaDump(wiki):
         url = m[0]
     else:
         print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
-    f = urllib.urlretrieve(url, '%s/%s' % (dumpsdir, filename), reporthook=downloadProgress)
+    pathfilename = '%s/%s' % (dumpsdir, filename)
+    if not os.path.exists(pathfilename):
+        f = urllib.urlretrieve(url, pathfilename, reporthook=downloadProgress)
     print 'Download OK!'
     smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
     

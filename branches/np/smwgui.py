@@ -148,6 +148,7 @@ class App:
         globalactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('global-activity-dow'))
         globalactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('global-activity-hourly'))
         #end activity
+        globalmenu.add_command(label="GeoIP location", command=lambda: self.analysis('global-geoiplocation'))
         globalmenu.add_command(label="Pareto", command=lambda: self.analysis('global-pareto'))
         #globalmenu.add_command(label="Graph", command=lambda: self.analysis('global-graph'))
         #end global
@@ -294,6 +295,10 @@ class App:
                     smwactivity.activitydow(cursor=cursor, range='global', title=self.wiki)
                 elif analysis == 'global-activity-hourly':
                     smwactivity.activityhourly(cursor=cursor, range='global', title=self.wiki)
+                pylab.show()
+            elif analysis == 'global-geoiplocation':
+                import smwgeolocation
+                smwgeolocation.GeoLocationGraph(cursor=cursor, range='global', title=self.wiki)
                 pylab.show()
             elif analysis == 'global-pareto':
                 import smwpareto
