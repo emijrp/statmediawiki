@@ -17,15 +17,20 @@ import pylab
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
 # capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
 # hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?) http://download.wikimedia.org/backup-index.html http://community.wikia.com/wiki/Hub:Big_wikis http://community.wikia.com/index.php?title=Special:Newwikis&dir=prev&limit=500&showall=0 http://www.mediawiki.org/wiki/Sites_using_MediaWiki
-# Citizendium
-# log de domas?
-# conectarse a irc y poder hacer estadisticas en vivo?
+# Citizendium (interesantes gráficas http://en.citizendium.org/wiki/CZ:Statistics) no publican el historial completo, solo el current http://en.citizendium.org/wiki/CZ:Downloads
 # permitir descargar solo el historial de una página (special:Export tiene la pega de que solo muestra las últimas 1000 ediciones), con la Api te traes todo en bloques de 500 pero hay que hacer una función que llame a la API (en vez de utilizar pywikipediabot para no añadir una dependencia más)
 # usar getopt para capturar parámetros desde consola
+# i18n http://www.learningpython.com/2006/12/03/translating-your-pythonpygtk-application/
+# documentation
 
-# Ideas para análisis:
+# Ideas para análisis de wikis:
 # * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
 # * ip geolocation: http://software77.net/geo-ip/?license
+#
+# Ideas para otros análisis que no usan dumps pero relacionados con wikis o wikipedia:
+# * el feed de donaciones
+# log de visitas de domas?
+# conectarse a irc y poder hacer estadisticas en vivo?
 
 VERSION = '0.0.2' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
@@ -104,7 +109,7 @@ class App:
         self.button4 = Button(self.master, text="Button #4", command=self.callback, width=12)
         self.button4.grid(row=1, column=2)
         #statusbar
-        self.status = Label(self.master, text="StatMediaWiki is ready for work", bd=1, justify=LEFT, relief=SUNKEN)
+        self.status = Label(self.master, text="Welcome! StatMediaWiki is ready for work", bd=1, justify=LEFT, relief=SUNKEN)
         self.status.grid(row=3, column=0, columnspan=3, sticky=W+E)
         #self.status.config(text="AA")
         
@@ -114,7 +119,7 @@ class App:
 
         #preprocessing
         preprocessingmenu = Menu(menu)
-        menu.add_cascade(label="Preprocessing", menu=preprocessingmenu)
+        menu.add_cascade(label="Preprocessor", menu=preprocessingmenu)
         preprocessingmenu.add_command(label="My wiki", command=self.mywiki)
         preprocessingwikimediamenu = Menu(preprocessingmenu)
         preprocessingmenu.add_cascade(label="Wikimedia", menu=preprocessingwikimediamenu)
@@ -127,7 +132,7 @@ class App:
 
         #analysis
         analysismenu = Menu(menu)
-        menu.add_cascade(label="Analysing", menu=analysismenu)
+        menu.add_cascade(label="Analyser", menu=analysismenu)
         
         #begin global
         globalmenu = Menu(analysismenu)
@@ -180,16 +185,17 @@ class App:
         
         #end page-by-page
         
+        #begin others
+        othermenu = Menu(menu)
+        menu.add_cascade(label="Other", menu=othermenu)
+        othermenu.add_command(label="very soon...", command=self.callback)
+        #end others
+        
         #begin view
         viewmenu = Menu(menu)
         menu.add_cascade(label="View", menu=viewmenu)
         viewmenu.add_command(label="Console", command=self.callback)
         #end view
-        
-        #begin others
-        
-        
-        #end others
         
         #help
         helpmenu = Menu(menu)
