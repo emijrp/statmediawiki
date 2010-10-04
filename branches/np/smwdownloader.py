@@ -1,11 +1,22 @@
 # -*- coding: utf-8  -*-
 
 import re
+import sys
 import urllib
 import os
 import tkMessageBox
+import random
 
 import smwparser
+
+def downloadProgress(block_count, block_size, total_size):
+    total_mb = total_size/1024/1024.0
+    downloaded = block_count *(block_size/1024/1024.0)
+    percent = downloaded/(total_mb/100.0)
+    if not random.randint(0,10):
+        print "%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent)
+    #sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
+    #sys.stdout.flush()
 
 def downloadWikimediaDump(wiki):
     #añadir posibilidad de descargar otros a parte del last
@@ -18,12 +29,11 @@ def downloadWikimediaDump(wiki):
     url = ''
     filename = '%s-latest-pages-meta-history.xml.7z' % (wiki)
     url = 'http://download.wikimedia.org/%s/latest/%s' % (wiki, filename)
-    os.system('wget %s -O %s/%s -c' % (url, dumpsdir, filename))
+    f = urllib.urlretrieve(url, '%s/%s' % (dumpsdir, filename), reporthook=downloadProgress)
     
     #chequear md5
     
     print 'Download OK!'
-    tkMessageBox.showinfo("OK", "Download complete")
     smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
 
 def downloadWikiaDump(wiki):
@@ -41,9 +51,8 @@ def downloadWikiaDump(wiki):
         url = m[0]
     else:
         print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
-    os.system('wget %s -O %s/%s -c' % (url, dumpsdir, filename))
+    f = urllib.urlretrieve(url, '%s/%s' % (dumpsdir, filename), reporthook=downloadProgress)
     print 'Download OK!'
-    tkMessageBox.showinfo("OK", "Download complete")
     smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
     
 def downloadWikimediaList():

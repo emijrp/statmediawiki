@@ -21,6 +21,7 @@ import pylab
 # log de domas?
 # conectarse a irc y poder hacer estadisticas en vivo?
 # permitir descargar solo el historial de una página (special:Export tiene la pega de que solo muestra las últimas 1000 ediciones), con la Api te traes todo en bloques de 500 pero hay que hacer una función que llame a la API (en vez de utilizar pywikipediabot para no añadir una dependencia más)
+# usar getopt para capturar parámetros desde consola
 
 # Ideas para análisis:
 # * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
@@ -158,9 +159,9 @@ class App:
         useractivitymenu.add_command(label="Day of week", command=lambda: self.analysis('user-activity-dow'))
         useractivitymenu.add_command(label="Hourly", command=lambda: self.analysis('user-activity-hourly'))
         
-        usergraphsmenu = Menu(userbyusermenu)
-        userbyusermenu.add_cascade(label="Graphs", menu=usergraphsmenu)
-        usergraphsmenu.add_command(label="Edited pages", command=lambda: self.analysis('user-graph'))
+        #usergraphsmenu = Menu(userbyusermenu)
+        #userbyusermenu.add_cascade(label="Graphs", menu=usergraphsmenu)
+        #usergraphsmenu.add_command(label="Edited pages", command=lambda: self.analysis('user-graph'))
         #end user-by-user
         
         #begin page-by-page
