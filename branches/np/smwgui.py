@@ -17,12 +17,14 @@ import pylab
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
 # capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
 # hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?) http://download.wikimedia.org/backup-index.html http://community.wikia.com/wiki/Hub:Big_wikis http://community.wikia.com/index.php?title=Special:Newwikis&dir=prev&limit=500&showall=0 http://www.mediawiki.org/wiki/Sites_using_MediaWiki
+# Citizendium
 # log de domas?
 # conectarse a irc y poder hacer estadisticas en vivo?
-#
+# permitir descargar solo el historial de una página (special:Export tiene la pega de que solo muestra las últimas 1000 ediciones), con la Api te traes todo en bloques de 500 pero hay que hacer una función que llame a la API (en vez de utilizar pywikipediabot para no añadir una dependencia más)
+
 # Ideas para análisis:
 # * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
-# * 
+# * ip geolocation: http://software77.net/geo-ip/?license
 
 VERSION = '0.0.2' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
@@ -94,13 +96,13 @@ class App:
         desc=Label(self.master, text="StatMediaWiki NP (version %s)\nThis program is free software (GPL v3 or later)." % (VERSION), font=("Arial", 7))
         desc.grid(row=2, column=1, columnspan=2)
         #quickbuttoms
-        button1 = Button(self.master, text="Load", command=lambda: self.callback, width=12)
+        button1 = Button(self.master, text="Load", command=self.callback, width=12)
         button1.grid(row=0, column=1)
-        button2 = Button(self.master, text="Button #2", command=lambda: self.callback, width=12)
+        button2 = Button(self.master, text="Button #2", command=self.callback, width=12)
         button2.grid(row=1, column=1)
-        button3 = Button(self.master, text="Button #3", command=lambda: self.callback, width=12)
+        button3 = Button(self.master, text="Button #3", command=self.callback, width=12)
         button3.grid(row=0, column=2)
-        button4 = Button(self.master, text="Button #4", command=lambda: self.callback, width=12)
+        button4 = Button(self.master, text="Button #4", command=self.callback, width=12)
         button4.grid(row=1, column=2)
         #statusbar
         status = Label(self.master, text="Status: OK", bd=1, justify=LEFT, relief=SUNKEN)
@@ -115,7 +117,11 @@ class App:
         preprocessingmenu = Menu(menu)
         menu.add_cascade(label="Preprocessing", menu=preprocessingmenu)
         preprocessingmenu.add_command(label="My wiki", command=self.mywiki)
-        preprocessingmenu.add_command(label="Wikimedia", command=self.wikimedia)
+        preprocessingwikimediamenu = Menu(preprocessingmenu)
+        preprocessingmenu.add_cascade(label="Wikimedia", menu=preprocessingwikimediamenu)
+        preprocessingwikimediamenu.add_command(label="Full dump", command=self.wikimedia)
+        #preprocessingwikimediamenu.add_command(label="Single page", command=self.callback)
+        
         preprocessingmenu.add_command(label="Wikia", command=self.wikia)
         preprocessingmenu.add_separator()
         preprocessingmenu.add_command(label="Exit", command=master.quit)
