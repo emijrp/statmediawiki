@@ -89,6 +89,24 @@ class App:
         
         homepage = 'http://statmediawiki.forja.rediris.es'
         
+        # interface elements
+        #description
+        desc=Label(self.master, text="StatMediaWiki NP (version %s)\nThis program is free software (GPL v3 or later)." % (VERSION), font=("Arial", 7))
+        desc.grid(row=2, column=1, columnspan=2)
+        #quickbuttoms
+        button1 = Button(self.master, text="Load", command=lambda: self.callback, width=12)
+        button1.grid(row=0, column=1)
+        button2 = Button(self.master, text="Button #2", command=lambda: self.callback, width=12)
+        button2.grid(row=1, column=1)
+        button3 = Button(self.master, text="Button #3", command=lambda: self.callback, width=12)
+        button3.grid(row=0, column=2)
+        button4 = Button(self.master, text="Button #4", command=lambda: self.callback, width=12)
+        button4.grid(row=1, column=2)
+        #statusbar
+        status = Label(self.master, text="Status: OK", bd=1, justify=LEFT, relief=SUNKEN)
+        status.grid(row=3, column=0, columnspan=3, sticky=W+E)
+        #status.config(text="AA")
+        
         # create a menu
         menu = Menu(self.master)
         master.config(menu=menu)
@@ -335,26 +353,10 @@ if __name__ == "__main__":
     root = Tk()
     root.geometry('505x104+0+0')
     root.title('StatMediaWiki NP')
+    root.protocol("WM_DELETE_WINDOW", askclose)
     #logo
     imagelogo = PhotoImage(file = 'logo.gif')
     labellogo = Label(root, image=imagelogo)
     labellogo.grid(row=0, column=0, rowspan=3, sticky=W)
-    #description
-    desc=Label(root, text="StatMediaWiki NP (version %s)\nThis program is free software (GPL v3 or later)." % (VERSION), font=("Arial", 7))
-    desc.grid(row=2, column=1, columnspan=2)
-    #quickbuttoms
-    button1 = Button(root, text="Load", command=lambda: 1, width=12)
-    button1.grid(row=0, column=1)
-    button2 = Button(root, text="Button #2", command=lambda: 1, width=12)
-    button2.grid(row=1, column=1)
-    button3 = Button(root, text="Button #3", command=lambda: 1, width=12)
-    button3.grid(row=0, column=2)
-    button4 = Button(root, text="Button #4", command=lambda: 1, width=12)
-    button4.grid(row=1, column=2)
-    #statusbar
-    status = Label(root, text="Status: OK", bd=1, justify=LEFT, relief=SUNKEN)
-    status.grid(row=3, column=0, columnspan=3, sticky=W+E)
-    #status.config(text="AA")
-    root.protocol("WM_DELETE_WINDOW", askclose)
     app = App(root)
     root.mainloop()
