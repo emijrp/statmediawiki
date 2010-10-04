@@ -99,17 +99,19 @@ def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', co
     countries_list.sort()
     countries_list.reverse()
     
-    limit = 10
-    x = [country for edits, country in countries_list[:limit]]
-    y = [edits for edits, country in countries_list[:limit]]
-    print countries_list[:limit], x, y
+    limit = 9
+    x = [country for edits, country in countries_list]
+    y = [edits for edits, country in countries_list]
+    xlim = x[:limit]+['Other']
+    ylim = y[:limit]+[sum(y[limit:])]
+    print countries_list[:limit], xlim, ylim
     
-    rects = subfig.bar(numpy.arange(len(x)), y, color=color, align='center')
+    rects = subfig.bar(numpy.arange(len(xlim)), ylim, color=color, align='center')
     subfig.legend()
     subfig.set_title(subtitle)
     subfig.set_xlabel('Country')
-    subfig.set_xticks(numpy.arange(len(x)))
-    subfig.set_xticklabels([str(i) for i in x])
+    subfig.set_xticks(numpy.arange(len(xlim)))
+    subfig.set_xticklabels([str(i) for i in xlim])
     subfig.set_ylabel('Edits')
     
     maxheight = max([rect.get_height() for rect in rects])
