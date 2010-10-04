@@ -682,6 +682,7 @@ def printLinesGraph(title, file, labels, headers, rows):
     gp = Gnuplot.Gnuplot()
     gp('set data style lines')
     gp('set grid ytics mytics')
+    gp("set key left top")
     #gp('set line_width 8')
     gp('set title "%s"' % title.encode("utf-8"))
     gp('set xlabel "%s"' % labels[0].encode("utf-8"))
@@ -720,6 +721,7 @@ def printBarsGraph(title, file, headers, rows):
     #print xtics
     gp = Gnuplot.Gnuplot()
     gp("set style data boxes")
+    gp("set key left top")
     gp("set grid ytics mytics")
     gp('set title "%s"' % title.encode("utf-8"))
     gp('set xlabel "%s"' % convert2[headers[0]].encode("utf-8"))
