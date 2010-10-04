@@ -231,8 +231,8 @@ class App:
         self.status.config(text="Loaded list of Wikimedia wikis")
         d = DialogListbox(self.master, title='Select a Wikimedia project', list=list)
         if d.result:
-            site = 'wikimedia'
-            wiki = d.result
+            self.site = 'wikimedia'
+            self.wiki = d.result
             self.status.config(text="Downloading data for %s" % (self.wiki))
             smwdownloader.downloadWikimediaDump(self.wiki)
             self.status.config(text="Downloaded data for %s OK!" % (self.wiki))
@@ -247,18 +247,23 @@ class App:
         d = DialogListbox(self.master, title='Select a Wikia project', list=list)
         if d.result:
             self.site = 'wikia'
-            wiki = d.result
+            self.wiki = d.result
             self.status.config(text="Downloading data for %s" % (self.wiki))
             smwdownloader.downloadWikiaDump(self.wiki)
             self.status.config(text="Downloaded data for %s OK!" % (self.wiki))
     
     def analysis(self, analysis):
+        if not self.site and not self.wiki:
+            tkMessageBox.showerror("Error", "You must preprocess first")
+            print "Error", "You must preprocess first"
+            return
+        
         filename = ''
         filedbname = ''
-        if site == 'wikimedia':
+        if self.site == 'wikimedia':
             filename = '%s-latest-pages-meta-history.xml.7z' % (self.wiki)
             filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.7z')[0])
-        elif site == 'wikia':
+        elif self.site == 'wikia':
             filename = '%s-pages_full.xml.gz' % (self.wiki)
             filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.gz')[0])
         
