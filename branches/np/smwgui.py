@@ -385,3 +385,4 @@ if __name__ == "__main__":
     labellogo.grid(row=0, column=0, rowspan=3, sticky=W)
     app = App(root)
     root.mainloop()
+    root.destroy()

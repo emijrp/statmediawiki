@@ -76,7 +76,7 @@ def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', co
     fig = pylab.figure()
     pylab.suptitle(title)
     
-    subfig = fig.add_subplot(1,1,1)
+    subfig = fig.add_subplot(2,1,1)
     a = []
     if range == 'global':
         a = cursor.execute("select username from revision where ipedit=?", (1, ))
@@ -118,6 +118,15 @@ def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', co
     for rect in rects:
         height = rect.get_height()
         subfig.text(rect.get_x()+rect.get_width()/2., height+(maxheight/50), str(height), ha='center', va='bottom')
+    
+    #pie chart
+    import smwsummary
+    subfig2 = fig.add_subplot(2,1,2)
+    labels = ['Registered user edits', 'Anonymous user edits']
+    fracs = [smwsummary.editsByRegisteredUsers(cursor=cursor), smwsummary.editsByAnonymousUsers(cursor=cursor)]
+    explode = (0, 0.15) # anons out
+    pylab.pie(fracs, explode=explode, labels=labels, autopct='%1.1f%%', shadow=True)
+    pylab.title('Edits by user class')
     
     print title, 'generated in', time.time()-t1, 'secs'
 

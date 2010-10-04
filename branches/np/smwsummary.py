@@ -48,3 +48,16 @@ def summary(cursor):
     #msg.pack(expand=YES, fill=BOTH)
     #msg.config(relief=SUNKEN, width=40, height=7, bg='beige')
     
+def editsByRegisteredUsers(cursor=None):
+    #fix esto debería estar en una tabla summary ya?
+    a = cursor.execute("select count(revisionid) as count from revision where ipedit=?", (0,))
+    for row in a:
+        return row[0]
+    return 0
+
+def editsByAnonymousUsers(cursor=None):
+    #fix esto debería estar en una tabla summary ya?
+    a = cursor.execute("select count(revisionid) as count from revision where ipedit=?", (1,))
+    for row in a:
+        return row[0]
+    return 0

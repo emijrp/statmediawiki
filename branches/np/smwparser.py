@@ -10,7 +10,8 @@ import hashlib
 import tkMessageBox
 
 #TODO: unificar las funciones parsemywiki y parsemediawiki en la medida de lo posible, ahora mismo hay mucho código repetido
-#sugerencias de tablas: una para usuarios para poder tener a mano una lista rapida con todos los usuarios para mostrar en listbox o algo así
+#campos adicionales: número de enlaces, categorías, ficheros, plantillas, etc
+#capturar los namespaces del comienzo del XML y meter un campo namespace en la tabla page
 
 #fix filtrar Mediawiki default (que aparece como ip)
 
