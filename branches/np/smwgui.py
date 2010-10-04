@@ -31,6 +31,8 @@ import pylab
 # * el feed de donaciones
 # log de visitas de domas?
 # conectarse a irc y poder hacer estadisticas en vivo?
+#
+# embeber mejor las gráficas en Tk? http://matplotlib.sourceforge.net/examples/user_interfaces/embedding_in_tk.py así cuando se cierra SMW, se cerrarán las gráficas; sería hacer una clase como listbox, a la que se le pasa la figura f (las funciones que generan las gráficas deberían devolver la f, ahora no devuelven nada)
 
 VERSION = '0.0.3' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
