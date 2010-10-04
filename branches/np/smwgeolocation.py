@@ -21,6 +21,7 @@ class GeoLocation():
         pass
     
     def load(self):
+        # For details, see database scheme here http://software77.net/geo-ip/?license
         global geoipdb
         
         if not geoipdb:
@@ -37,12 +38,13 @@ class GeoLocation():
                     start = int(row[0])
                     end = int(row[1])
                     iso2 = row[4]
+                    country = row[6]
                     
                     cat = (start / catlimit) * catlimit
                     if geoipdb.has_key(cat):
-                        geoipdb[cat].append([start, end, iso2])
+                        geoipdb[cat].append([start, end, iso2, country])
                     else:
-                        geoipdb[cat] = [ [start, end, iso2] ]
+                        geoipdb[cat] = [ [start, end, iso2, country] ]
                 c+=1
                 if c % 10000 == 0:
                     print "Loaded %d ip ranges for geolocation" % (c)
@@ -52,16 +54,19 @@ class GeoLocation():
         
         t = ip.split(".")
         if len(t) == 4:
-            ipnumber = int(t[3]) + int(t[2])*256 + int(t[1])*256*256 + int(t[0])*256*256*256
-            cat = ipnumber - (ipnumber % catlimit)
-            #print ipnumber, cat
-            if geoipdb.has_key(cat):
-                for start, end, iso2 in geoipdb[cat]:
-                    if ipnumber>=start and ipnumber<=end:
-                        return iso2
+            try:
+                ipnumber = int(t[3]) + int(t[2])*256 + int(t[1])*256*256 + int(t[0])*256*256*256
+                cat = ipnumber - (ipnumber % catlimit)
+                #print ipnumber, cat
+                if geoipdb.has_key(cat):
+                    for start, end, iso2, country in geoipdb[cat]:
+                        if ipnumber>=start and ipnumber<=end:
+                            return country
+            except:
+                print "ERROR GEOIP", ip
         return False
 
-def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', color='', xlabel=''):
+def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', color='#44bb66', xlabel=''):
     if not cursor:
         print "ERROR, NO CURSOR"
         return
@@ -99,7 +104,7 @@ def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', co
     y = [edits for edits, country in countries_list[:limit]]
     print countries_list[:limit], x, y
     
-    rects = subfig.bar(numpy.arange(len(x)), y, align='center')
+    rects = subfig.bar(numpy.arange(len(x)), y, color=color, align='center')
     subfig.legend()
     subfig.set_title(subtitle)
     subfig.set_xlabel('Country')

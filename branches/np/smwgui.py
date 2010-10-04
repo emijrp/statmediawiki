@@ -32,7 +32,7 @@ import pylab
 # log de visitas de domas?
 # conectarse a irc y poder hacer estadisticas en vivo?
 
-VERSION = '0.0.2' #StatMediaWiki version
+VERSION = '0.0.3' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 
 class DialogListbox(Toplevel):
