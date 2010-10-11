@@ -33,7 +33,7 @@ def downloadWikimediaDump(wiki):
     if not os.path.exists(pathfilename):
         f = urllib.urlretrieve(url, pathfilename, reporthook=downloadProgress)
     
-    #chequear md5
+    #fix chequear md5
     
     print 'Download OK!'
     smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)

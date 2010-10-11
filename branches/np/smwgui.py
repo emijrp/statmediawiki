@@ -19,6 +19,8 @@ import pylab
 # hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?) http://download.wikimedia.org/backup-index.html http://community.wikia.com/wiki/Hub:Big_wikis http://community.wikia.com/index.php?title=Special:Newwikis&dir=prev&limit=500&showall=0 http://www.mediawiki.org/wiki/Sites_using_MediaWiki
 # Citizendium (interesantes gráficas http://en.citizendium.org/wiki/CZ:Statistics) no publican el historial completo, solo el current http://en.citizendium.org/wiki/CZ:Downloads
 # permitir descargar solo el historial de una página (special:Export tiene la pega de que solo muestra las últimas 1000 ediciones), con la Api te traes todo en bloques de 500 pero hay que hacer una función que llame a la API (en vez de utilizar pywikipediabot para no añadir una dependencia más)
+# permitir descargar todos los dumps en lote, y luego preprocesarlos
+# hay otros dumps a parte de los 7z que tienen información útil, por ejemplo los images.sql con metadatos de las fotos, aunque solo los publica wikipedia
 # usar getopt para capturar parámetros desde consola
 # i18n http://www.learningpython.com/2006/12/03/translating-your-pythonpygtk-application/
 # documentation
@@ -34,7 +36,8 @@ import pylab
 #
 # embeber mejor las gráficas en Tk? http://matplotlib.sourceforge.net/examples/user_interfaces/embedding_in_tk.py así cuando se cierra SMW, se cerrarán las gráficas; sería hacer una clase como listbox, a la que se le pasa la figura f (las funciones que generan las gráficas deberían devolver la f, ahora no devuelven nada)
 
-VERSION = '0.0.3' #StatMediaWiki version
+NAME = 'StatMediaWiki NP'
+VERSION = '0.0.4' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 
 class DialogListbox(Toplevel):
@@ -99,7 +102,7 @@ class App:
         
         # interface elements
         #description
-        self.desc=Label(self.master, text="StatMediaWiki NP (version %s)\nThis program is free software (GPL v3 or later)." % (VERSION), font=("Arial", 7))
+        self.desc=Label(self.master, text="%s (version %s)\nThis program is free software (GPL v3 or higher)." % (NAME, VERSION), font=("Arial", 7))
         self.desc.grid(row=2, column=1, columnspan=2)
         #quickbuttoms
         self.button1 = Button(self.master, text="Load", command=self.callback, width=12)
@@ -111,7 +114,7 @@ class App:
         self.button4 = Button(self.master, text="Button #4", command=self.callback, width=12)
         self.button4.grid(row=1, column=2)
         #statusbar
-        self.status = Label(self.master, text="Welcome! StatMediaWiki is ready for work", bd=1, justify=LEFT, relief=SUNKEN)
+        self.status = Label(self.master, text="Welcome! %s is ready for work" % (NAME), bd=1, justify=LEFT, relief=SUNKEN)
         self.status.grid(row=3, column=0, columnspan=3, sticky=W+E)
         #self.status.config(text="AA")
         
@@ -126,7 +129,8 @@ class App:
         preprocessingwikimediamenu = Menu(preprocessingmenu)
         preprocessingmenu.add_cascade(label="Wikimedia", menu=preprocessingwikimediamenu)
         preprocessingwikimediamenu.add_command(label="Full dump", command=self.wikimedia)
-        #preprocessingwikimediamenu.add_command(label="Single page", command=self.callback)
+        preprocessingwikimediamenu.add_command(label="IRC feed", command=self.callback)
+        preprocessingwikimediamenu.add_command(label="Single page", command=self.callback)
         
         preprocessingmenu.add_command(label="Wikia", command=self.wikia)
         preprocessingmenu.add_separator()
@@ -192,7 +196,8 @@ class App:
         #begin others
         othermenu = Menu(menu)
         menu.add_cascade(label="Other", menu=othermenu)
-        othermenu.add_command(label="very soon...", command=self.callback)
+        othermenu.add_command(label="Domas visits logs", command=self.callback)
+        othermenu.add_command(label="Fundraising", command=self.callback)
         #end others
         
         #begin view
@@ -217,15 +222,13 @@ class App:
         
         mywikiconn = None
         mywikicursor = None
-        try:
-            host = tkSimpleDialog.askstring("Which host?", "Put a host", initialvalue="localhost")
-            user = tkSimpleDialog.askstring("Which database user?", "Put a user", initialvalue="myuser")
-            passwd = tkSimpleDialog.askstring("Which database user?", "Put the password for user '%s'" % user, initialvalue="mypass")
-            db = tkSimpleDialog.askstring("Which database?", "What is the database name where your wiki is installed?", initialvalue="mydbname")
-            mywikiconn = MySQLdb.connect(host=host,user=user, passwd=passwd,db=db)
-            mywikicursor = mywikiconn.cursor()
-        except:
-            print "Hubo un error al conectarse a la base de datos"
+
+        host = tkSimpleDialog.askstring("Which host?", "Put a host", initialvalue="localhost")
+        user = tkSimpleDialog.askstring("Which database user?", "Put a user", initialvalue="myuser")
+        passwd = tkSimpleDialog.askstring("Which database user?", "Put the password for user '%s'" % user, initialvalue="mypass")
+        db = tkSimpleDialog.askstring("Which database?", "What is the database name where your wiki is installed?", initialvalue="mydbname")
+        mywikiconn = MySQLdb.connect(host=host,user=user, passwd=passwd,db=db)
+        mywikicursor = mywikiconn.cursor()
         
         path = 'dumps/sqlitedbs'
         filename = 'mywiki.db'
@@ -252,7 +255,7 @@ class App:
         import smwdownloader
         
         self.status.config(text="Loading list of Wikia wikis")
-        list = ['answers', 'dc', 'eq2', 'inciclopedia', 'familypedia', 'icehockey', 'lyrics', 'marveldatabase', 'memory-beta', 'memoryalpha', 'psychology', 'recipes', 'swfanon', 'starwars', 'uncyclopedia', 'vintagepatterns', 'wow']
+        list = ['answers', 'dc', 'efemerides', 'eq2', 'inciclopedia', 'familypedia', 'icehockey', 'lyrics', 'marveldatabase', 'memory-beta', 'memoryalpha', 'psychology', 'recipes', 'swfanon', 'starwars', 'uncyclopedia', 'vintagepatterns', 'wow']
         list.sort()
         self.status.config(text="Loaded list of Wikia wikis")
         d = DialogListbox(self.master, title='Select a Wikia project', list=list)
@@ -379,7 +382,7 @@ def askclose():
 if __name__ == "__main__":
     root = Tk()
     root.geometry('505x104+0+0')
-    root.title('StatMediaWiki NP')
+    root.title(NAME)
     root.protocol("WM_DELETE_WINDOW", askclose)
     #logo
     imagelogo = PhotoImage(file = 'logo.gif')
@@ -387,4 +390,3 @@ if __name__ == "__main__":
     labellogo.grid(row=0, column=0, rowspan=3, sticky=W)
     app = App(root)
     root.mainloop()
-    root.destroy()

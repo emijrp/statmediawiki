@@ -8,23 +8,23 @@ import tkMessageBox
 #TODO: que meta los numeros en un diccionario?
 
 def summary(cursor):
-    #sugerencias: páginas por nm, 
+    #sugerencias: páginas por nm (y separando redirects de no redirects), 
     
     revisions = 0
     pages = 0
     users = 0
     age = 0
     
-    a = cursor.execute("select count(revisionid) as count from revision where 1")
-    for row in a:
+    result = cursor.execute("SELECT COUNT(rev_id) AS count FROM revision WHERE 1")
+    for row in result:
         revisions = row[0]
     
-    a = cursor.execute("select count(title) as count from page where 1")
-    for row in a:
+    result = cursor.execute("SELECT COUNT(page_id) AS count FROM page WHERE 1")
+    for row in result:
         pages = row[0]
     
-    a = cursor.execute("select count(username) as count from user where 1")
-    for row in a:
+    result = cursor.execute("SELECT COUNT(user_name) AS count FROM user WHERE 1")
+    for row in result:
         users = row[0]
     
     output= u'Users = %s\nPages = %s\nRevisions = %s' % (users, pages, revisions)
@@ -50,14 +50,14 @@ def summary(cursor):
     
 def editsByRegisteredUsers(cursor=None):
     #fix esto debería estar en una tabla summary ya?
-    a = cursor.execute("select count(revisionid) as count from revision where ipedit=?", (0,))
-    for row in a:
+    result = cursor.execute("SELECT COUNT(revisionid) AS count FROM revision WHERE ipedit=?", (0,))
+    for row in result:
         return row[0]
     return 0
 
 def editsByAnonymousUsers(cursor=None):
     #fix esto debería estar en una tabla summary ya?
-    a = cursor.execute("select count(revisionid) as count from revision where ipedit=?", (1,))
-    for row in a:
+    result = cursor.execute("SELECT COUNT(revisionid) AS count FROM revision WHERE ipedit=?", (1,))
+    for row in result:
         return row[0]
     return 0

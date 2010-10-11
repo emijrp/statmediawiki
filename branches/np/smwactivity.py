@@ -22,19 +22,19 @@ def activity(cursor=None, range='', entity='', title='', subtitle='', color='', 
     pylab.suptitle(title)
     
     subfig = fig.add_subplot(1,1,1)
-    a = []
+    result = []
     if range == 'global':
-        a = cursor.execute("select strftime(?, timestamp) as time, count(*) as count from revision where 1 group by time order by time asc", (timesplit, ))
+        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE 1 GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, ))
     elif range == 'user':
-        a = cursor.execute("select strftime(?, timestamp) as time, count(*) as count from revision where username=? group by time order by time asc", (timesplit, entity))
+        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE username=? GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
     elif range == 'page':
-        a = cursor.execute("select strftime(?, timestamp) as time, count(*) as count from revision where title=? group by time order by time asc", (timesplit, entity))
+        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE title=? GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
     
     x, y = [], []
-    for row in a:
-        print row
-        x.append(int(row[0]))
-        y.append(int(row[1]))
+    for timesplit, count in result:
+        print timesplit, count
+        x.append(int(timesplit))
+        y.append(int(count))
     
     rects = subfig.bar(numpy.arange(len(x)), y, color=color, align='center')
     subfig.legend()

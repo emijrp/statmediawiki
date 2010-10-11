@@ -5,7 +5,7 @@ import pylab
 
 def pareto(cursor=None, title=''):
     
-    a = cursor.execute("select count(*) as count from revision where 1 group by username order by count desc")
+    a = cursor.execute("select count(*) as count from revision where 1 group by rev_username order by count desc")
     
     x = []
     acum = []
