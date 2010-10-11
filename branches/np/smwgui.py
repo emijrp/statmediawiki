@@ -131,8 +131,8 @@ class App:
         preprocessingwikimediamenu.add_command(label="Full dump", command=self.wikimedia)
         preprocessingwikimediamenu.add_command(label="IRC feed", command=self.callback)
         preprocessingwikimediamenu.add_command(label="Single page", command=self.callback)
-        
         preprocessingmenu.add_command(label="Wikia", command=self.wikia)
+        preprocessingmenu.add_command(label="Citizendium", command=self.wikia)
         preprocessingmenu.add_separator()
         preprocessingmenu.add_command(label="Exit", command=master.quit)
 
@@ -197,7 +197,7 @@ class App:
         othermenu = Menu(menu)
         menu.add_cascade(label="Other", menu=othermenu)
         othermenu.add_command(label="Domas visits logs", command=self.callback)
-        othermenu.add_command(label="Fundraising", command=self.callback)
+        othermenu.add_command(label="Wikimedia Fundraising", command=self.callback)
         #end others
         
         #begin view
