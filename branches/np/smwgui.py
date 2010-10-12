@@ -235,7 +235,7 @@ class App:
         helpmenu.add_command(label="StatMediaWiki homepage", command=lambda: webbrowser.open_new_tab(homepage))
 
     def callback(self):
-        print "Feature doesn't developed yet. Coming soon."
+        self.setStatus("Feature doesn't developed yet. Coming soon.")
 
     def setStatus(self, text):
         self.status.config(text=text)

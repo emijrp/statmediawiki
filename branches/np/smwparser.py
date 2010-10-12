@@ -50,7 +50,7 @@ def generatePageTable(conn, cursor):
     print "GENERATED PAGE TABLE: %d" % (c)
 
 def generateUserTable(conn, cursor):
-    result = cursor.execute("SELECT rev_username AS user_name, count(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")
+    result = cursor.execute("SELECT rev_username AS user_name, COUNT(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")
     c=0
     users = []
     for user_name, user_editcount in result:
@@ -87,7 +87,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         timestamp = datetime.datetime(year=int(x.timestamp[0:4]), month=int(x.timestamp[5:7]), day=int(x.timestamp[8:10]), hour=int(x.timestamp[11:13]), minute=int(x.timestamp[14:16]), second=int(x.timestamp[17:19]))
         md5 = hashlib.md5(x.text.encode('utf-8')).hexdigest()
         ipedit = 0
-        if x.ipedit:
+        if x.ipedit: #fix, las ediciones de MediaWiki default cuentan como IP?
             ipedit = 1
         t = (x.revisionid, x.title, x.id, x.username, ipedit, timestamp, md5)
 
