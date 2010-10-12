@@ -64,13 +64,8 @@ def activityhourly(cursor=None, range='', entity='', title=''):
     activity(cursor=cursor, range=range, entity=entity, title=title, subtitle='Activity by hour', color='#1177bb', xlabel='Hour', timesplit='%H')
 
 def activityall(cursor=None, range='', entity='', title=''):
-    #a = cursor.execute('select username, count(*) from revision group by username order by count(*) desc limit 30')
-    #a = cursor.execute("select title, revisionid, timestamp from revision where timestamp<datetime('2004-06-12 10:00:00') limit 30")
-    #a = cursor.execute("select title, revisionid, timestamp, datetime(strftime('%Y-%m-%dT%H:%M:%S', timestamp)) from revision where 1 limit 30")
-    
     #FIX: no funciona, solo se muestra la primera y las otras conforme se va cerrando ventanas, meter las 4 en una?
     activityyearly(cursor=cursor, range=range, entity=entity, title=title)
     activitymonthly(cursor=cursor, range=range, entity=entity, title=title)
     activitydow(cursor=cursor, range=range, entity=entity, title=title)
     activityhourly(cursor=cursor, range=range, entity=entity, title=title)
-

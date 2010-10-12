@@ -10,6 +10,7 @@ import webbrowser
 from Tkinter import *
 import tkMessageBox
 import tkSimpleDialog
+import tkFileDialog
 import pylab
 
 # TODO:
@@ -37,8 +38,11 @@ import pylab
 # embeber mejor las gráficas en Tk? http://matplotlib.sourceforge.net/examples/user_interfaces/embedding_in_tk.py así cuando se cierra SMW, se cerrarán las gráficas; sería hacer una clase como listbox, a la que se le pasa la figura f (las funciones que generan las gráficas deberían devolver la f, ahora no devuelven nada)
 
 NAME = 'StatMediaWiki NP'
-VERSION = '0.0.4' #StatMediaWiki version
+VERSION = '0.0.5' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
+PATH = os.path.dirname(__file__)
+if PATH: os.chdir(PATH)
+print PATH
 
 class DialogListbox(Toplevel):
     #Following this tutorial http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
@@ -49,19 +53,19 @@ class DialogListbox(Toplevel):
         self.parent = parent
         self.list = list
         self.result = None
-        
+
         body = Frame(self)
         body.grid(row=0, column=0)
         self.listbox()
         self.grab_set()
-        
+
         self.protocol("WM_DELETE_WINDOW", self.cancel)
         self.geometry('300x550')
         self.wait_window(self)
-    
+
     def listbox(self):
         box = Frame(self)
-        
+
         scrollbar = Scrollbar(box)
         scrollbar.grid(row=0, column=2, sticky=N+S)
         self.listbox = Listbox(box, width=35, height=31)
@@ -69,17 +73,17 @@ class DialogListbox(Toplevel):
         [self.listbox.insert(END, item) for item in self.list]
         self.listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.listbox.yview)
-        
+
         w1 = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
         w1.grid(row=1, column=0, sticky=W)
         w2 = Button(box, text="Cancel", width=10, command=self.cancel)
         w2.grid(row=1, column=1, sticky=E)
-        
+
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
-        
+
         box.pack()
-    
+
     def ok(self, event=None):
         self.withdraw()
         self.update_idletasks()
@@ -92,20 +96,20 @@ class DialogListbox(Toplevel):
 
     def apply(self):
         self.result = self.list[int(self.listbox.curselection()[0])]
- 
+
 class App:
     def __init__(self, master):
         self.master = master
         self.site = ''
         self.wiki = ''
         self.homepage = 'http://statmediawiki.forja.rediris.es'
-        
+
         # interface elements
         #description
         self.desc=Label(self.master, text="%s (version %s)\nThis program is free software (GPL v3 or higher)." % (NAME, VERSION), font=("Arial", 7))
         self.desc.grid(row=2, column=1, columnspan=2)
-        #quickbuttoms
-        self.button1 = Button(self.master, text="Load", command=self.callback, width=12)
+        #quick buttons
+        self.button1 = Button(self.master, text="Load", command=self.loadFile, width=12)
         self.button1.grid(row=0, column=1)
         self.button2 = Button(self.master, text="Button #2", command=self.callback, width=12)
         self.button2.grid(row=1, column=1)
@@ -117,29 +121,44 @@ class App:
         self.status = Label(self.master, text="Welcome! %s is ready for work" % (NAME), bd=1, justify=LEFT, relief=SUNKEN)
         self.status.grid(row=3, column=0, columnspan=3, sticky=W+E)
         #self.status.config(text="AA")
-        
+
         # create a menu
         menu = Menu(self.master)
         master.config(menu=menu)
 
-        #preprocessing
-        preprocessingmenu = Menu(menu)
-        menu.add_cascade(label="Preprocessor", menu=preprocessingmenu)
-        preprocessingmenu.add_command(label="My wiki", command=self.mywiki)
-        preprocessingwikimediamenu = Menu(preprocessingmenu)
-        preprocessingmenu.add_cascade(label="Wikimedia", menu=preprocessingwikimediamenu)
-        preprocessingwikimediamenu.add_command(label="Full dump", command=self.wikimedia)
-        preprocessingwikimediamenu.add_command(label="IRC feed", command=self.callback)
-        preprocessingwikimediamenu.add_command(label="Single page", command=self.callback)
-        preprocessingmenu.add_command(label="Wikia", command=self.wikia)
-        preprocessingmenu.add_command(label="Citizendium", command=self.wikia)
-        preprocessingmenu.add_separator()
-        preprocessingmenu.add_command(label="Exit", command=master.quit)
+        #begin downloader
+        downloadermenu = Menu(menu)
+        menu.add_cascade(label="Downloader", menu=downloadermenu)
+        downloadermywikimenu = Menu(downloadermenu)
+        downloadermenu.add_cascade(label="My wiki", menu=downloadermywikimenu)
+        downloadermywikimenu.add_command(label="Database connection", command=self.callback)
+        downloadermywikimenu.add_command(label="XML Dump", command=self.callback)
+        #downloaderwikimediamenu = Menu(downloadermenu)
+        #downloadermenu.add_cascade(label="Wikimedia", menu=downloaderwikimediamenu)
+        downloadermenu.add_command(label="Wikimedia", command=lambda: self.downloader('wikimedia'))
+        downloadermenu.add_command(label="Wikia", command=lambda: self.downloader('wikia'))
+        downloadermenu.add_command(label="Citizendium", command=self.callback)
+        #end downloader
 
-        #analysis
+        #begin preprocessor
+        preprocessormenu = Menu(menu)
+        menu.add_cascade(label="Preprocessor", menu=preprocessormenu)
+        preprocessormenu.add_command(label="My wiki", command=self.mywiki)
+        preprocessorwikimediamenu = Menu(preprocessormenu)
+        preprocessormenu.add_cascade(label="Wikimedia", menu=preprocessorwikimediamenu)
+        preprocessorwikimediamenu.add_command(label="XML Dump", command=lambda: self.parser('wikimedia'))
+        preprocessorwikimediamenu.add_command(label="IRC feed", command=self.callback)
+        preprocessorwikimediamenu.add_command(label="Single page", command=self.callback)
+        preprocessormenu.add_command(label="Wikia", command=self.callback)
+        preprocessormenu.add_command(label="Citizendium", command=self.callback)
+        #preprocessormenu.add_separator()
+        #preprocessormenu.add_command(label="Exit", command=master.quit)
+        #end preprocessor
+
+        #begin analyser
         analysismenu = Menu(menu)
         menu.add_cascade(label="Analyser", menu=analysismenu)
-        
+
         #begin global
         globalmenu = Menu(analysismenu)
         analysismenu.add_cascade(label="Global", menu=globalmenu)
@@ -158,7 +177,9 @@ class App:
         globalmenu.add_command(label="Pareto", command=lambda: self.analysis('global-pareto'))
         #globalmenu.add_command(label="Graph", command=lambda: self.analysis('global-graph'))
         #end global
-        
+
+        #end analyser
+
         #begin user-by-user
         userbyusermenu = Menu(analysismenu)
         analysismenu.add_cascade(label="User-by-user", menu=userbyusermenu)
@@ -170,12 +191,12 @@ class App:
         useractivitymenu.add_command(label="Monthly", command=lambda: self.analysis('user-activity-monthly'))
         useractivitymenu.add_command(label="Day of week", command=lambda: self.analysis('user-activity-dow'))
         useractivitymenu.add_command(label="Hourly", command=lambda: self.analysis('user-activity-hourly'))
-        
+
         #usergraphsmenu = Menu(userbyusermenu)
         #userbyusermenu.add_cascade(label="Graphs", menu=usergraphsmenu)
         #usergraphsmenu.add_command(label="Edited pages", command=lambda: self.analysis('user-graph'))
         #end user-by-user
-        
+
         #begin page-by-page
         pagebypagemenu = Menu(analysismenu)
         analysismenu.add_cascade(label="Page-by-page", menu=pagebypagemenu)
@@ -187,39 +208,43 @@ class App:
         pageactivitymenu.add_command(label="Monthly", command=lambda: self.analysis('page-activity-monthly'))
         pageactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('pager-activity-dow'))
         pageactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('page-activity-hourly'))
-        
+
         pagebypagemenu.add_command(label="Edit history graph", command=lambda: self.analysis('page-edithistorygraph'))
         pagebypagemenu.add_command(label="GeoIP location", command=lambda: self.analysis('page-geoiplocation'))
-        
+
         #end page-by-page
-        
+
         #begin others
         othermenu = Menu(menu)
         menu.add_cascade(label="Other", menu=othermenu)
         othermenu.add_command(label="Domas visits logs", command=self.callback)
         othermenu.add_command(label="Wikimedia Fundraising", command=self.callback)
         #end others
-        
+
         #begin view
         viewmenu = Menu(menu)
         menu.add_cascade(label="View", menu=viewmenu)
         viewmenu.add_command(label="Console", command=self.callback)
         #end view
-        
+
         #help
         helpmenu = Menu(menu)
         menu.add_cascade(label="Help", menu=helpmenu)
         helpmenu.add_command(label="About", command=self.callback)
         helpmenu.add_command(label="Help index", command=self.callback)
         helpmenu.add_command(label="StatMediaWiki homepage", command=lambda: webbrowser.open_new_tab(homepage))
-    
+
     def callback(self):
-        print "Feature doesn't developed"
-    
+        print "Feature doesn't developed yet. Coming soon."
+
+    def loadFile(self):
+        filename = tkFileDialog.askopenfilename(initialdir='dumps/sqlitedbs')
+        print filename
+
     def mywiki(self):
         import smwparser
         import MySQLdb
-        
+
         mywikiconn = None
         mywikicursor = None
 
@@ -229,49 +254,71 @@ class App:
         db = tkSimpleDialog.askstring("Which database?", "What is the database name where your wiki is installed?", initialvalue="mydbname")
         mywikiconn = MySQLdb.connect(host=host,user=user, passwd=passwd,db=db)
         mywikicursor = mywikiconn.cursor()
-        
+
         path = 'dumps/sqlitedbs'
         filename = 'mywiki.db'
         smwparser.parseMediaWikiMySQLConnect(mywikicursor, path, filename)
-        
+
         mywikicursor.close()
         mywikiconn.close()
-    
-    def wikimedia(self):
+
+    def downloader(self, site):
         import smwdownloader
-        
-        self.status.config(text="Loading list of Wikimedia wikis")
-        list = smwdownloader.downloadWikimediaList()
-        self.status.config(text="Loaded list of Wikimedia wikis")
-        d = DialogListbox(self.master, title='Select a Wikimedia project', list=list)
-        if d.result:
-            self.site = 'wikimedia'
-            self.wiki = d.result
-            self.status.config(text="Downloading data for %s" % (self.wiki))
-            smwdownloader.downloadWikimediaDump(self.wiki)
-            self.status.config(text="Downloaded data for %s OK!" % (self.wiki))
-    
-    def wikia(self):
-        import smwdownloader
-        
-        self.status.config(text="Loading list of Wikia wikis")
-        list = ['answers', 'dc', 'efemerides', 'eq2', 'inciclopedia', 'familypedia', 'icehockey', 'lyrics', 'marveldatabase', 'memory-beta', 'memoryalpha', 'psychology', 'recipes', 'swfanon', 'starwars', 'uncyclopedia', 'vintagepatterns', 'wow']
-        list.sort()
-        self.status.config(text="Loaded list of Wikia wikis")
-        d = DialogListbox(self.master, title='Select a Wikia project', list=list)
-        if d.result:
-            self.site = 'wikia'
-            self.wiki = d.result
-            self.status.config(text="Downloading data for %s" % (self.wiki))
-            smwdownloader.downloadWikiaDump(self.wiki)
-            self.status.config(text="Downloaded data for %s OK!" % (self.wiki))
-    
+
+        self.site = site
+        self.wiki = ''
+        initialdir = 'dumps'
+        initialfile = ''
+        if self.site == 'wikimedia':
+            self.status.config(text="Loading list of Wikimedia wikis")
+            list = smwdownloader.downloadWikimediaList()
+            self.status.config(text="Loaded list of Wikimedia wikis")
+            d = DialogListbox(self.master, title='Select a Wikimedia project', list=list)
+            if d.result:
+                self.wiki = d.result
+                initialfile = '%s-latest-pages-meta-history.xml.7z' % (self.wiki)
+                initialfile = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension='.xml.7z')
+        elif self.site == 'wikia':
+            self.status.config(text="Loading list of Wikia wikis")
+            list = smwdownloader.downloadWikiaList()
+            self.status.config(text="Loaded list of Wikia wikis")
+            d = DialogListbox(self.master, title='Select a Wikia project', list=list)
+            if d.result:
+                self.wiki = d.result
+                initialfile = '%s-pages_full.xml.gz' % (self.wiki)
+                initialfile = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension='.xml.gz')
+        elif self.site == 'citizendium':
+            pass
+
+        if self.wiki and initialfile:
+            message = "Downloading data for %s @ %s" % (self.wiki, self.site)
+            print message
+            self.status.config(text=message)
+            if self.site == 'wikimedia':
+                smwdownloader.downloadWikimediaDump(self.wiki, initialfile)
+            elif self.site == 'wikia':
+                smwdownloader.downloadWikiaDump(self.wiki, initialfile)
+            message = "Downloaded data for %s @ %s OK!" % (self.wiki, self.site)
+            self.status.config(text=message)
+            print message
+
+    def parser(self, site):
+        import smwparser
+
+        self.site = site
+        initialdir = 'dumps'
+        initialfile = ''
+        if self.site == 'wikimedia':
+            initialfile = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile=initialfile, filetypes=[('7zip', '*.7z')])
+            smwparser.parseMediaWikiXMLDump(filename=initialfile)
+        pass
+
     def analysis(self, analysis):
         if not self.site and not self.wiki:
             tkMessageBox.showerror("Error", "You must preprocess first")
             print "Error", "You must preprocess first"
             return
-        
+
         filename = ''
         filedbname = ''
         if self.site == 'wikimedia':
@@ -280,10 +327,10 @@ class App:
         elif self.site == 'wikia':
             filename = '%s-pages_full.xml.gz' % (self.wiki)
             filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.gz')[0])
-        
+
         conn = sqlite3.connect(filedbname)
         cursor = conn.cursor()
-        
+
         #global
         if analysis.startswith('global'):
             if analysis == 'global-summary':
@@ -318,7 +365,7 @@ class App:
             list = smwlist.listofusers(cursor=cursor)
             d = DialogListbox(self.master, title="AAA", list=list)
             user = d.result
-            
+
             if user:
                 if analysis.startswith('user-activity'):
                     import smwactivity
@@ -345,7 +392,7 @@ class App:
             list = smwlist.listofpages(cursor=cursor)
             d = DialogListbox(root, title="AAA", list=list)
             page = d.result
-            
+
             if page:
                 if analysis.startswith('page-activity'):
                     import smwactivity
@@ -367,13 +414,9 @@ class App:
                     import smwgeolocation
                     smwgeolocation.GeoLocationGraph(cursor=cursor, range='page', entity=page, title=self.wiki)
                     pylab.show()
-        
+
         cursor.close()
         conn.close()
-
-    def summary(self):
-        print 'summary'
-        pass
 
 def askclose():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to exit?"):

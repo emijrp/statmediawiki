@@ -77,17 +77,17 @@ def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', co
     pylab.suptitle(title)
     
     subfig = fig.add_subplot(2,1,1)
-    a = []
+    result = []
     if range == 'global':
-        a = cursor.execute("select username from revision where ipedit=?", (1, ))
+        result = cursor.execute("SELECT rev_username FROM revision WHERE rev_is_ipedit=?", (1, ))
     elif range == 'page':
-        a = cursor.execute("select username from revision where ipedit=? and title=?", (1, entity))
+        result = cursor.execute("SELECT rev_username FROM revision WHERE rev_is_ipedit=? AND rev_page_title=?", (1, entity))
     
     x, y = [], []
     geo = GeoLocation()
     geo.load()
     countries = {}
-    for row in a:
+    for row in result:
         country = geo.getIPCountry(row[0])
         if country: #puede ser FALSE si la base de datos no reconoce ese rango de ips
             if countries.has_key(country):

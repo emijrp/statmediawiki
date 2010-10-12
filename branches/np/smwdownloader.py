@@ -18,58 +18,49 @@ def downloadProgress(block_count, block_size, total_size):
     #sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
     #sys.stdout.flush()
 
-def downloadWikimediaDump(wiki):
+def downloadWikimediaDump(wiki, filename):
     #añadir posibilidad de descargar otros a parte del last
     #verificar md5
-    dumpsdir = 'dumps'
-    if not os.path.exists(dumpsdir):
-        os.makedirs(dumpsdir)
-    
-    filename = ''
-    url = ''
-    filename = '%s-latest-pages-meta-history.xml.7z' % (wiki)
-    url = 'http://download.wikimedia.org/%s/latest/%s' % (wiki, filename)
-    pathfilename = '%s/%s' % (dumpsdir, filename)
-    if not os.path.exists(pathfilename):
-        f = urllib.urlretrieve(url, pathfilename, reporthook=downloadProgress)
-    
-    #fix chequear md5
-    
-    print 'Download OK!'
-    smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
+    z7filename = '%s-latest-pages-meta-history.xml.7z' % (wiki)
+    url = 'http://download.wikimedia.org/%s/latest/%s' % (wiki, z7filename)
+    f = urllib.urlretrieve(url, filename, reporthook=downloadProgress)
 
-def downloadWikiaDump(wiki):
-    dumpsdir = 'dumps'
-    if not os.path.exists(dumpsdir):
-        os.makedirs(dumpsdir)
-    
-    filename = '%s-pages_full.xml.gz' % (wiki)
+    #fix chequear md5
+
+    #smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
+
+def downloadWikiaDump(wiki, filename):
     url = '' # la capturamos de Special:Statistics ya que a veces cambia (ver recipes.wikia.com)
     f = urllib.urlopen('http://%s.wikia.com/wiki/Special:Statistics' % (wiki))
     raw = f.read()
     f.close()
-    m = re.findall(ur'(http://wiki-stats.wikia.com/./../[^\/]+?/pages_full.xml.gz)', raw) 
+    m = re.findall(ur'(http://wiki-stats.wikia.com/./../[^\/]+?/pages_full.xml.gz)', raw)
     if m:
         url = m[0]
+    if url:
+        f = urllib.urlretrieve(url, filename, reporthook=downloadProgress)
     else:
         print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
-    pathfilename = '%s/%s' % (dumpsdir, filename)
-    if not os.path.exists(pathfilename):
-        f = urllib.urlretrieve(url, pathfilename, reporthook=downloadProgress)
-    print 'Download OK!'
-    smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
-    
+    #smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
+
 def downloadWikimediaList():
     projects = []
-    
+
     f = urllib.urlopen('http://download.wikimedia.org/backup-index.html')
     raw = f.read()
     f.close()
-    
+
     m = re.findall(ur'<a href="([^\/]+?)/\d{8}">', raw)
     if m:
         [projects.append(i) for i in m]
-    
+
     projects.sort()
-    
+
+    return projects
+
+def downloadWikiaList():
+    projects = ['answers', 'dc', 'efemerides', 'eq2', 'inciclopedia', 'familypedia', 'icehockey', 'lyrics', 'marveldatabase', 'memory-beta', 'memoryalpha', 'psychology', 'recipes', 'swfanon', 'starwars', 'uncyclopedia', 'vintagepatterns', 'wow']
+
+    projects.sort()
+
     return projects
