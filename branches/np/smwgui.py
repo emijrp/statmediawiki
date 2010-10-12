@@ -42,7 +42,6 @@ VERSION = '0.0.5' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 PATH = os.path.dirname(__file__)
 if PATH: os.chdir(PATH)
-print PATH
 
 class DialogListbox(Toplevel):
     #Following this tutorial http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
@@ -102,6 +101,7 @@ class App:
         self.master = master
         self.site = ''
         self.wiki = ''
+        self.dbfilename = '' # current analysis
         self.homepage = 'http://statmediawiki.forja.rediris.es'
 
         # interface elements
@@ -109,7 +109,7 @@ class App:
         self.desc=Label(self.master, text="%s (version %s)\nThis program is free software (GPL v3 or higher)." % (NAME, VERSION), font=("Arial", 7))
         self.desc.grid(row=2, column=1, columnspan=2)
         #quick buttons
-        self.button1 = Button(self.master, text="Load", command=self.loadFile, width=12)
+        self.button1 = Button(self.master, text="Load", command=self.loadDBFilename, width=12)
         self.button1.grid(row=0, column=1)
         self.button2 = Button(self.master, text="Button #2", command=self.callback, width=12)
         self.button2.grid(row=1, column=1)
@@ -237,9 +237,16 @@ class App:
     def callback(self):
         print "Feature doesn't developed yet. Coming soon."
 
-    def loadFile(self):
-        filename = tkFileDialog.askopenfilename(initialdir='dumps/sqlitedbs')
-        print filename
+    def setStatus(self, text):
+        self.status.config(text=text)
+        print text
+
+    def loadDBFilename(self):
+        initialdir = 'dumps/sqlitedbs'
+        if PATH:
+            initialdir = '%s/%s' % (PATH, initialdir)
+        self.dbfilename = tkFileDialog.askopenfilename(initialdir=initialdir)
+        self.setStatus("Loaded %s" % (self.dbfilename.split('/')[-1]))
 
     def mywiki(self):
         import smwparser
@@ -270,18 +277,18 @@ class App:
         initialdir = 'dumps'
         dumpfilename = ''
         if self.site == 'wikimedia':
-            self.status.config(text="Loading list of Wikimedia wikis")
+            self.setStatus("Loading list of Wikimedia wikis")
             list = smwdownloader.downloadWikimediaList()
-            self.status.config(text="Loaded list of Wikimedia wikis")
+            self.setStatus("Loaded list of Wikimedia wikis")
             d = DialogListbox(self.master, title='Select a Wikimedia project', list=list)
             if d.result:
                 self.wiki = d.result
                 dumpfilename = '%s-latest-pages-meta-history.xml.7z' % (self.wiki)
                 dumpfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=dumpfilename, defaultextension='.xml.7z')
         elif self.site == 'wikia':
-            self.status.config(text="Loading list of Wikia wikis")
+            self.setStatus("Loading list of Wikia wikis")
             list = smwdownloader.downloadWikiaList()
-            self.status.config(text="Loaded list of Wikia wikis")
+            self.setStatus("Loaded list of Wikia wikis")
             d = DialogListbox(self.master, title='Select a Wikia project', list=list)
             if d.result:
                 self.wiki = d.result
@@ -295,18 +302,14 @@ class App:
             dumpfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=dumpfilename, defaultextension='.xml.gz')
 
         if self.wiki and dumpfilename:
-            message = "Downloading data for %s @ %s" % (self.wiki, self.site)
-            print message
-            self.status.config(text=message)
+            self.setStatus("Downloading data for %s @ %s" % (self.wiki, self.site))
             if self.site == 'wikimedia':
                 smwdownloader.downloadWikimediaDump(self.wiki, dumpfilename)
             elif self.site == 'wikia':
                 smwdownloader.downloadWikiaDump(self.wiki, dumpfilename)
             elif self.site == 'citizendium':
                 smwdownloader.downloadCitizendiumDump(self.wiki, dumpfilename)
-            message = "Downloaded data for %s @ %s OK!" % (self.wiki, self.site)
-            self.status.config(text=message)
-            print message
+            self.setStatus("Downloaded data for %s @ %s OK!" % (self.wiki, self.site))
 
     def parser(self, site):
         import smwparser
@@ -315,54 +318,42 @@ class App:
         initialdir = 'dumps'
         initialdir2 = 'dumps/sqlitedbs'
         dumpfilename = ''
-        dbfilename = ''
+        self.dbfilename = ''
         if self.site == 'wikimedia':
             dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('7zip', '*.7z')])
             initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.7z')[0])
-            dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
+            self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
         elif self.site == 'wikia':
             dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('Gzip', '*.gz')])
             initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.gz')[0])
-            dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
+            self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
         elif self.site == 'citizendium':
             dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('Gzip', '*.gz')])
             initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.gz')[0])
-            dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
+            self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
 
-        if dumpfilename and dbfilename:
+        if dumpfilename and self.dbfilename:
             dumpfilename2 = dumpfilename.split('/')[-1]
-            message = "Parsing %s @ %s" % (dumpfilename2, self.site)
-            print message
-            self.status.config(text=message)
+            self.setStatus("Parsing %s @ %s" % (dumpfilename2, self.site))
             if self.site == 'wikimedia':
-                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
+                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=self.dbfilename)
             elif self.site == 'wikia':
-                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
+                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=self.dbfilename)
             elif self.site == 'citizendium':
-                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
+                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=self.dbfilename)
             #tkMessageBox.showinfo("OK", "Parsing complete")
-            message = "Parsed %s @ %s OK!" % (dumpfilename2, self.site)
-            self.status.config(text=message)
-            print message
+            self.setStatus("Parsed %s @ %s OK!" % (dumpfilename2, self.site))
         else:
-            print "NO DUMP FILENAME OR NO DB FILENAME"
+            self.setStatus("ERROR: NO DUMP FILENAME OR NO DB FILENAME")
 
     def analysis(self, analysis):
-        if not self.site and not self.wiki:
-            tkMessageBox.showerror("Error", "You must preprocess first")
-            print "Error", "You must preprocess first"
+        if not self.dbfilename:
+            message = "You must load a preprocessed dump"
+            self.setStatus(message)
+            tkMessageBox.showerror("Error", message)
             return
 
-        filename = ''
-        filedbname = ''
-        if self.site == 'wikimedia':
-            filename = '%s-latest-pages-meta-history.xml.7z' % (self.wiki)
-            filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.7z')[0])
-        elif self.site == 'wikia':
-            filename = '%s-pages_full.xml.gz' % (self.wiki)
-            filedbname = 'dumps/sqlitedbs/%s.db' % (filename.split('.xml.gz')[0])
-
-        conn = sqlite3.connect(filedbname)
+        conn = sqlite3.connect(self.dbfilename)
         cursor = conn.cursor()
 
         #global
