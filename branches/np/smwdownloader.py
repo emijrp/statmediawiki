@@ -27,8 +27,6 @@ def downloadWikimediaDump(wiki, filename):
 
     #fix chequear md5
 
-    #smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
-
 def downloadWikiaDump(wiki, filename):
     url = '' # la capturamos de Special:Statistics ya que a veces cambia (ver recipes.wikia.com)
     f = urllib.urlopen('http://%s.wikia.com/wiki/Special:Statistics' % (wiki))
@@ -41,7 +39,14 @@ def downloadWikiaDump(wiki, filename):
         f = urllib.urlretrieve(url, filename, reporthook=downloadProgress)
     else:
         print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
-    #smwparser.parseMediaWikiXMLDump(path=dumpsdir, filename=filename)
+
+def downloadCitizendiumDump(wiki, filename):
+    #añadir posibilidad de descargar otros a parte del last
+    #verificar md5
+    url = 'http://locke.citizendium.org/download/%s.dump.current.xml.gz' % (wiki)
+    f = urllib.urlretrieve(url, filename, reporthook=downloadProgress)
+
+    #fix chequear md5
 
 def downloadWikimediaList():
     projects = []

@@ -137,7 +137,7 @@ class App:
         #downloadermenu.add_cascade(label="Wikimedia", menu=downloaderwikimediamenu)
         downloadermenu.add_command(label="Wikimedia", command=lambda: self.downloader('wikimedia'))
         downloadermenu.add_command(label="Wikia", command=lambda: self.downloader('wikia'))
-        downloadermenu.add_command(label="Citizendium", command=self.callback)
+        downloadermenu.add_command(label="Citizendium", command=lambda: self.downloader('citizendium'))
         #end downloader
 
         #begin preprocessor
@@ -149,8 +149,8 @@ class App:
         preprocessorwikimediamenu.add_command(label="XML Dump", command=lambda: self.parser('wikimedia'))
         preprocessorwikimediamenu.add_command(label="IRC feed", command=self.callback)
         preprocessorwikimediamenu.add_command(label="Single page", command=self.callback)
-        preprocessormenu.add_command(label="Wikia", command=self.callback)
-        preprocessormenu.add_command(label="Citizendium", command=self.callback)
+        preprocessormenu.add_command(label="Wikia", command=lambda: self.parser('wikia'))
+        preprocessormenu.add_command(label="Citizendium", command=lambda: self.parser('citizendium'))
         #preprocessormenu.add_separator()
         #preprocessormenu.add_command(label="Exit", command=master.quit)
         #end preprocessor
@@ -268,7 +268,7 @@ class App:
         self.site = site
         self.wiki = ''
         initialdir = 'dumps'
-        initialfile = ''
+        dumpfilename = ''
         if self.site == 'wikimedia':
             self.status.config(text="Loading list of Wikimedia wikis")
             list = smwdownloader.downloadWikimediaList()
@@ -276,8 +276,8 @@ class App:
             d = DialogListbox(self.master, title='Select a Wikimedia project', list=list)
             if d.result:
                 self.wiki = d.result
-                initialfile = '%s-latest-pages-meta-history.xml.7z' % (self.wiki)
-                initialfile = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension='.xml.7z')
+                dumpfilename = '%s-latest-pages-meta-history.xml.7z' % (self.wiki)
+                dumpfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=dumpfilename, defaultextension='.xml.7z')
         elif self.site == 'wikia':
             self.status.config(text="Loading list of Wikia wikis")
             list = smwdownloader.downloadWikiaList()
@@ -285,19 +285,25 @@ class App:
             d = DialogListbox(self.master, title='Select a Wikia project', list=list)
             if d.result:
                 self.wiki = d.result
-                initialfile = '%s-pages_full.xml.gz' % (self.wiki)
-                initialfile = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension='.xml.gz')
+                dumpfilename = '%s-pages_full.xml.gz' % (self.wiki)
+                dumpfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=dumpfilename, defaultextension='.xml.gz')
         elif self.site == 'citizendium':
-            pass
+            self.wiki = 'cz'
+            #http://locke.citizendium.org/download/cz.dump.current.xml.gz
+            #todo también tiene uno en bz2 http://locke.citizendium.org/download/cz.dump.current.xml.bz2
+            dumpfilename = '%s.dump.current.xml.gz' % (self.wiki)
+            dumpfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=dumpfilename, defaultextension='.xml.gz')
 
-        if self.wiki and initialfile:
+        if self.wiki and dumpfilename:
             message = "Downloading data for %s @ %s" % (self.wiki, self.site)
             print message
             self.status.config(text=message)
             if self.site == 'wikimedia':
-                smwdownloader.downloadWikimediaDump(self.wiki, initialfile)
+                smwdownloader.downloadWikimediaDump(self.wiki, dumpfilename)
             elif self.site == 'wikia':
-                smwdownloader.downloadWikiaDump(self.wiki, initialfile)
+                smwdownloader.downloadWikiaDump(self.wiki, dumpfilename)
+            elif self.site == 'citizendium':
+                smwdownloader.downloadCitizendiumDump(self.wiki, dumpfilename)
             message = "Downloaded data for %s @ %s OK!" % (self.wiki, self.site)
             self.status.config(text=message)
             print message
@@ -308,16 +314,31 @@ class App:
         self.site = site
         initialdir = 'dumps'
         initialdir2 = 'dumps/sqlitedbs'
+        dumpfilename = ''
+        dbfilename = ''
         if self.site == 'wikimedia':
             dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('7zip', '*.7z')])
             initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.7z')[0])
             dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
-            if dumpfilename and dbfilename:
+        elif self.site == 'wikia':
+            dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('Gzip', '*.gz')])
+            initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.gz')[0])
+            dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
+
+        if dumpfilename and dbfilename:
+            message = "Parsing %s @ %s" % (dumpfilename, self.site)
+            print message
+            self.status.config(text=message)
+            if self.site == 'wikimedia':
                 smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
-                tkMessageBox.showinfo("OK", "Parsing complete")
-            else:
-                print "NO DUMP FILENAME OR NO DB FILENAME"
-        pass
+            elif self.site == 'wikia':
+                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
+            #tkMessageBox.showinfo("OK", "Parsing complete")
+            message = "Parsed %s @ %s OK!" % (dumpfilename, self.site)
+            self.status.config(text=message)
+            print message
+        else:
+            print "NO DUMP FILENAME OR NO DB FILENAME"
 
     def analysis(self, analysis):
         if not self.site and not self.wiki:
