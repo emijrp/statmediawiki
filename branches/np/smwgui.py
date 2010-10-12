@@ -122,9 +122,17 @@ class App:
         self.status.grid(row=3, column=0, columnspan=3, sticky=W+E)
         #self.status.config(text="AA")
 
-        # create a menu
+        #create a menu
         menu = Menu(self.master)
         master.config(menu=menu)
+
+        #begin file
+        filemenu = Menu(menu)
+        menu.add_cascade(label="File", menu=filemenu)
+        filemenu.add_command(label="Preferences", command=self.callback)
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", command=master.quit)
+        #end file
 
         #begin downloader
         downloadermenu = Menu(menu)
@@ -151,8 +159,6 @@ class App:
         preprocessorwikimediamenu.add_command(label="Single page", command=self.callback)
         preprocessormenu.add_command(label="Wikia", command=lambda: self.parser('wikia'))
         preprocessormenu.add_command(label="Citizendium", command=lambda: self.parser('citizendium'))
-        #preprocessormenu.add_separator()
-        #preprocessormenu.add_command(label="Exit", command=master.quit)
         #end preprocessor
 
         #begin analyser
