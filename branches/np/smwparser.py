@@ -67,21 +67,11 @@ def generateAuxTables(conn=None, cursor=None):
     generatePageTable(conn=conn, cursor=cursor)
     generateUserTable(conn=conn, cursor=cursor)
 
-def parseMediaWikiXMLDump(filename):
-    pathsqlitedbs = '%s/sqlitedbs' % (path)
-    if not os.path.exists(pathsqlitedbs):
-        os.makedirs(pathsqlitedbs)
-    filenamedb = '%s/%s.db' % (pathsqlitedbs, filename.split('.xml')[0]) #así lee .xml.7z, .xml.gz y .xml
+def parseMediaWikiXMLDump(dumpfilename, dbfilename):
+    if os.path.exists(dbfilename): #si existe lo borramos, pues el usuario ha marcado sobreescribir, sino no entraría aquí
+        os.remove(dbfilename)
 
-    if os.path.exists(filenamedb):
-        print 'Ya existe un preprocesado para este proyecto'
-
-        if tkMessageBox.askyesno("File exists", "A parsed file exists. Delete and re-parse?"):
-            os.remove(filenamedb)
-        else:
-            return
-
-    conn = sqlite3.connect(filenamedb)
+    conn = sqlite3.connect(dbfilename)
     cursor = conn.cursor()
 
     # Create table
@@ -92,7 +82,7 @@ def parseMediaWikiXMLDump(filename):
     i=0
     t1=time.time()
     tt=time.time()
-    xml = xmlreader.XmlDump('%s/%s' % (path, filename), allrevisions=True)
+    xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
     for x in xml.parse():
         timestamp = datetime.datetime(year=int(x.timestamp[0:4]), month=int(x.timestamp[5:7]), day=int(x.timestamp[8:10]), hour=int(x.timestamp[11:13]), minute=int(x.timestamp[14:16]), second=int(x.timestamp[17:19]))
         md5 = hashlib.md5(x.text.encode('utf-8')).hexdigest()
@@ -120,9 +110,6 @@ def parseMediaWikiXMLDump(filename):
     # We can also close the cursor if we are done with it
     cursor.close()
     conn.close()
-
-    print 'OK!'
-    tkMessageBox.showinfo("OK", "Parsing complete")
 
 def parseMediaWikiMySQLConnect(mywikicursor, path, filename):
     import MySQLdb

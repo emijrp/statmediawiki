@@ -307,10 +307,16 @@ class App:
 
         self.site = site
         initialdir = 'dumps'
-        initialfile = ''
+        initialdir2 = 'dumps/sqlitedbs'
         if self.site == 'wikimedia':
-            initialfile = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile=initialfile, filetypes=[('7zip', '*.7z')])
-            smwparser.parseMediaWikiXMLDump(filename=initialfile)
+            dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('7zip', '*.7z')])
+            initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.7z')[0])
+            dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
+            if dumpfilename and dbfilename:
+                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
+                tkMessageBox.showinfo("OK", "Parsing complete")
+            else:
+                print "NO DUMP FILENAME OR NO DB FILENAME"
         pass
 
     def analysis(self, analysis):
