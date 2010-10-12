@@ -324,17 +324,24 @@ class App:
             dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('Gzip', '*.gz')])
             initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.gz')[0])
             dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
+        elif self.site == 'citizendium':
+            dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('Gzip', '*.gz')])
+            initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.gz')[0])
+            dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
 
         if dumpfilename and dbfilename:
-            message = "Parsing %s @ %s" % (dumpfilename, self.site)
+            dumpfilename2 = dumpfilename.split('/')[-1]
+            message = "Parsing %s @ %s" % (dumpfilename2, self.site)
             print message
             self.status.config(text=message)
             if self.site == 'wikimedia':
                 smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
             elif self.site == 'wikia':
                 smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
+            elif self.site == 'citizendium':
+                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=dbfilename)
             #tkMessageBox.showinfo("OK", "Parsing complete")
-            message = "Parsed %s @ %s OK!" % (dumpfilename, self.site)
+            message = "Parsed %s @ %s OK!" % (dumpfilename2, self.site)
             self.status.config(text=message)
             print message
         else:
