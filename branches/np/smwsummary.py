@@ -7,25 +7,31 @@ import tkMessageBox
 
 #TODO: que meta los numeros en un diccionario?
 
+def totalEdits(cursor=None):
+    result = cursor.execute("SELECT COUNT(rev_id) AS count FROM revision WHERE 1")
+    for row in result:
+        return row[0]
+    return 0
+
+def totalPages(cursor=None):
+    result = cursor.execute("SELECT COUNT(page_id) AS count FROM page WHERE 1")
+    for row in result:
+        return row[0]
+    return 0
+
+def totalUsers(cursor=None):
+    result = cursor.execute("SELECT COUNT(user_name) AS count FROM user WHERE 1")
+    for row in result:
+        return row[0]
+    return 0
+
 def summary(cursor):
     #sugerencias: páginas por nm (y separando redirects de no redirects),
 
-    revisions = 0
-    pages = 0
-    users = 0
+    revisions = totalEdits(cursor=cursor)
+    pages = totalPages(cursor=cursor)
+    users = totalUsers(cursor=cursor)
     age = 0
-
-    result = cursor.execute("SELECT COUNT(rev_id) AS count FROM revision WHERE 1")
-    for row in result:
-        revisions = row[0]
-
-    result = cursor.execute("SELECT COUNT(page_id) AS count FROM page WHERE 1")
-    for row in result:
-        pages = row[0]
-
-    result = cursor.execute("SELECT COUNT(user_name) AS count FROM user WHERE 1")
-    for row in result:
-        users = row[0]
 
     output= u'Users = %s\nPages = %s\nRevisions = %s' % (users, pages, revisions)
     print output

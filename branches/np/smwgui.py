@@ -131,7 +131,7 @@ class App:
         menu.add_cascade(label="File", menu=filemenu)
         filemenu.add_command(label="Preferences", command=self.callback)
         filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=master.quit)
+        filemenu.add_command(label="Exit", command=askclose)
         #end file
 
         #begin downloader
@@ -387,6 +387,7 @@ class App:
             elif analysis == 'global-pareto':
                 import smwpareto
                 smwpareto.pareto(cursor=cursor, title=self.wiki)
+                pylab.show()
             elif analysis == 'global-graph':
                 import smwgraph
                 smwgraph.graph(cursor=cursor)
