@@ -17,9 +17,9 @@ HTMLS = index.html desarrollo.html publicaciones.html manual.html noticias.html 
 OTHERS = header1.png spain.gif united_kingdom.gif
 PAPERS = $(shell ls papers/*.pdf)
 # ICONS = # $(shell ls icons/*.png)
-# CSS   =  matdocenuca.css
+CSS   =  style.css
 # TARGETFILES = index.html $(ICONS) $(CSS)
-TARGETFILES = $(HTMLS) $(OTHERS)
+TARGETFILES = $(HTMLS) $(CSS) $(OTHERS)
 
 all: $(TARGETFILES)
 
