@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2010
+# Copyright (C) 2010 StatMediaWiki
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -28,13 +28,16 @@ import time
 import shutil
 import sys
 
+#data
 images = {}
 pages = {}
+categories = {}
 preferences = {}
 users = {}
 revisions = {}
 namespaces = {-2: u"Media", -1: u"Special", 0: "Main", 1: u"Talk", 2: u"User", 3: u"User talk", 4: u"Project", 5: u"Project talk", 6: u"File", 7: u"File talk", 8: u"MediaWiki", 9: u"MediaWiki talk", 10: u"Template", 11: u"Template talk", 12: u"Help", 13: u"Help talk", 14: u"Category", 15: u"Category talk"}
 
+#user preferences
 preferences["outputDir"] = "output"
 preferences["indexFilename"] = "index.html"
 preferences["siteName"] = ""
@@ -60,10 +63,10 @@ preferences["anonymous"] = False
 t1=time.time()
 
 def createConnCursor():
-    conn = MySQLdb.connect(db=preferences["dbName"], read_default_file='/home/emijrp/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
+    conn = MySQLdb.connect(db=preferences["dbName"], read_default_file='~/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
     cursor = conn.cursor()
     try:
-        conn = MySQLdb.connect(db=preferences["dbName"], read_default_file='/home/emijrp/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
+        conn = MySQLdb.connect(db=preferences["dbName"], read_default_file='~/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
         cursor = conn.cursor()
     except:
         print "Hubo un error al conectarse a la base de datos"
@@ -260,6 +263,26 @@ def loadPages():
 
     destroyConnCursor(conn, cursor)
 
+def loadCategories():
+    global categories
+    categories = {}
+
+    conn, cursor = createConnCursor()
+    #capturamos el cl_to que es el título de la categoría, en vez de su ID, porque puede haber categorylinks hacia categorías cuya página no existe
+    cursor.execute("select cl_from, cl_to from %scategorylinks where 1" % preferences["tablePrefix"])
+    result = cursor.fetchall()
+    for row in result:
+        cl_from = int(row[0])
+        cl_to = unicode(re.sub("_", " ", row[1]), "utf-8")
+
+        if categories.has_key(cl_to):
+            categories[cl_to].append(cl_from)
+        else:
+            categories[cl_to] = [cl_from]
+    print "Loaded %s categories" % len(categories.items())
+
+    destroyConnCursor(conn, cursor)
+
 def loadRevisions():
     global revisions
 
@@ -396,14 +419,17 @@ def manageOutputDir():
         "%s/csv/general" % preferences["outputDir"],
         "%s/csv/users" % preferences["outputDir"],
         "%s/csv/pages" % preferences["outputDir"],
+        "%s/csv/categories" % preferences["outputDir"],
         "%s/graphs" % preferences["outputDir"],
         "%s/graphs/general" % preferences["outputDir"],
         "%s/graphs/users" % preferences["outputDir"],
         "%s/graphs/pages" % preferences["outputDir"],
+        "%s/graphs/categories" % preferences["outputDir"],
         "%s/html" % preferences["outputDir"],
         "%s/html/general" % preferences["outputDir"],
         "%s/html/users" % preferences["outputDir"],
         "%s/html/pages" % preferences["outputDir"],
+        "%s/html/categories" % preferences["outputDir"],
         "%s/styles" % preferences["outputDir"],
     ]
     for directory in directories:
@@ -450,7 +476,7 @@ def printCSV(type, subtype, fileprefix, headers, rows):
         f.write(output.encode("utf-8"))
     f.close()
 
-def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=False, page_id=False):
+def generateTimeActivity(time, type, fileprefix, conds, headers, user_id=None, page_id=None):
     results = {}
 
     conn, cursor = createConnCursor()
@@ -542,6 +568,17 @@ def generatePagesTimeActivity(page_id):
     generateTimeActivity(time="dayofweek", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
     generateTimeActivity(time="month", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
 
+def generateCategoriesTimeActivity(page_id):
+    category_title = ':'.join(pages[page_id]["page_title"].split(':')[1:]) #todo namespaces
+    conds2 = ["1", "rev_user=0", "rev_user!=0"] #todas, anónimas o registrados
+    conds = []
+    for cond in conds2:
+        conds.append("%s and rev_page in (select cl_from from categorylinks where cl_to='%s')" % (cond, re.sub(' ', '_', category_title).encode('utf-8'))) #fix cuidado con nombres de categorías con '
+    headers = ["Edits in category %s (all users)" % category_title, "Edits in category %s (only anonymous users)" % category_title, "Edits in category %s (only registered users)" % category_title]
+    generateTimeActivity(time="hour", type="categories", fileprefix="category_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="dayofweek", type="categories", fileprefix="category_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    generateTimeActivity(time="month", type="categories", fileprefix="category_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+
 def generateUsersTimeActivity(user_id):
     user_name = users[user_id]["user_name"]
     if user_name == user_id: #ip
@@ -553,7 +590,7 @@ def generateUsersTimeActivity(user_id):
     generateTimeActivity(time="dayofweek", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
     generateTimeActivity(time="month", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
 
-def generateCloud(type, fileprefix, user_id=False, page_id=False):
+def generateCloud(type, user_id=None, page_id=None, category_id=None, page_ids=[]):
     cloud = {}
 
     for rev_id, rev_props in revisions.items():
@@ -564,12 +601,19 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
             else:
                 print u"Llamada a función tipo users sin user_id"
                 sys.exit()
-        if type=="pages":
+        elif type=="pages":
             if page_id:
                 if rev_props["rev_page"] != page_id:
                     continue
             else:
                 print u"Llamada a función tipo pages sin page_id"
+                sys.exit()
+        elif type=="categories":
+            if category_id: #no ponemos and page_ids, puesto que puede ser una categoría vacía
+                if rev_props["rev_page"] not in page_ids:
+                    continue
+            else:
+                print u"Llamada a función tipo categories sin category_id"
                 sys.exit()
 
         comment = rev_props["rev_comment"].lower().strip()
@@ -629,13 +673,16 @@ def generateCloud(type, fileprefix, user_id=False, page_id=False):
     return output
 
 def generateGeneralCloud():
-    return generateCloud(type="general", fileprefix="general")
+    return generateCloud(type="general")
 
 def generateUsersCloud(user_id):
-    return generateCloud(type="users", fileprefix="user_%s" % user_id, user_id=user_id)
+    return generateCloud(type="users", user_id=user_id)
 
 def generatePagesCloud(page_id):
-    return generateCloud(type="pages", fileprefix="page_%d" % page_id, page_id=page_id)
+    return generateCloud(type="pages", page_id=page_id)
+
+def generateCategoriesCloud(category_id, page_ids):
+    return generateCloud(type="categories", category_id=category_id, page_ids=page_ids)
 
 def printHTML(type, file="", title="", body=""):
     stylesdir = "styles"
@@ -752,7 +799,7 @@ def printGraphTimeActivity(type, fileprefix, title, headers, rows):
     file = "%s/graphs/%s/%s_activity.png" % (preferences["outputDir"], type, fileprefix)
     printBarsGraph(title=title, file=file, headers=headers, rows=rows)
 
-def generateContentEvolution(type, user_id=False, page_id=False):
+def generateContentEvolution(type, user_id=None, page_id=None, category_id=None, page_ids=[]):
     fecha = preferences["startDate"]
     fechaincremento = datetime.timedelta(days=1)
     graph1 = []
@@ -768,13 +815,21 @@ def generateContentEvolution(type, user_id=False, page_id=False):
             elif type == "users":
                 if not user_id:
                     print "Error: no hay user_id"
+                    sys.exit()
                 if rev_props["rev_user"] != user_id:
                     continue #nos la saltamos, no es de este usuario
             elif type=="pages":
                 if not page_id:
                     print "Error: no hay page_id"
+                    sys.exit()
                 if rev_props["rev_page"] != page_id:
                     continue #nos la saltamos, no es de esta página
+            elif type=="categories":
+                if not category_id: #no poner not page_ids, ya que la categoría puede estar vacía y no tener page_id de página alguna
+                    print "Error: no hay category_id"
+                    sys.exit()
+                if rev_props["rev_page"] not in page_ids:
+                    continue #nos la saltamos, esta revisión no es de una página de esta categoría
 
             if rev_props["rev_timestamp"] < fecha and rev_props["rev_timestamp"] >= fecha - fechaincremento: # 00:00:00 < fecha < 23:59:59
                 rev_page = rev_props["rev_page"]
@@ -786,7 +841,7 @@ def generateContentEvolution(type, user_id=False, page_id=False):
                         count3 += rev_props["len_diff"]
                     #evolución de todas las páginas
                     count1 += rev_props["len_diff"]
-                elif type == "pages":
+                elif type == "pages" or type == "categories":
                     if rev_props["rev_user"] == rev_props["rev_user_text"]: #anon, #todo: poner una variable is_anon para evitar esta comparación?
                         count2 += rev_props["len_diff"]
                     else:
@@ -831,9 +886,14 @@ def generateContentEvolution(type, user_id=False, page_id=False):
         title = u"Content evolution in %s" % page_title
         fileprefix = "page_%s" % page_id
         owner = page_title
+    elif type == "categories":
+        category_title = pages[category_id]["page_title"]
+        title = u"Content evolution for pages in %s" % category_title
+        fileprefix = "category_%s" % category_id
+        owner = category_title
 
     #falta csv
-    if type == "pages":
+    if type == "pages" or type == "categories":
         headers = ["Date", "%s content (all users)" % owner, "%s content (only anonymous users)" % owner, "%s content (only registered users)" % owner]
     else:
         headers = ["Date", "%s content (all pages)" % owner, "%s content (only articles)" % owner, "%s content (only articles talks)" % owner]
@@ -857,6 +917,9 @@ def generateUsersContentEvolution(user_id):
 
 def generatePagesContentEvolution(page_id):
     generateContentEvolution(type="pages", page_id=page_id)
+
+def generateCategoriesContentEvolution(category_id, page_ids):
+    generateContentEvolution(type="categories", category_id=category_id, page_ids=page_ids)
 
 def generateUsersTable():
     output = u"""<table>
@@ -1090,7 +1153,7 @@ def generateGeneralAnalysis():
 
 def generatePagesAnalysis():
     for page_id, page_props in pages.items():
-        page_title = pages[page_id]["page_title"]
+        page_title = page_props["page_title"]
         print u"Generating analysis to the page: %s" % page_title
         generatePagesContentEvolution(page_id=page_id)
         generatePagesTimeActivity(page_id=page_id)
@@ -1133,6 +1196,80 @@ def generatePagesAnalysis():
 
         title = "%s: %s" % (preferences["siteName"], page_title)
         printHTML(type="pages", file="page_%s.html" % page_id, title=title, body=body)
+
+def generateCategoriesAnalysis():
+    for page_id, page_props in pages.items():
+        if page_props["page_namespace"] != 14: #only categories (namespace == 14)
+            continue
+
+        category_title = ':'.join(page_props["page_title"].split(':')[1:]) #eliminamos el prefijo Category:
+        page_ids = []
+        if categories.has_key(category_title):
+            page_ids = categories[category_title]
+        else:
+            sys.exit() #no debería entrar aquí
+        print u"Generating analysis to the category: %s" % category_title
+        generateCategoriesContentEvolution(category_id=page_id, page_ids=page_ids)
+        generateCategoriesTimeActivity(page_id=page_id)
+
+        catedits = 0
+        for page_id, page_props in pages.items():
+            if page_id in page_ids:
+                catedits += page_props["edits"]
+
+        catanonedits = 0
+        for page_id, page_props in pages.items():
+            if page_id in page_ids:
+                catanonedits += page_props["revisionsbyuserclass"]["anon"]
+
+        catregedits = 0
+        for page_id, page_props in pages.items():
+            if page_id in page_ids:
+                catregedits += page_props["revisionsbyuserclass"]["reg"]
+
+        body = u"""&lt;&lt; <a href="../../%s">Back</a>
+        <table class="sections">
+        <tr><th><b>Sections</b></th></tr>
+        <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
+        <tr><td><a href="#activity">Activity</a></td></tr>
+        <tr><td><a href="#topusers">Top users</a></td></tr>
+        <tr><td><a href="#topusers">Top pages</a></td></tr>
+        <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
+        </table>
+        <dl>
+        <dt>Category:</dt>
+        <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</dd>
+        <dt>Edits to pages in this category:</dt>
+        <dd>%s (By anonymous users: %s. By registered users: %s)</dd>
+        <dt>Pages:</dt>
+        <dd>%s</dd>
+        </dl>
+        <h2 id="contentevolution">Content evolution</h2>
+        <center>
+        <img src="../../graphs/categories/page_%s_content_evolution.png" alt="Content evolution" />
+        </center>
+        <h2 id="activity">Activity</h2>
+        <center>
+        <img src="../../graphs/categories/category_%s_hour_activity.png" alt="Hour activity" />
+        <img src="../../graphs/categories/category_%s_dayofweek_activity.png" alt="Day of week activity" />
+        <img src="../../graphs/categories/category_%s_month_activity.png" alt="Month activity" />
+        </center>
+        <h2 id="topusers">Top users</h2>
+        <center>
+        %s
+        </center>
+        <h2 id="topusers">Top pages</h2>
+        <center>
+        %s
+        </center>
+        <h2 id="tagscloud">Tags cloud</h2>
+        <center>
+        %s
+        </center>
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_props["page_title"], page_props["page_title"], preferences["siteUrl"], page_props["page_title"], catedits, catanonedits, catregedits, len(categories[category_title]), page_id, page_id, page_id, page_id, "", "", generateCategoriesCloud(category_id=page_id, page_ids=page_ids)) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+
+        title = "%s: Pages in category %s" % (preferences["siteName"], category_title)
+        printHTML(type="categories", file="category_%s.html" % page_id, title=title, body=body)
 
 def generateUsersAnalysis():
     for user_id, user_props in users.items():
@@ -1196,9 +1333,10 @@ def generateUsersAnalysis():
             printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
 
 def generateAnalysis():
-    generatePagesAnalysis()
-    generateUsersAnalysis()
-    generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
+    #generatePagesAnalysis()
+    generateCategoriesAnalysis()
+    #generateUsersAnalysis()
+    #generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
 
 def bye():
     print "StatMediaWiki has finished correctly. Closing Gnuplot. Killing process to exit program."
@@ -1214,6 +1352,7 @@ def main():
     loadRevisions() #require startDate and endDate initialized
     loadPages() #revisions loaded required
     loadUsers() #revisions and uploads loaded required
+    loadCategories()
 
     if preferences["anonymous"]:
         anonimize()
