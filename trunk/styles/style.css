@@ -1,34 +1,32 @@
 body {
-	margin-left: 42px;
-	margin-right: 42px;
-	background: #ffffff;
-	color: #002070;
-	font-family: Verdana, Arial, Helvetica, sans-serif;
-	font-size: 12px;
+    background: #ffffff;
+    color: #002070;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px;
 }
 h1 {
-	padding: 2px 5px;
-	border: 1px solid #c0c0c0;
-	color: #002070;
-	background-color: #dddddd;
-	font-weight: bold;
-	font-size: 16px;
+    padding: 2px 5px;
+    border: 1px solid #c0c0c0;
+    color: #002070;
+    background-color: #dddddd;
+    font-weight: bold;
+    font-size: 16px;
 }
 
 h2 {
-	padding: 2px 5px;
-	border: 1px solid #c0c0c0;
-	color: #002070;
-	background-color: #dddddd;
-	font-size: 14px;
+    padding: 2px 5px;
+    border: 1px solid #c0c0c0;
+    color: #002070;
+    background-color: #dddddd;
+    font-size: 14px;
 }
 
 table.sections{
     clear: both;
     float: right;
     width: 100px;
-	border: 0px;
-	text-align: center;
+    border: 0px;
+    text-align: center;
 }
 
 /* table style from Wikipedia: http://es.wikipedia.org/wiki/MediaWiki:Common.css */
@@ -56,6 +54,14 @@ table caption {
 
 table.sections {
     width: 150px;
+    position: absolute;
+    right: 0px;
+}
+
+table.downloads {
+    width: 150px;
+    position: absolute;
+    right: 0px;
 }
 /*
 estilo para los párrafos, tablas...
@@ -66,7 +72,7 @@ div.download-link {
 }
 
 p{
-	margin-top: 0px;
+    margin-top: 0px;
 }
 
 img{

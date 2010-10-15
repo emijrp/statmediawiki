@@ -1114,8 +1114,12 @@ def generateUsersMostEditedTable(user_id):
         c += 1
         page_title = pages[rev_page]["page_title"]
         page_namespace = pages[rev_page]["page_namespace"]
-        output += u"""<tr><td>%s</td><td><a href="../pages/page_%s.html">%s</a></td><td>%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_page, page_title, namespaces[page_namespace], preferences["siteUrl"], page_title, edits)
-    output += u"""<tr><td></td><td>Total</td><td></td><td>%s</td></tr>""" % (users[user_id]["revisionsbynamespace"]["*"])
+        #to avoid zero division
+        editspercent = 0
+        if users[user_id]["revisionsbynamespace"]["*"] > 0:
+            editspercent = edits/(users[user_id]["revisionsbynamespace"]["*"]/100.0)
+        output += u"""<tr><td>%s</td><td><a href="../pages/page_%s.html">%s</a></td><td>%s</td><td><a href="%s/index.php?title=%s&amp;action=history">%d (%.1f%%)</a></td></tr>\n""" % (c, rev_page, page_title, namespaces[page_namespace], preferences["siteUrl"], page_title, edits, editspercent)
+    output += u"""<tr><td></td><td>Total</td><td></td><td>%d (100%%)</td></tr>""" % (users[user_id]["revisionsbynamespace"]["*"])
 
     output += u"""</table>"""
 
@@ -1237,15 +1241,40 @@ def generateGeneralAnalysis():
     <dd>%s</dd>
     </dl>
     <h2 id="contentevolution">Content evolution</h2>
+
+    <table class="downloads">
+    <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/general/general_content_evolution.png">PNG</a></td></tr>
+    <tr><td><a href="csv/general/general_content_evolution.csv">CSV</a></td></tr>
+    </table>
     <center>
     <img src="graphs/general/general_content_evolution.png" alt="Content evolution" />
     </center>
+
     <h2 id="activity">Activity</h2>
     <center>
-    <img src="graphs/general/general_hour_activity.png" alt="Hour activity" />
-    <img src="graphs/general/general_dayofweek_activity.png" alt="Day of week activity" />
+    <table class="downloads">
+    <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/general/general_hour_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/general/general_hour_activity.csv">CSV</a></td></tr>
+    </table>
+    <img src="graphs/general/general_hour_activity.png" alt="Hour activity" /><br/>
+
+    <table class="downloads">
+    <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/general/general_dayofweek_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/general/general_dayofweek_activity.csv">CSV</a></td></tr>
+    </table>
+    <img src="graphs/general/general_dayofweek_activity.png" alt="Day of week activity" /><br/>
+
+    <table class="downloads">
+    <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/general/general_month_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/general/general_month_activity.csv">CSV</a></td></tr>
+    </table>
     <img src="graphs/general/general_month_activity.png" alt="Month activity" />
     </center>
+
     <h2 id="users">Users</h2>
     <center>
     %s
@@ -1255,6 +1284,7 @@ def generateGeneralAnalysis():
     %s
     </center>
     <h2 id="categories">Categories</h2>
+    <p>This analysis includes pages aggregated by categories.</p>
     <center>
     %s
     </center>
@@ -1305,14 +1335,38 @@ def generatePagesAnalysis():
         <dt>Bytes:</dt>
         <dd>%s</dd>
         </dl>
+
         <h2 id="contentevolution">Content evolution</h2>
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/pages/page_%s_content_evolution.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/pages/page_%s_content_evolution.csv">CSV</a></td></tr>
+        </table>
         <center>
         <img src="../../graphs/pages/page_%s_content_evolution.png" alt="Content evolution" />
         </center>
+
         <h2 id="activity">Activity</h2>
         <center>
-        <img src="../../graphs/pages/page_%s_hour_activity.png" alt="Hour activity" />
-        <img src="../../graphs/pages/page_%s_dayofweek_activity.png" alt="Day of week activity" />
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/pages/page_%s_hour_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/pages/page_%s_hour_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/pages/page_%s_hour_activity.png" alt="Hour activity" /><br/>
+
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/pages/page_%s_dayofweek_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/pages/page_%s_dayofweek_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/pages/page_%s_dayofweek_activity.png" alt="Day of week activity" /><br/>
+
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/pages/page_%s_month_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/pages/page_%s_month_activity.csv">CSV</a></td></tr>
+        </table>
         <img src="../../graphs/pages/page_%s_month_activity.png" alt="Month activity" />
         </center>
         <h2 id="topusers">Top users</h2>
@@ -1324,7 +1378,7 @@ def generatePagesAnalysis():
         %s
         </center>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, pageedits, pageanonedits, pageanoneditspercent, pageregedits, pageregeditspercent, page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id), preferences["indexFilename"])
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, pageedits, pageanonedits, pageanoneditspercent, pageregedits, pageregeditspercent, page_props["page_len"], page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id), preferences["indexFilename"])
 
         title = "%s: %s" % (preferences["siteName"], page_title)
         printHTML(type="pages", file="page_%s.html" % page_id, title=title, body=body)
@@ -1381,13 +1435,36 @@ def generateCategoriesAnalysis():
         <dd>%s</dd>
         </dl>
         <h2 id="contentevolution">Content evolution</h2>
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/categories/category_%d_content_evolution.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%d_content_evolution.csv">CSV</a></td></tr>
+        </table>
         <center>
         <img src="../../graphs/categories/category_%d_content_evolution.png" alt="Content evolution" />
         </center>
+
         <h2 id="activity">Activity</h2>
         <center>
-        <img src="../../graphs/categories/category_%d_hour_activity.png" alt="Hour activity" />
-        <img src="../../graphs/categories/category_%d_dayofweek_activity.png" alt="Day of week activity" />
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/categories/category_%d_hour_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%d_hour_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/categories/category_%d_hour_activity.png" alt="Hour activity" /><br/>
+
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/categories/category_%d_dayofweek_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%d_dayofweek_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/categories/category_%d_dayofweek_activity.png" alt="Day of week activity" /><br/>
+
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/categories/category_%d_month_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%d_month_activity.csv">CSV</a></td></tr>
+        </table>
         <img src="../../graphs/categories/category_%d_month_activity.png" alt="Month activity" />
         </center>
         <h2 id="topusers">Top users</h2>
@@ -1403,7 +1480,7 @@ def generateCategoriesAnalysis():
         %s
         </center>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], category_title, category_title, preferences["siteUrl"], category_title, catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(categories[category_title]), category_id, category_id, category_id, category_id, "", "", generateCategoriesCloud(category_id=category_id, page_ids=page_ids), preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], category_title, category_title, preferences["siteUrl"], category_title, catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(categories[category_title]), category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, "", "", generateCategoriesCloud(category_id=category_id, page_ids=page_ids), preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (preferences["siteName"], category_title)
         printHTML(type="categories", file="category_%s.html" % category_id, title=title, body=body)
@@ -1453,13 +1530,36 @@ def generateUsersAnalysis():
         <dd><a href="#uploads">%d</a></dd>
         </dl>
         <h2 id="contentevolution">Content evolution</h2>
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/users/user_%s_content_evolution.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/users/user_%s_content_evolution.csv">CSV</a></td></tr>
+        </table>
         <center>
         <img src="../../graphs/users/user_%s_content_evolution.png" alt="Content evolution" />
         </center>
+
         <h2 id="activity">Activity</h2>
         <center>
-        <img src="../../graphs/users/user_%s_hour_activity.png" alt="Hour activity" />
-        <img src="../../graphs/users/user_%s_dayofweek_activity.png" alt="Day of week activity" />
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/users/user_%s_hour_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/users/user_%s_hour_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/users/user_%s_hour_activity.png" alt="Hour activity" /><br/>
+
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/users/user_%s_dayofweek_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/users/user_%s_dayofweek_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/users/user_%s_dayofweek_activity.png" alt="Day of week activity" /><br/>
+
+        <table class="downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/users/user_%s_month_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/users/user_%s_month_activity.csv">CSV</a></td></tr>
+        </table>
         <img src="../../graphs/users/user_%s_month_activity.png" alt="Month activity" />
         </center>
         <h2 id="mostedited">Most edited pages</h2>
@@ -1476,7 +1576,7 @@ def generateUsersAnalysis():
         %s
         </center>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, useredits, usernm0edits, usernm0editspercent, userbytes, usernm0bytes, usernm0bytespercent, len(user_props["images"]), user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), preferences["indexFilename"])
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, useredits, usernm0edits, usernm0editspercent, userbytes, usernm0bytes, usernm0bytespercent, len(user_props["images"]), user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), preferences["indexFilename"])
 
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         if not preferences["anonymous"]:
