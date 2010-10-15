@@ -292,7 +292,7 @@ def loadCategories():
         if not categories.has_key(page_title):
             categories[page_title] = []
 
-    print categories.items()
+    #print categories.items()
     print "Loaded %s categories" % len(categories.items())
 
     destroyConnCursor(conn, cursor)
@@ -1033,7 +1033,9 @@ def generateCategoriesTable():
 
     all_categorised_page_ids = set()
     for category_title, page_ids in categories.items():
-        [all_categorised_page_ids.add(i) for i in page_ids] #a set to avoid dupes
+        category_id = pagetitle2pageid(page_title=category_title, page_namespace=14)
+        if category_id: #si la página de la categoría existe
+            [all_categorised_page_ids.add(i) for i in page_ids] #a set to avoid dupes
 
     totaledits = 0
     totalbytes = 0
