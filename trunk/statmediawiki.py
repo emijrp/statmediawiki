@@ -101,7 +101,8 @@ def anonimize():
     #* users: key, user_name
     #* revisions: rev_user, rev_user_text
     #* pages: nothing
-    #
+    #* categories: nothing
+
     global images
     global revisions
     global users
@@ -727,6 +728,7 @@ def printLinesGraph(title, file, labels, headers, rows):
     xticsperiod = xticsperiod[:len(xticsperiod)-1]
 
     gp = Gnuplot.Gnuplot()
+    #gp('set term png')
     gp('set data style lines')
     gp('set grid ytics mytics')
     gp("set key left top")
@@ -767,6 +769,7 @@ def printBarsGraph(title, file, headers, rows):
     xtics = xtics[:-2]
     #print xtics
     gp = Gnuplot.Gnuplot()
+    #gp('set term png')
     gp("set style data boxes")
     gp("set key left top")
     gp("set grid ytics mytics")
@@ -1158,6 +1161,10 @@ def generatePagesAnalysis():
         generatePagesContentEvolution(page_id=page_id)
         generatePagesTimeActivity(page_id=page_id)
 
+        pageedits = page_props["edits"]
+        pageanonedits = page_props["revisionsbyuserclass"]["anon"]
+        pageregedits = page_props["revisionsbyuserclass"]["reg"]
+
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <table class="sections">
         <tr><th><b>Sections</b></th></tr>
@@ -1170,7 +1177,7 @@ def generatePagesAnalysis():
         <dt>Page:</dt>
         <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</dd>
         <dt>Edits:</dt>
-        <dd>%s (By anonymous users: %s. By registered users: %s)</dd>
+        <dd>%d (By anonymous users: %d, %.1f. By registered users: %d, %.1f)</dd>
         <dt>Bytes:</dt>
         <dd>%s</dd>
         </dl>
@@ -1192,7 +1199,8 @@ def generatePagesAnalysis():
         <center>
         %s
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, page_props["edits"], page_props["revisionsbyuserclass"]["anon"], page_props["revisionsbyuserclass"]["reg"], page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id))
+        &lt;&lt; <a href="../../%s">Back</a>
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, pageedits, pageanonedits, pageanonedits/(pageedits/100.0), pageregedits, pageregedits/(pageedits/100.0), page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id), preferences["indexFilename"])
 
         title = "%s: %s" % (preferences["siteName"], page_title)
         printHTML(type="pages", file="page_%s.html" % page_id, title=title, body=body)
@@ -1240,7 +1248,7 @@ def generateCategoriesAnalysis():
         <dt>Category:</dt>
         <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</dd>
         <dt>Edits to pages in this category:</dt>
-        <dd>%s (By anonymous users: %s. By registered users: %s)</dd>
+        <dd>%d (By anonymous users: %d, %.1f. By registered users: %d, %.1f)</dd>
         <dt>Pages:</dt>
         <dd>%s</dd>
         </dl>
@@ -1266,7 +1274,8 @@ def generateCategoriesAnalysis():
         <center>
         %s
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_props["page_title"], page_props["page_title"], preferences["siteUrl"], page_props["page_title"], catedits, catanonedits, catregedits, len(categories[category_title]), page_id, page_id, page_id, page_id, "", "", generateCategoriesCloud(category_id=page_id, page_ids=page_ids)) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        &lt;&lt; <a href="../../%s">Back</a>
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_props["page_title"], page_props["page_title"], preferences["siteUrl"], page_props["page_title"], catedits, catanonedits, catanonedits/(catedits/100.0), catregedits, catregedits/(catedits/100.0), len(categories[category_title]), page_id, page_id, page_id, page_id, "", "", generateCategoriesCloud(category_id=page_id, page_ids=page_ids), preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (preferences["siteName"], category_title)
         printHTML(type="categories", file="category_%s.html" % page_id, title=title, body=body)
@@ -1326,7 +1335,8 @@ def generateUsersAnalysis():
         <center>
         %s
         </center>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id))
+        &lt;&lt; <a href="../../%s">Back</a>
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), preferences["indexFilename"])
 
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         if not preferences["anonymous"]:
