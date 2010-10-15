@@ -1031,14 +1031,19 @@ def generateCategoriesTable():
 
     sortedCategories = [] #by edits
 
+    all_categorised_page_ids = set()
+    for category_title, page_ids in categories.items():
+        [all_categorised_page_ids.add(i) for i in page_ids] #a set to avoid dupes
+
     totaledits = 0
     totalbytes = 0
     totalvisits = 0
     for page_id, page_props in pages.items():
-        totaledits += page_props["edits"]
-        totalbytes += page_props["page_len"]
-        totalvisits += page_props["page_counter"]
-    totalpages = len(pages.items())
+        if page_id in all_categorised_page_ids: #for the totals, only count categorised pages info
+            totaledits += page_props["edits"]
+            totalbytes += page_props["page_len"]
+            totalvisits += page_props["page_counter"]
+    totalpages = len(all_categorised_page_ids)
 
     for category_title, page_ids in categories.items():
         sortedCategories.append([len(page_ids), category_title])
