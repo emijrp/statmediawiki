@@ -757,22 +757,25 @@ def printLinesGraph(title, file, labels, headers, rows):
         c += 1
     xticsperiod = xticsperiod[:len(xticsperiod)-1]
 
+    codifi = "iso-8859-1"
+    codifi_ = "iso_8859_1"
     gp = Gnuplot.Gnuplot()
     #gp('set term png')
+    gp('set encoding %s' % codifi_)
     gp('set data style lines')
     gp('set grid ytics mytics')
     gp("set key left top")
     #gp('set line_width 8')
-    gp('set title "%s"' % title.encode("utf-8"))
-    gp('set xlabel "%s"' % labels[0].encode("utf-8"))
-    gp('set ylabel "%s"' % labels[1].encode("utf-8"))
+    gp('set title "%s"' % title.encode(codifi))
+    gp('set xlabel "%s"' % labels[0].encode(codifi))
+    gp('set ylabel "%s"' % labels[1].encode(codifi))
     gp('set mytics 2')
     gp('set xtics rotate by 90')
-    gp('set xtics (%s)' % xticsperiod.encode("utf-8"))
+    gp('set xtics (%s)' % xticsperiod.encode(codifi))
     plots = []
     c = 0
     for row in rows:
-        plots.append(Gnuplot.PlotItems.Data(rows[c], with_="lines", title=headers[c+1].encode("utf-8")))
+        plots.append(Gnuplot.PlotItems.Data(rows[c], with_="lines", title=headers[c+1].encode(codifi)))
         c += 1
     if len(plots) == 1:
         gp.plot(plots[0])
@@ -798,21 +801,24 @@ def printBarsGraph(title, file, headers, rows):
         xtics += '"%s" %s, ' % (xtic_, xtic)
     xtics = xtics[:-2]
     #print xtics
+    codifi = "iso-8859-1"
+    codifi_ = "iso_8859_1"
     gp = Gnuplot.Gnuplot()
     #gp('set term png')
+    gp('set encoding %s' % codifi_)
     gp("set style data boxes")
     gp("set key left top")
     gp("set grid ytics mytics")
-    gp('set title "%s"' % title.encode("utf-8"))
-    gp('set xlabel "%s"' % convert2[headers[0]].encode("utf-8"))
+    gp('set title "%s"' % title.encode(codifi))
+    gp('set xlabel "%s"' % convert2[headers[0]].encode(codifi))
     gp('set mytics 2')
     gp('set ylabel "Edits"')
     #gp('set xtics rotate by 90')
-    gp('set xtics (%s)' % xtics.encode("utf-8"))
+    gp('set xtics (%s)' % xtics.encode(codifi))
     c = 1
     plots = []
     for row in rows[1:]:
-        plots.append(Gnuplot.PlotItems.Data(rows[c], with_="boxes", title=headers[c].encode("utf-8")))
+        plots.append(Gnuplot.PlotItems.Data(rows[c], with_="boxes", title=headers[c].encode(codifi)))
         c += 1
     if len(rows)-1 == 1:
         gp.plot(plots[0])
