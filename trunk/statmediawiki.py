@@ -48,6 +48,8 @@ preferences["tablePrefix"] = "" #Usually empty
 preferences["startDate"] = "" #auto, start point for date range
 preferences["endDate"] = "" #auto, end point for date range
 preferences["currentPath"] = os.path.dirname(__file__)
+if not preferences["currentPath"]:
+    preferences["currentPath"] = '.' #current
 preferences["anonymous"] = False
 
 #todo:
@@ -392,6 +394,8 @@ def getParameters():
                     preferences["outputDir"] = preferences["outputDir"][:-1]
                 else:
                     break
+            if not preferences["outputDir"]:
+                preferences["outputDir"] = '.'
         elif o in ("--index"):
             preferences["indexFilename"] = a
         elif o in ("--sitename"):
@@ -1326,8 +1330,8 @@ def generateCategoriesAnalysis():
             print "Some pages are categorised into %s but there is no page for that category" % (category_title)
             continue
         print u"Generating analysis to the category: %s" % category_title
-        generateCategoriesContentEvolution(category_id=category, page_ids=page_ids)
-        generateCategoriesTimeActivity(page_id=category)
+        generateCategoriesContentEvolution(category_id=category_id, page_ids=page_ids)
+        generateCategoriesTimeActivity(page_id=category_id)
 
         #avoiding zero division
         catedits = 0
