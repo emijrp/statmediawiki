@@ -360,7 +360,7 @@ def initialize():
 
 def welcome():
     print "-"*75
-    print u"""Welcome to StatMediaWiki 1.0. Web: http://statmediawiki.forja.rediris.es"""
+    print u"""Welcome to StatMediaWiki 1.1. Web: http://statmediawiki.forja.rediris.es"""
     print "-"*75
 
 def usage():
