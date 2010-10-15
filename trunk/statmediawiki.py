@@ -232,7 +232,7 @@ def loadPages():
         page_namespace = int(row[1])
         page_title = unicode(re.sub("_", " ", row[2]), "utf-8")
         if page_namespace != 0:
-            page_title = u"%s:%s" % (namespaces[page_namespace], page_title)
+            page_title = u"%s:%s" % (namespaces[page_namespace], page_title) #fix, mejor no meterle el namespace?
         page_is_redirect = int(row[3])
         page_len = int(row[4])
         page_counter = int(row[5])
@@ -280,6 +280,17 @@ def loadCategories():
             categories[cl_to].append(cl_from)
         else:
             categories[cl_to] = [cl_from]
+
+    #también miramos el nm=14, para categorías creadas pero que no contienen páginas categorizadas aun
+    cursor.execute("select page_title from %spage where page_namespace=14" % preferences["tablePrefix"])
+    result = cursor.fetchall()
+    for row in result:
+        page_title = unicode(re.sub("_", " ", row[0]), "utf-8")
+        #solo hay un caso, que no esté, y como hablamos de una categoría sin nada dentro, la creamos con []
+        if not categories.has_key(page_title):
+            categories[page_title] = []
+
+    print categories.items()
     print "Loaded %s categories" % len(categories.items())
 
     destroyConnCursor(conn, cursor)
@@ -459,6 +470,21 @@ def generadorColumnaFechas(startDate, delta=datetime.timedelta(days=1)):
     while True:
         yield currentDate
         currentDate += delta
+
+def pagetitle2pageid(page_title=None, page_namespace=None):
+    #recibe un page_title sin prefijo de espacio de nombres
+    #el espacio de nombres se sabe por page_namespace
+    if page_title and page_namespace:
+        for page_id, page_props in pages.items():
+            if page_props["page_namespace"] == page_namespace:
+                page_title2 = page_props["page_title"]
+                if page_props["page_namespace"] != 0:
+                    #le quitamos el prefijo de espacio de nombres antes de comparar
+                    page_title2 = ':'.join(page_title2.split(':')[1:])
+                if page_title == page_title2:
+                    return page_id
+
+    return None
 
 def printCSV(type, subtype, fileprefix, headers, rows):
     # Type puede ser: general, users o pages
@@ -995,6 +1021,63 @@ def generatePagesTable():
 
     return output
 
+def generateCategoriesTable():
+    output = u"""<table>
+    <tr><th>#</th><th>Category</th><th>Pages</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
+
+    sortedCategories = [] #by edits
+
+    totaledits = 0
+    totalbytes = 0
+    totalvisits = 0
+    for page_id, page_props in pages.items():
+        totaledits += page_props["edits"]
+        totalbytes += page_props["page_len"]
+        totalvisits += page_props["page_counter"]
+    totalpages = len(pages.items())
+
+    for category_title, page_ids in categories.items():
+        sortedCategories.append([len(page_ids), category_title])
+    sortedCategories.sort()
+    sortedCategories.reverse()
+
+    c = 1
+    for numpages, category_title in sortedCategories:
+        category_id = pagetitle2pageid(page_title=category_title, page_namespace=14)
+
+        #acumulado para las páginas de esta categoría
+        numedits = 0
+        numbytes = 0
+        numvisits = 0
+        page_ids = categories[category_title]
+        for page_id, page_props in pages.items():
+            if page_id in page_ids:
+                numedits += page_props["edits"]
+                numbytes += page_props["page_len"]
+                numvisits += page_props["page_counter"]
+
+        numpagespercent = 0
+        if totalpages > 0:
+            numpagespercent = numpages/(totalpages/100.0)
+        numeditspercent = 0
+        if totaledits > 0:
+            numeditspercent = numedits/(totaledits/100.0)
+        numbytespercent = 0
+        if totalbytes > 0:
+            numbytespercent = numbytes/(totalbytes/100.0)
+        numvisitspercent = 0
+        if totalvisits > 0:
+            numvisitspercent = numvisits/(totalvisits/100.0)
+
+        output += u"""<tr><td>%d</td><td><a href="html/categories/category_%s.html">%s</a></td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td></tr>\n""" % (c, category_id, category_title, numpages, numpagespercent, numedits, numeditspercent, numbytes, numbytespercent, numvisits, numvisitspercent)
+        c += 1
+
+    output += """<tr><td></td><td>Total</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td></tr>\n""" % (totalpages, totaledits, totalbytes, totalvisits)
+    output += """</table>"""
+    output += """<center>Due to some pages can be contained in various categories, the sum of the colums are different to the total row</center>"""
+
+    return output
+
 def generateUsersMostEditedTable(user_id):
     output = u"""<table>
     <tr><th>#</th><th>Page</th><th>Namespace</th><th>Edits</th></tr>"""
@@ -1062,38 +1145,54 @@ def generateGeneralAnalysis():
     print "Generating general analysis"
     conn, cursor = createConnCursor()
 
-    dict = {}
-
     cursor.execute("SELECT COUNT(user_id) AS count FROM %suser WHERE 1" % preferences["tablePrefix"])
-    dict["totalusers"] = cursor.fetchall()[0][0]
+    totalusers = int(cursor.fetchall()[0][0])
 
     #número de usuarios a partir de las revisiones y de la tabla de usuarios, len(user.items())
     cursor.execute("SELECT COUNT(rev_id) AS count FROM %srevision WHERE 1" % preferences["tablePrefix"])
-    dict["totaledits"] = cursor.fetchall()[0][0]
+    totaledits = int(cursor.fetchall()[0][0])
 
     #todo: con un inner join mejor?
     cursor.execute("SELECT COUNT(rev_id) AS count FROM %srevision WHERE rev_page IN (SELECT page_id FROM %spage WHERE page_namespace=0)" % (preferences["tablePrefix"], preferences["tablePrefix"]))
-    dict["totaleditsinarticles"] = cursor.fetchall()[0][0]
+    totaleditsinarticles = int(cursor.fetchall()[0][0])
 
     cursor.execute("SELECT COUNT(page_id) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
-    dict["totalpages"] = cursor.fetchall()[0][0]
+    totalpages = int(cursor.fetchall()[0][0])
 
     cursor.execute("SELECT COUNT(*) AS count FROM %spage WHERE page_namespace=0 AND page_is_redirect=0" % preferences["tablePrefix"])
-    dict["totalarticles"] = cursor.fetchall()[0][0]
+    totalarticles = int(cursor.fetchall()[0][0])
 
     cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
-    dict["totalbytes"] = cursor.fetchall()[0][0]
+    totalbytes = int(cursor.fetchall()[0][0])
 
     cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE page_namespace=0 AND page_is_redirect=0" % preferences["tablePrefix"])
-    dict["totalbytesinarticles"] = cursor.fetchall()[0][0]
+    totalbytesinarticles = int(cursor.fetchall()[0][0])
 
     cursor.execute("SELECT SUM(page_counter) AS count FROM %spage WHERE 1" % preferences["tablePrefix"])
-    dict["totalvisits"] = cursor.fetchall()[0][0]
+    totalvisits = int(cursor.fetchall()[0][0])
+
+    cursor.execute("SELECT SUM(page_counter) AS count FROM %spage WHERE page_namespace=0 AND page_is_redirect=0" % preferences["tablePrefix"])
+    totalvisitsinarticles = int(cursor.fetchall()[0][0])
 
     cursor.execute("SELECT COUNT(*) AS count FROM %simage WHERE 1" % preferences["tablePrefix"])
-    dict["totalfiles"] = cursor.fetchall()[0][0]
+    totalfiles = int(cursor.fetchall()[0][0])
+
     dateGenerated = datetime.datetime.now().isoformat()
     period = "%s &ndash; %s" % (preferences["startDate"].isoformat(), preferences["endDate"].isoformat())
+
+    #avoiding zero division
+    totalarticlespercent = 0
+    if totalpages > 0:
+        totalarticlespercent = totalarticles/(totalpages/100.0)
+    totaleditsinarticlespercent = 0
+    if totaledits > 0:
+        totaleditsinarticlespercent = totaleditsinarticles/(totaledits/100.0)
+    totalbytesinarticlespercent = 0
+    if totalbytes > 0:
+        totalbytesinarticlespercent = totalbytesinarticles/(totalbytes/100.0)
+    totalvisitsinarticlespercent = 0
+    if totalvisits > 0:
+        totalvisitsinarticlespercent = totalvisitsinarticles/(totalvisits/100.0)
 
     body = u"""<table class="sections">
     <tr><th><b>Sections</b></th></tr>
@@ -1109,18 +1208,18 @@ def generateGeneralAnalysis():
     <dt>Report period:</dt>
     <dd>%s &ndash; %s</dd>
     <dt>Total pages:</dt>
-    <dd><a href="#pages">%s</a> (Articles: %s)</dd>
+    <dd><a href="#pages">%d</a> (Articles: %d, %.1f%%)</dd>
     <dt>Total edits:</dt>
-    <dd>%s (In articles: %s)</dd>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
     <dt>Total bytes:</dt>
-    <dd>%s (In articles: %s)</dd>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
     <dt>Total visits:</dt>
-    <dd>%s</dd>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
     <dt>Total files:</dt>
-    <dd><a href="%s/%s/Special:Imagelist">%s</a></dd>
+    <dd><a href="%s/%s/Special:Imagelist">%d</a></dd>
     <dt>Users:</dt>
-    <dd><a href="#users">%s</a></dd>
-    <dt>Generated:</dt>
+    <dd><a href="#users">%d</a></dd>
+    <dt>Generated in:</dt>
     <dd>%s</dd>
     </dl>
     <h2 id="contentevolution">Content evolution</h2>
@@ -1141,11 +1240,15 @@ def generateGeneralAnalysis():
     <center>
     %s
     </center>
+    <h2 id="pages">Categories</h2>
+    <center>
+    %s
+    </center>
     <h2 id="tagscloud">Tags cloud</h2>
     <center>
     %s
     </center>
-    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), dict["totalpages"], dict["totalarticles"], dict["totaledits"], dict["totaleditsinarticles"], dict["totalbytes"], dict["totalbytesinarticles"], dict["totalvisits"], preferences["siteUrl"], preferences["subDir"], dict["totalfiles"], dict["totalusers"], datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateGeneralCloud())
+    """ % (preferences["siteUrl"], preferences["siteName"], preferences["startDate"].isoformat(), preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, preferences["siteUrl"], preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
 
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
@@ -1161,9 +1264,16 @@ def generatePagesAnalysis():
         generatePagesContentEvolution(page_id=page_id)
         generatePagesTimeActivity(page_id=page_id)
 
+        #avoiding zero division
         pageedits = page_props["edits"]
         pageanonedits = page_props["revisionsbyuserclass"]["anon"]
+        pageanoneditspercent = 0
+        if pageedits > 0:
+            pageanoneditspercent = pageanonedits/(pageedits/100.0)
         pageregedits = page_props["revisionsbyuserclass"]["reg"]
+        pageregeditspercent = 0
+        if pageedits > 0:
+            pageregeditspercent = pageregedits/(pageedits/100.0)
 
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <table class="sections">
@@ -1177,7 +1287,7 @@ def generatePagesAnalysis():
         <dt>Page:</dt>
         <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</dd>
         <dt>Edits:</dt>
-        <dd>%d (By anonymous users: %d, %.1f. By registered users: %d, %.1f)</dd>
+        <dd>%d (By anonymous users: %d, %.1f%%. By registered users: %d, %.1f%%)</dd>
         <dt>Bytes:</dt>
         <dd>%s</dd>
         </dl>
@@ -1200,26 +1310,24 @@ def generatePagesAnalysis():
         %s
         </center>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, pageedits, pageanonedits, pageanonedits/(pageedits/100.0), pageregedits, pageregedits/(pageedits/100.0), page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id), preferences["indexFilename"])
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_title, page_title, preferences["siteUrl"], page_title, pageedits, pageanonedits, pageanoneditspercent, pageregedits, pageregeditspercent, page_props["page_len"], page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id), preferences["indexFilename"])
 
         title = "%s: %s" % (preferences["siteName"], page_title)
         printHTML(type="pages", file="page_%s.html" % page_id, title=title, body=body)
 
 def generateCategoriesAnalysis():
-    for page_id, page_props in pages.items():
-        if page_props["page_namespace"] != 14: #only categories (namespace == 14)
+    for category_title, page_ids in categories.items():
+        page_id = pagetitle2pageid(page_title=category_title, page_namespace=14)
+        if not page_id:
+            #necesitamos un page_id para la categoría, para los nombres de los ficheros, no nos lo vamos a inventar
+            #así que si no existe, no generamos análisis para esa categoría
+            print "Some pages are categorisez into %s but there is no page for that category" % (category_title)
             continue
-
-        category_title = ':'.join(page_props["page_title"].split(':')[1:]) #eliminamos el prefijo Category:
-        page_ids = []
-        if categories.has_key(category_title):
-            page_ids = categories[category_title]
-        else:
-            sys.exit() #no debería entrar aquí
         print u"Generating analysis to the category: %s" % category_title
         generateCategoriesContentEvolution(category_id=page_id, page_ids=page_ids)
         generateCategoriesTimeActivity(page_id=page_id)
 
+        #avoiding zero division
         catedits = 0
         for page_id, page_props in pages.items():
             if page_id in page_ids:
@@ -1229,11 +1337,17 @@ def generateCategoriesAnalysis():
         for page_id, page_props in pages.items():
             if page_id in page_ids:
                 catanonedits += page_props["revisionsbyuserclass"]["anon"]
+        catanoneditspercent = 0
+        if catedits > 0:
+            catanoneditspercent = catanonedits/(catedits/100.0)
 
         catregedits = 0
         for page_id, page_props in pages.items():
             if page_id in page_ids:
                 catregedits += page_props["revisionsbyuserclass"]["reg"]
+        catregeditspercent = 0
+        if catedits > 0:
+            catregeditspercent = catregedits/(catedits/100.0)
 
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <table class="sections">
@@ -1248,7 +1362,7 @@ def generateCategoriesAnalysis():
         <dt>Category:</dt>
         <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</dd>
         <dt>Edits to pages in this category:</dt>
-        <dd>%d (By anonymous users: %d, %.1f. By registered users: %d, %.1f)</dd>
+        <dd>%d (By anonymous users: %d, %.1f%%. By registered users: %d, %.1f%%)</dd>
         <dt>Pages:</dt>
         <dd>%s</dd>
         </dl>
@@ -1275,7 +1389,7 @@ def generateCategoriesAnalysis():
         %s
         </center>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_props["page_title"], page_props["page_title"], preferences["siteUrl"], page_props["page_title"], catedits, catanonedits, catanonedits/(catedits/100.0), catregedits, catregedits/(catedits/100.0), len(categories[category_title]), page_id, page_id, page_id, page_id, "", "", generateCategoriesCloud(category_id=page_id, page_ids=page_ids), preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_props["page_title"], page_props["page_title"], preferences["siteUrl"], page_props["page_title"], catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(categories[category_title]), page_id, page_id, page_id, page_id, "", "", generateCategoriesCloud(category_id=page_id, page_ids=page_ids), preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (preferences["siteName"], category_title)
         printHTML(type="categories", file="category_%s.html" % page_id, title=title, body=body)
@@ -1293,6 +1407,18 @@ def generateUsersAnalysis():
         for img_name in users[user_id]["images"]:
             gallery += u"""<a href='%s/%s/Image:%s'><img src="%s" width="200px" alt="%s"/></a>&nbsp;&nbsp;&nbsp;""" % (preferences["siteUrl"], preferences["subDir"], img_name, images[img_name]["img_url"], img_name)
 
+        #avoiding zero division
+        useredits = user_props["revisionsbynamespace"]["*"]
+        usernm0edits = user_props["revisionsbynamespace"][0]
+        usernm0editspercent = 0
+        if useredits > 0:
+            usernm0editspercent = usernm0edits/(useredits/100.0)
+        userbytes = user_props["bytesbynamespace"]["*"]
+        usernm0bytes = user_props["bytesbynamespace"][0]
+        usernm0bytespercent = 0
+        if userbytes > 0:
+            usernm0bytespercent = usernm0bytes/(userbytes/100.0)
+
         body = u"""&lt;&lt; <a href="../../%s">Back</a>
         <table class="sections">
         <tr><th><b>Sections</b></th></tr>
@@ -1306,11 +1432,11 @@ def generateUsersAnalysis():
         <dt>User:</dt>
         <dd><a href='%s/%s/User:%s'>%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</dd>
         <dt>Edits:</dt>
-        <dd>%s (In articles: %s)</dd>
+        <dd>%d (In articles: %d, %.1f%%)</dd>
         <dt>Bytes added:</dt>
-        <dd>%s (In articles: %s)</dd>
+        <dd>%d (In articles: %d, %.1f%%)</dd>
         <dt>Files uploaded:</dt>
-        <dd><a href="#uploads">%s</a></dd>
+        <dd><a href="#uploads">%d</a></dd>
         </dl>
         <h2 id="contentevolution">Content evolution</h2>
         <center>
@@ -1336,17 +1462,17 @@ def generateUsersAnalysis():
         %s
         </center>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, user_props["revisionsbynamespace"]["*"], user_props["revisionsbynamespace"][0], user_props["bytesbynamespace"]["*"], user_props["bytesbynamespace"][0], len(user_props["images"]), user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), preferences["indexFilename"])
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], user_name, user_name, preferences["siteUrl"], preferences["subDir"], user_name, useredits, usernm0edits, usernm0editspercent, userbytes, usernm0bytes, usernm0bytespercent, len(user_props["images"]), user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), preferences["indexFilename"])
 
         title = "%s: User:%s" % (preferences["siteName"], user_name)
         if not preferences["anonymous"]:
             printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
 
 def generateAnalysis():
-    #generatePagesAnalysis()
+    generatePagesAnalysis()
     generateCategoriesAnalysis()
-    #generateUsersAnalysis()
-    #generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
+    generateUsersAnalysis()
+    generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
 
 def bye():
     print "StatMediaWiki has finished correctly. Closing Gnuplot. Killing process to exit program."
