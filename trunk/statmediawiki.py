@@ -1206,6 +1206,7 @@ def generateGeneralAnalysis():
     <tr><td><a href="#activity">Activity</a></td></tr>
     <tr><td><a href="#users">Users</a></td></tr>
     <tr><td><a href="#pages">Pages</a></td></tr>
+    <tr><td><a href="#categories">Categories</a></td></tr>
     <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
     </table>
     <dl>
@@ -1246,7 +1247,7 @@ def generateGeneralAnalysis():
     <center>
     %s
     </center>
-    <h2 id="pages">Categories</h2>
+    <h2 id="categories">Categories</h2>
     <center>
     %s
     </center>
@@ -1366,7 +1367,7 @@ def generateCategoriesAnalysis():
         </table>
         <dl>
         <dt>Category:</dt>
-        <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=Category:%s&amp;action=history">history</a>)</dd>
+        <dd><a href='%s/%s/Category:%s'>%s</a> (<a href="%s/index.php?title=Category:%s&amp;action=history">history</a>)</dd>
         <dt>Edits to pages in this category:</dt>
         <dd>%d (By anonymous users: %d, %.1f%%. By registered users: %d, %.1f%%)</dd>
         <dt>Pages:</dt>
