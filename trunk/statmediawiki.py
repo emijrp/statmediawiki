@@ -1366,7 +1366,7 @@ def generateCategoriesAnalysis():
         </table>
         <dl>
         <dt>Category:</dt>
-        <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</dd>
+        <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=Category:%s&amp;action=history">history</a>)</dd>
         <dt>Edits to pages in this category:</dt>
         <dd>%d (By anonymous users: %d, %.1f%%. By registered users: %d, %.1f%%)</dd>
         <dt>Pages:</dt>
@@ -1374,13 +1374,13 @@ def generateCategoriesAnalysis():
         </dl>
         <h2 id="contentevolution">Content evolution</h2>
         <center>
-        <img src="../../graphs/categories/page_%s_content_evolution.png" alt="Content evolution" />
+        <img src="../../graphs/categories/category_%d_content_evolution.png" alt="Content evolution" />
         </center>
         <h2 id="activity">Activity</h2>
         <center>
-        <img src="../../graphs/categories/category_%s_hour_activity.png" alt="Hour activity" />
-        <img src="../../graphs/categories/category_%s_dayofweek_activity.png" alt="Day of week activity" />
-        <img src="../../graphs/categories/category_%s_month_activity.png" alt="Month activity" />
+        <img src="../../graphs/categories/category_%d_hour_activity.png" alt="Hour activity" />
+        <img src="../../graphs/categories/category_%d_dayofweek_activity.png" alt="Day of week activity" />
+        <img src="../../graphs/categories/category_%d_month_activity.png" alt="Month activity" />
         </center>
         <h2 id="topusers">Top users</h2>
         <center>
@@ -1395,7 +1395,7 @@ def generateCategoriesAnalysis():
         %s
         </center>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_props["page_title"], page_props["page_title"], preferences["siteUrl"], page_props["page_title"], catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(categories[category_title]), page_id, page_id, page_id, page_id, "", "", generateCategoriesCloud(category_id=page_id, page_ids=page_ids), preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], category_title, category_title, preferences["siteUrl"], category_title, catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(categories[category_title]), category_id, category_id, category_id, category_id, "", "", generateCategoriesCloud(category_id=category_id, page_ids=page_ids), preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (preferences["siteName"], category_title)
         printHTML(type="categories", file="category_%s.html" % category_id, title=title, body=body)
