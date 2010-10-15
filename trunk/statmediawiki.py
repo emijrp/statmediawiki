@@ -711,7 +711,7 @@ def generatePagesCloud(page_id):
 def generateCategoriesCloud(category_id, page_ids):
     return generateCloud(type="categories", category_id=category_id, page_ids=page_ids)
 
-def printHTML(type, file="", title="", body=""):
+def printHTML(type=None, file="", title="", body=""):
     stylesdir = "styles"
     if file:
         file = "%s/html/%s/%s" % (preferences["outputDir"], type, file)
@@ -1044,6 +1044,8 @@ def generateCategoriesTable():
     c = 1
     for numpages, category_title in sortedCategories:
         category_id = pagetitle2pageid(page_title=category_title, page_namespace=14)
+        if not category_id: #categorías que contienen páginas pero que no tienen página creada, por lo tanto no tienen page_id
+            continue
 
         #acumulado para las páginas de esta categoría
         numedits = 0
@@ -1074,7 +1076,7 @@ def generateCategoriesTable():
 
     output += """<tr><td></td><td>Total</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td></tr>\n""" % (totalpages, totaledits, totalbytes, totalvisits)
     output += """</table>"""
-    output += """<center>Due to some pages can be contained in various categories, the sum of the colums are different to the total row</center>"""
+    output += """<center>Due to some pages can be contained in various categories, the sum of the colums can be different to the total row</center>"""
 
     return output
 
@@ -1317,15 +1319,15 @@ def generatePagesAnalysis():
 
 def generateCategoriesAnalysis():
     for category_title, page_ids in categories.items():
-        page_id = pagetitle2pageid(page_title=category_title, page_namespace=14)
-        if not page_id:
+        category_id = pagetitle2pageid(page_title=category_title, page_namespace=14)
+        if not category_id:
             #necesitamos un page_id para la categoría, para los nombres de los ficheros, no nos lo vamos a inventar
             #así que si no existe, no generamos análisis para esa categoría
-            print "Some pages are categorisez into %s but there is no page for that category" % (category_title)
+            print "Some pages are categorised into %s but there is no page for that category" % (category_title)
             continue
         print u"Generating analysis to the category: %s" % category_title
-        generateCategoriesContentEvolution(category_id=page_id, page_ids=page_ids)
-        generateCategoriesTimeActivity(page_id=page_id)
+        generateCategoriesContentEvolution(category_id=category, page_ids=page_ids)
+        generateCategoriesTimeActivity(page_id=category)
 
         #avoiding zero division
         catedits = 0
@@ -1392,7 +1394,7 @@ def generateCategoriesAnalysis():
         """ % (preferences["indexFilename"], preferences["siteUrl"], preferences["subDir"], page_props["page_title"], page_props["page_title"], preferences["siteUrl"], page_props["page_title"], catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(categories[category_title]), page_id, page_id, page_id, page_id, "", "", generateCategoriesCloud(category_id=page_id, page_ids=page_ids), preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (preferences["siteName"], category_title)
-        printHTML(type="categories", file="category_%s.html" % page_id, title=title, body=body)
+        printHTML(type="categories", file="category_%s.html" % category_id, title=title, body=body)
 
 def generateUsersAnalysis():
     for user_id, user_props in users.items():
