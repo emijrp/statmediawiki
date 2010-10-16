@@ -37,15 +37,14 @@ import smwoutput
 
 def main():
     smwinit.welcome()
-
     smwinit.getParameters()
-    smwinit.initialize() #dbname required
 
-    smwload.loadImages()
-    smwload.loadRevisions() #require startDate and endDate initialized
-    smwload.loadPages() #revisions loaded required
-    smwload.loadUsers() #revisions and uploads loaded required
+    smwload.loadDateRange()
     smwload.loadCategories()
+    smwload.loadImages()
+    smwload.loadPages()
+    smwload.loadRevisions() #require startDate and endDate initialized
+    smwload.loadUsers()
 
     if smwconfig.preferences["anonymous"]:
         smwanon.anonimize()

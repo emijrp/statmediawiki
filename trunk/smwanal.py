@@ -28,10 +28,10 @@ import smwhtml
 import smwplot
 
 def generateAnalysis():
-    generatePagesAnalysis()
-    generateCategoriesAnalysis()
+    generateGeneralAnalysis()
     generateUsersAnalysis()
-    generateGeneralAnalysis() #necesita el useranalysis antes, para llenar los bytes
+    generatePagesAnalysis()
+    #generateCategoriesAnalysis()
 
 def generadorColumnaFechas(startDate, delta=datetime.timedelta(days=1)):
     # Generamos una columna virtual con fechas a partir de una fecha
@@ -250,7 +250,106 @@ def generatePagesCloud(page_id):
 def generateCategoriesCloud(category_id, page_ids):
     return generateCloud(type="categories", category_id=category_id, page_ids=page_ids)
 
-def generateContentEvolution(type, user_id=None, page_id=None, category_id=None, page_ids=[]):
+def generateSummary(type, user_props=None, page_props=None, category_props=None):
+    output = '<table class="summary">'
+
+    #first row
+    if type == "global":
+        output += '<tr><td>Site</td><td><a href="%s">%s</a> (recent changes)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"])
+        output += '<tr><td>Report period:</td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
+        output += '<tr><td>Total pages:</td><td>%d</td></tr>' % (smwget.getTotalPages())
+    elif type == "users":
+        output += '<tr><td>User</td><td><a href="%s/%s/User:%s">%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"], user_props["user_name"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"])
+        output += '<tr><td>Report period:</td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
+        output += '<tr><td>Total pages edited:</td><td>%d</td></tr>' % (smwget.getTotalPagesByUser(user_text_=user_props["user_name_"]))
+    elif type == "pages":
+        output += '<tr><td>Page</td><td><a href="%s/%s/%s">%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], page_props["page_title"], page_props["page_title"], smwconfig.preferences["siteUrl"], page_props["page_title"])
+        output += '<tr><td>Report period:</td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
+        output += '<tr><td>Total edits:</td><td>%d</td></tr>' % (smwget.getTotalRevisionsByPage(page_id=page_props["page_id"]))
+    elif type == "categories":
+        output += '<tr><td>Category</td><td><a href="%s/%s/%s">%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"])
+        output += '<tr><td>Report period:</td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
+        output += '<tr><td>Total pages included:</td><td>%d</td></tr>' % (smwget.getTotalPagesInCategory(category_title_=category_props["category_title_"]))
+
+    output += '<tr><td>Generated in:</td><td>%s</td></tr>' % (datetime.datetime.now().isoformat())
+
+    """title de site, user, page, category
+    report period
+    total pages (no aplica a pages)
+    ediciones totales, in articles
+    ediciones menores, in articles
+    ediciones anónimas (no aplica a users), in articles
+    primera edición
+    edición más reciente
+    tiempo entre ediciones
+    promedio ediciones por mes
+    promedio ediciones por año
+    número ediciones último día
+    última semana
+    último mes
+    último año
+    bytes totales, in articles
+    número de usuarios (no aplica a users)
+    ediciones promedio por usuario (no aplica a users)
+    pareto número de ediciones hechas por el top 10% de usuarios (no aplica a users)
+    número de ficheros
+    generated in"""
+
+    """
+    <dl>
+    <dt>Site:</dt>
+
+    <dd><a href='%s'>%s</a></dd>
+    <dt>Report period:</dt>
+    <dd>%s &ndash; %s</dd>
+    <dt>Total pages:</dt>
+    <dd><a href="#pages">%d</a> (Articles: %d, %.1f%%)</dd>
+    <dt>Total edits:</dt>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
+    <dt>Total bytes:</dt>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
+    <dt>Total visits:</dt>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
+    <dt>Total files:</dt>
+    <dd><a href="%s/%s/Special:Imagelist">%d</a></dd>
+    <dt>Users:</dt>
+    <dd><a href="#users">%d</a></dd>
+    <dt>Generated in:</dt>
+    <dd>%s</dd>
+    </dl> (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
+
+
+    <dl>
+        <dt>User:</dt>
+
+        <dd><a href='%s/%s/User:%s'>%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</dd>
+        <dt>Edits:</dt>
+        <dd>%d (In articles: %d, %.1f%%)</dd>
+        <dt>Bytes added:</dt>
+        <dd>%d (In articles: %d, %.1f%%)</dd>
+        <dt>Files uploaded:</dt>
+        <dd><a href="#uploads">%d</a></dd>
+        </dl>
+
+    """
+
+    output += "</table>"
+
+    return output
+
+def generateGeneralSummary():
+    return generateSummary(type="general")
+
+def generateUserSummary(user_props):
+    return generateSummary(type="users", user_props=user_props)
+
+def generatePageSummary(page_props):
+    return generateSummary(type="pages", page_props=page_props)
+
+def generateCategorySummary(category_props):
+    return generateSummary(type="categories", category_props=category_props)
+
+def generateContentEvolution(type, user_id=None, page_id=None, category_id=None, page_ids=[]): #fix, convertir a _props?
     fecha = smwconfig.preferences["startDate"]
     fechaincremento = datetime.timedelta(days=1)
     graph1 = []
@@ -316,9 +415,9 @@ def generateContentEvolution(type, user_id=None, page_id=None, category_id=None,
 
         fecha += fechaincremento
 
-    if type == "users":
-        smwconfig.users[user_id]["bytesbynamespace"]["*"] = count1
-        smwconfig.users[user_id]["bytesbynamespace"][0] = count2
+    #if type == "users":
+    #    smwconfig.users[user_id]["bytesbynamespace"]["*"] = count1
+    #    smwconfig.users[user_id]["bytesbynamespace"][0] = count2
 
     title = u""
     fileprefix = u""
@@ -371,47 +470,90 @@ def generatePagesContentEvolution(page_id):
 def generateCategoriesContentEvolution(category_id, page_ids):
     generateContentEvolution(type="categories", category_id=category_id, page_ids=page_ids)
 
-def generateUsersTable():
-    output = u"""<table>
-    <tr><th>#</th><th>User</th><th>Edits</th><th>Edits in articles</th><th>Bytes added</th><th>Bytes added in articles</th><th>Uploads</th></tr>"""
+def generateUsersTable(type=None, page_props=None, category_props=None):
+    assert type == "global" or (type == "pages" and page_props) or (type == "categories" and category_props)
 
-    sortedUsers = [] #by edits
+    if type == "users" and smwconfig.preferences["anonymous"]:
+        return u"""<p>This is an anonymous analysis. This information will not be showed.</p>\n"""
 
-    edits = 0
-    editsinarticles = 0
-    bytes = 0
-    bytesinarticles = 0
-    uploads = 0
-    for user_id, user_props in smwconfig.users.items():
-        edits += user_props["revisionsbynamespace"]["*"]
-        editsinarticles += user_props["revisionsbynamespace"][0]
-        bytes += user_props["bytesbynamespace"]["*"]
-        bytesinarticles += user_props["bytesbynamespace"][0]
-        uploads += len(user_props["images"])
-        sortedUsers.append([user_props["revisionsbynamespace"]["*"], user_id])
-    sortedUsers.sort()
-    sortedUsers.reverse()
+    output = '<table><tr>'
+    output += '<th>#</th><th>User</th><th>Edits</th><th>%</th>'
+    if type != "pages": # no tiene sentido dentro de páginas
+        output += '<th>Edits in articles</th><th>%</th>'
+    output += '<th>Bytes added</th><th>%</th>'
+    if type != "pages":
+        output += '<th>Bytes added in articles</th><th>%</th><th>Uploads</th><th>%</th>'
+    output += '</tr>'
+
+    sortedUsers = []
+    totalrevisions = 0
+    totalbytes = 0
+    if type == "global":
+        sortedUsers = smwget.getUsersSortedByTotalEdits()
+        totalrevisions = smwget.getTotalRevisions()
+        totalbytes = smwget.getTotalBytes()
+    elif type == "pages":
+        sortedUsers = smwget.getUsersSortedByTotalEditsInPage(page_id=page_props["page_id"])
+        totalrevisions = smwget.getTotalRevisionsByPage(page_id=page_props["page_id"])
+        totalbytes = page_props["page_len"]
+    elif type == "categories":
+        pass
+    else:
+        print "Error type =", type
+        sys.exit()
 
     c = 1
-    for revisionsNumber, user_id in sortedUsers:
-        user_props = smwconfig.users[user_id]
-        edits_percent = user_props["revisionsbynamespace"]["*"] / (edits / 100.0)
-        editsinarticles_percent = user_props["revisionsbynamespace"][0] / (editsinarticles / 100.0)
-        bytes_percent = user_props["bytesbynamespace"]["*"] / (bytes / 100.0)
-        bytesinarticles_percent = user_props["bytesbynamespace"][0] / (bytesinarticles / 100.0)
-        if smwconfig.preferences["anonymous"]:
-            output += u"""<tr><td>%s</td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s</td></tr>\n""" % (c, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, len(user_props["images"]))
-        else:
-            output += u"""<tr><td>%s</td><td><a href="html/users/user_%s.html">%s</a></td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td><a href="html/users/user_%s.html#uploads">%s</a></td></tr>\n""" % (c, user_id, user_props["user_name"], user_props["revisionsbynamespace"]["*"], edits_percent, user_props["revisionsbynamespace"][0], editsinarticles_percent, user_props["bytesbynamespace"]["*"], bytes_percent, user_props["bytesbynamespace"][0], bytesinarticles_percent, user_id, len(user_props["images"]))
+    for numrevisions, user_text_ in sortedUsers:
+        filesubfix = smwconfig.users[user_text_]["user_id"]
+        if filesubfix == 0: #ip
+            filesubfix = smwconfig.users[user_text_]["user_name"]
+
+        #start row
+        output += '<tr><td>%d</td>' % (c)
+        output += '<td><a href="../users/user_%s.html">%s</a></td>' % (filesubfix, smwconfig.users[user_text_]["user_name"])
+        #edits
+        output += '<td>%d</td><td>%.1f%%</td>' % (numrevisions, totalrevisions > 0 and numrevisions/(totalrevisions/100.0) or 0)
+        #edits in articles
+        if type == "global":
+            numrevisionsinarticles = smwget.getTotalRevisionsByUserInNamespace(user_text_=user_text_, namespace=0)
+            totalrevisionsinarticles = smwget.getTotalRevisionsByNamespace(namespace=0)
+            output += '<td>%d</td><td>%.1f%%</td>' % (numrevisionsinarticles, totalrevisionsinarticles > 0 and numrevisionsinarticles/(totalrevisionsinarticles/100.0) or 0)
+        elif type == "pages":
+            pass #no required
+        elif type == "categories":
+            pass #todo
+        #bytes
+        numbytes = 0
+        if type == "global":
+            numbytes = smwget.getTotalBytesByUser(user_text_=user_text_)
+        elif type == "pages":
+            numbytes = smwget.getTotalBytesByUserInPage(user_text_=user_text_, page_id=page_props["page_id"])
+        elif type == "category":
+            pass #todo
+        output += '<td>%d</td><td>%.1f%%</td>' % (numbytes, totalbytes > 0 and numbytes/(totalbytes/100.0) or 0)
+        #bytes in articles
+        if type == "global":
+            numbytesinarticles = smwget.getTotalBytesByUserInNamespace(user_text_=user_text_, namespace=0)
+            totalbytesinarticles = smwget.getTotalBytesByNamespace(namespace=0)
+            output += '<td>%d</td><td>%.1f%%</td>' % (numbytesinarticles, totalbytesinarticles > 0 and numbytesinarticles/(totalbytesinarticles/100.0) or 0)
+        elif type == "pages":
+            pass #no required
+        elif type == "categories":
+            pass #todo
+        #end row
+        output += '</tr>'
         c += 1
 
-    output += u"""<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s</td></tr>\n""" % (edits, editsinarticles, bytes, bytesinarticles, uploads)
-    output += u"""</table>"""
-    output += u"""<ul><li id="note1">Note 1: This figure can be greater than the total bytes in the wiki, as byte erased are not discounted in this ranking.</li></ul>"""
+    """
+    output += u'<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s</td></tr>\n' % (edits, editsinarticles, bytes, bytesinarticles, uploads)
+    """
+    output += u'</table>'
+    output += u'<ul><li id="note1">Note 1: This figure can be greater than the total bytes in the wiki, as byte erased are not discounted in this ranking.</li></ul>'
 
     return output
 
 def generatePagesTable():
+    #fix fusionar con generateusersmosteditedtable
     output = u"""<table>
     <tr><th>#</th><th>Page</th><th>Namespace</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
 
@@ -509,6 +651,7 @@ def generateCategoriesTable():
     return output
 
 def generateUsersMostEditedTable(user_id):
+    #fix fusionar con generatepagestable
     output = u"""<table>
     <tr><th>#</th><th>Page</th><th>Namespace</th><th>Edits</th></tr>"""
 
@@ -542,100 +685,11 @@ def generateUsersMostEditedTable(user_id):
 
     return output
 
-def generatePagesTopUsersTable(page_id):
-    if smwconfig.preferences["anonymous"]:
-        return u"""<p>This is an anonymous analysis. This information will not be showed.</p>\n"""
+def generateGeneralAnalysis(): #fix cambiar General->Global ? así es como lo llamo en los type
+    print "Generating global analysis"
+    body = u"""%s
 
-    output = u"""<table>
-    <tr><th>#</th><th>User</th><th>Edits</th></tr>"""
-
-    top_users = {}
-    for rev_id in smwconfig.pages[page_id]["revisions"]:
-        rev_user = smwconfig.revisions[rev_id]["rev_user"]
-        if top_users.has_key(rev_user):
-            top_users[rev_user] += 1
-        else:
-            top_users[rev_user] = 1
-
-    top_users_list = []
-    for rev_user, edits in top_users.items():
-        top_users_list.append([edits, rev_user])
-    top_users_list.sort()
-    top_users_list.reverse()
-
-    c = 0
-    for edits, rev_user in top_users_list:
-        c += 1
-        user_name = smwconfig.users[rev_user]["user_name"]
-        page_title = smwconfig.pages[page_id]["page_title"]
-        output += u"""<tr><td>%s</td><td><a href="../users/user_%s.html">%s</a></td><td><a href="%s/index.php?title=%s&amp;action=history">%s</a></td></tr>\n""" % (c, rev_user, user_name, smwconfig.preferences["siteUrl"], page_title, edits)
-    output += u"""<tr><td></td><td>Total</td><td>%s</td></tr>""" % (len(smwconfig.pages[page_id]["revisions"]))
-
-    output += u"""</table>"""
-
-    return output
-
-def generateGeneralAnalysis():
-    print "Generating general analysis"
-
-    totalusers = smwget.getTotalUsers()
-    totaledits = smwget.getTotalEdits()
-    totaleditsinarticles = smwget.getTotalEditsByNamespace(namespace=0)
-    totalpages = smwget.getTotalPages()
-    totalarticles = smwget.getTotalPagesByNamespace(namespace=0, redirects=False)
-    totalbytes = smwget.getTotalBytes()
-    totalbytesinarticles = smwget.getTotalBytesByNamespace(namespace=0, redirects=False)
-    totalvisits = smwget.getTotalVisits()
-    totalvisitsinarticles = smwget.getTotalVisitsByNamespace(namespace=0, redirects=False)
-    totalfiles = smwget.getTotalFiles()
-
-    dateGenerated = datetime.datetime.now().isoformat()
-    period = "%s &ndash; %s" % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
-
-    #avoiding zero division
-    totalarticlespercent = 0
-    if totalpages > 0:
-        totalarticlespercent = totalarticles/(totalpages/100.0)
-    totaleditsinarticlespercent = 0
-    if totaledits > 0:
-        totaleditsinarticlespercent = totaleditsinarticles/(totaledits/100.0)
-    totalbytesinarticlespercent = 0
-    if totalbytes > 0:
-        totalbytesinarticlespercent = totalbytesinarticles/(totalbytes/100.0)
-    totalvisitsinarticlespercent = 0
-    if totalvisits > 0:
-        totalvisitsinarticlespercent = totalvisitsinarticles/(totalvisits/100.0)
-
-    body = u"""<table class="sections">
-    <tr><th><b>Sections</b></th></tr>
-    <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
-    <tr><td><a href="#activity">Activity</a></td></tr>
-    <tr><td><a href="#users">Users</a></td></tr>
-    <tr><td><a href="#pages">Pages</a></td></tr>
-    <tr><td><a href="#categories">Categories</a></td></tr>
-    <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
-    </table>
-
-    <dl>
-    <dt>Site:</dt>
-    <dd><a href='%s'>%s</a></dd>
-    <dt>Report period:</dt>
-    <dd>%s &ndash; %s</dd>
-    <dt>Total pages:</dt>
-    <dd><a href="#pages">%d</a> (Articles: %d, %.1f%%)</dd>
-    <dt>Total edits:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total bytes:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total visits:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total files:</dt>
-    <dd><a href="%s/%s/Special:Imagelist">%d</a></dd>
-    <dt>Users:</dt>
-    <dd><a href="#users">%d</a></dd>
-    <dt>Generated in:</dt>
-    <dd>%s</dd>
-    </dl>
+    %s
 
     <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
     <div id="divcontentevolution">
@@ -703,7 +757,7 @@ def generateGeneralAnalysis():
     %s
     </center>
     </div>
-    """ % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
+    """ % (smwhtml.getSections(type="global"), generateSummary(type="global"), generateUsersTable(type="global"), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
 
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
@@ -714,16 +768,16 @@ def generateUsersAnalysis():
     for user_id, user_props in smwconfig.users.items():
         user_name = user_props["user_name"]
         print u"Generating analysis to user: %s" % user_name
-        generateUsersContentEvolution(user_id=user_id) #debe ir antes de rellenar el body, cuenta bytes, y antes de cortar por anonymous
+        generateUsersContentEvolution(user_id=user_id) #debe ir antes de rellenar el body, cuenta bytes, y antes de cortar por anonymous, #fix hacerlo independiente, calcularlo en el load
         if smwconfig.preferences["anonymous"]:
             continue
         generateUsersTimeActivity(user_id=user_id)
 
-        gallery = u""
-        for img_name in smwconfig.users[user_id]["images"]:
-            gallery += u"""<a href='%s/%s/Image:%s'><img src="%s" width="200px" alt="%s"/></a>&nbsp;&nbsp;&nbsp;""" % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], img_name, smwconfig.images[img_name]["img_url"], img_name)
+        gallery = ''
+        for img_name_ in smwget.getImagesByUser(user_text_=user_props["user_name_"]):
+            gallery += u"""<a href='%s/%s/Image:%s'><img src="%s" width="200px" alt="%s"/></a>&nbsp;&nbsp;&nbsp;""" % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], img_name_, smwconfig.images[img_name_]["img_url"], img_name_)
 
-        #avoiding zero division
+        """#avoiding zero division
         useredits = user_props["revisionsbynamespace"]["*"]
         usernm0edits = user_props["revisionsbynamespace"][0]
         usernm0editspercent = 0
@@ -733,27 +787,11 @@ def generateUsersAnalysis():
         usernm0bytes = user_props["bytesbynamespace"][0]
         usernm0bytespercent = 0
         if userbytes > 0:
-            usernm0bytespercent = usernm0bytes/(userbytes/100.0)
+            usernm0bytespercent = usernm0bytes/(userbytes/100.0)"""
 
-        body = u"""&lt;&lt; <a href="../../%s">Back</a>
-        <table class="sections">
-        <tr><th><b>Sections</b></th></tr>
-        <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
-        <tr><td><a href="#activity">Activity</a></td></tr>
-        <tr><td><a href="#mostedited">Most edited pages</a></td></tr>
-        <tr><td><a href="#uploads">Uploads</a></td></tr>
-        <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
-        </table>
-        <dl>
-        <dt>User:</dt>
-        <dd><a href='%s/%s/User:%s'>%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</dd>
-        <dt>Edits:</dt>
-        <dd>%d (In articles: %d, %.1f%%)</dd>
-        <dt>Bytes added:</dt>
-        <dd>%d (In articles: %d, %.1f%%)</dd>
-        <dt>Files uploaded:</dt>
-        <dd><a href="#uploads">%d</a></dd>
-        </dl>
+        body = u"""%s\n%s\n%s
+
+
         <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
 
         <div id="divcontentevolution">
@@ -817,7 +855,7 @@ def generateUsersAnalysis():
         </div>
 
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_name, user_name, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_name, useredits, usernm0edits, usernm0editspercent, userbytes, usernm0bytes, usernm0bytespercent, len(user_props["images"]), user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(smwconfig.users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), smwconfig.preferences["indexFilename"])
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="users"), generateSummary(type="users", user_props=user_props), user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(smwconfig.users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), smwconfig.preferences["indexFilename"])
 
         title = "%s: User:%s" % (smwconfig.preferences["siteName"], user_name)
         if not smwconfig.preferences["anonymous"]:
@@ -825,12 +863,11 @@ def generateUsersAnalysis():
 
 def generatePagesAnalysis():
     for page_id, page_props in smwconfig.pages.items():
-        page_title = page_props["page_title"]
-        print u"Generating analysis to the page: %s" % page_title
+        print u"Generating analysis to the page: %s" % (page_props["page_title"])
         generatePagesContentEvolution(page_id=page_id)
         generatePagesTimeActivity(page_id=page_id)
 
-        #avoiding zero division
+        """#avoiding zero division
         pageedits = page_props["edits"]
         pageanonedits = page_props["revisionsbyuserclass"]["anon"]
         pageanoneditspercent = 0
@@ -839,24 +876,9 @@ def generatePagesAnalysis():
         pageregedits = page_props["revisionsbyuserclass"]["reg"]
         pageregeditspercent = 0
         if pageedits > 0:
-            pageregeditspercent = pageregedits/(pageedits/100.0)
+            pageregeditspercent = pageregedits/(pageedits/100.0)"""
 
-        body = u"""&lt;&lt; <a href="../../%s">Back</a>
-        <table class="sections">
-        <tr><th><b>Sections</b></th></tr>
-        <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
-        <tr><td><a href="#activity">Activity</a></td></tr>
-        <tr><td><a href="#topusers">Top users</a></td></tr>
-        <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
-        </table>
-        <dl>
-        <dt>Page:</dt>
-        <dd><a href='%s/%s/%s'>%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</dd>
-        <dt>Edits:</dt>
-        <dd>%d (By anonymous users: %d, %.1f%%. By registered users: %d, %.1f%%)</dd>
-        <dt>Bytes:</dt>
-        <dd>%s</dd>
-        </dl>
+        body = """%s\n%s\n%s
 
         <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
         <div id="divcontentevolution">
@@ -910,10 +932,10 @@ def generatePagesAnalysis():
         </center>
         </div>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], page_title, page_title, smwconfig.preferences["siteUrl"], page_title, pageedits, pageanonedits, pageanoneditspercent, pageregedits, pageregeditspercent, page_props["page_len"], page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id), smwconfig.preferences["indexFilename"])
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type='pages'), generatePageSummary(page_props=page_props), page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, generateUsersTable(type="pages", page_props=page_props), generatePagesCloud(page_id=page_id), smwconfig.preferences["indexFilename"])
 
-        title = "%s: %s" % (smwconfig.preferences["siteName"], page_title)
-        smwhtml.printHTML(type="pages", file="page_%s.html" % page_id, title=title, body=body)
+        title = "%s: %s" % (smwconfig.preferences["siteName"], page_props["page_title"])
+        smwhtml.printHTML(type="pages", file="page_%d.html" % page_id, title=title, body=body)
 
 def generateCategoriesAnalysis():
     for category_title, page_ids in smwconfig.categories.items():

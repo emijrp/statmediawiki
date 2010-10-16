@@ -34,4 +34,3 @@ def createConnCursor():
 def destroyConnCursor(conn, cursor):
     cursor.close()
     conn.close()
-

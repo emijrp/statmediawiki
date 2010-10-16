@@ -17,6 +17,27 @@
 
 import smwconfig
 
+def getBacklink():
+    return '&lt;&lt; <a href="../../%s">Back</a>' % (smwconfig.preferences["indexFilename"])
+
+def getSections(type=None):
+    output = '<table class="sections">'
+    output += '<tr><th><b>Sections</b></th></tr>'
+    output += '<tr><td><a href="#contentevolution">Content evolution</a></td></tr>'
+    output += '<tr><td><a href="#activity">Activity</a></td></tr>'
+    if type != "users":
+        output += '<tr><td><a href="#topusers">Top users</a></td></tr>'
+    if type != "pages":
+        output += '<tr><td><a href="#toppages">Top pages</a></td></tr>'
+    if type == "global":
+        output += '<tr><td><a href="#topcategories">Top categories</a></td></tr>'
+    if type == "users":
+        output += '<tr><td><a href="#uploads">Uploads</a></td></tr>'
+    output += '<tr><td><a href="#tagscloud">Tags cloud</a></td></tr>'
+    output += '</table>'
+
+    return output
+
 def printHTML(type=None, file="", title="", body=""):
     stylesdir = "styles"
     jsdir = "js"

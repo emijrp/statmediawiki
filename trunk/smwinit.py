@@ -23,21 +23,6 @@ import sys
 import smwconfig
 import smwdb
 
-def initialize():
-    conn, cursor = smwdb.createConnCursor()
-
-    if not smwconfig.preferences["startDate"]:
-        cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp ASC LIMIT 1" % (smwconfig.preferences["tablePrefix"]))
-        a = cursor.fetchall()[0][0]
-        smwconfig.preferences["startDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
-
-    if not smwconfig.preferences["endDate"]:
-        cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (smwconfig.preferences["tablePrefix"]))
-        a = cursor.fetchall()[0][0]
-        smwconfig.preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=23, minute=59, second=59)
-
-    smwdb.destroyConnCursor(conn, cursor)
-
 def welcome():
     print "-"*75
     print u"""Welcome to StatMediaWiki %s. Web: http://statmediawiki.forja.rediris.es""" % (smwconfig.CURRENT_VERSION)

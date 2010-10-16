@@ -21,13 +21,13 @@ import os
 CURRENT_VERSION = '1.1'
 
 #data
-images = {}
-pages = {}
 categories = {}
+images = {}
+namespaces = {}
+pages = {}
 preferences = {}
-users = {}
 revisions = {}
-namespaces = {-2: u"Media", -1: u"Special", 0: "Main", 1: u"Talk", 2: u"User", 3: u"User talk", 4: u"Project", 5: u"Project talk", 6: u"File", 7: u"File talk", 8: u"MediaWiki", 9: u"MediaWiki talk", 10: u"Template", 11: u"Template talk", 12: u"Help", 13: u"Help talk", 14: u"Category", 15: u"Category talk"}
+users = {}
 
 #user preferences
 preferences["outputDir"] = "output"
