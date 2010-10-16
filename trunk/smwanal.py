@@ -757,7 +757,7 @@ def generateGeneralAnalysis(): #fix cambiar General->Global ? así es como lo ll
     %s
     </center>
     </div>
-    """ % (smwhtml.getSections(type="global"), generateSummary(type="global"), generateUsersTable(type="global"), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
+    """ % (smwhtml.getSections(type="global"), generateSummary(type="global"), generateUsersTable(type="global"), generatePagesTable(type="global"), generateCategoriesTable(), generateGeneralCloud())
 
     generateGeneralContentEvolution()
     generateGeneralTimeActivity()
