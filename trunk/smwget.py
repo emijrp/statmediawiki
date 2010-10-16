@@ -19,7 +19,81 @@
 import md5
 import re
 
+import smwdb
 import smwconfig
+
+def getTotalUsers():
+    conn, cursor = smwdb.createConnCursor()
+    cursor.execute("SELECT COUNT(user_id) AS count FROM %suser WHERE 1" % smwconfig.preferences["tablePrefix"])
+    result = int(cursor.fetchall()[0][0])
+    smwdb.destroyConnCursor(conn, cursor)
+    return result
+
+def getTotalEdits():
+    conn, cursor = smwdb.createConnCursor()
+    #número de usuarios a partir de las revisiones y de la tabla de usuarios, len(user.items())
+    cursor.execute("SELECT COUNT(rev_id) AS count FROM %srevision WHERE 1" % smwconfig.preferences["tablePrefix"])
+    result = int(cursor.fetchall()[0][0])
+    smwdb.destroyConnCursor(conn, cursor)
+    return result
+
+def getTotalEditsByNamespace(namespace=0):
+    conn, cursor = smwdb.createConnCursor()
+    #todo: con un inner join mejor?
+    cursor.execute("SELECT COUNT(rev_id) AS count FROM %srevision WHERE rev_page IN (SELECT page_id FROM %spage WHERE page_namespace=%d)" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], namespace))
+    result = int(cursor.fetchall()[0][0])
+    return result
+
+def getTotalPages():
+    conn, cursor = smwdb.createConnCursor()
+    cursor.execute("SELECT COUNT(page_id) AS count FROM %spage WHERE 1" % smwconfig.preferences["tablePrefix"])
+    result = int(cursor.fetchall()[0][0])
+    return result
+
+def getTotalPagesByNamespace(namespace=0, redirects=False):
+    conn, cursor = smwdb.createConnCursor()
+    if redirects:
+        cursor.execute("SELECT COUNT(*) AS count FROM %spage WHERE page_namespace=%d" % (namespace, smwconfig.preferences["tablePrefix"]))
+    else:
+        cursor.execute("SELECT COUNT(*) AS count FROM %spage WHERE page_namespace=%d AND page_is_redirect=0" % (namespace, smwconfig.preferences["tablePrefix"]))
+    result = int(cursor.fetchall()[0][0])
+    return result
+
+def getTotalBytes():
+    conn, cursor = smwdb.createConnCursor()
+    cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE 1" % smwconfig.preferences["tablePrefix"])
+    result = int(cursor.fetchall()[0][0])
+    return result
+
+def getTotalBytesByNamespace(namespace=0, redirects=False):
+    conn, cursor = smwdb.createConnCursor()
+    if redirects:
+        cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE page_namespace=%d" % (namespace, smwconfig.preferences["tablePrefix"]))
+    else:
+        cursor.execute("SELECT SUM(page_len) AS count FROM %spage WHERE page_namespace=%d AND page_is_redirect=0" % (namespace, smwconfig.preferences["tablePrefix"]))
+    result = int(cursor.fetchall()[0][0])
+    return result
+
+def getTotalVisits():
+    conn, cursor = smwdb.createConnCursor()
+    cursor.execute("SELECT SUM(page_counter) AS count FROM %spage WHERE 1" % smwconfig.preferences["tablePrefix"])
+    result = int(cursor.fetchall()[0][0])
+    return result
+
+def getTotalVisitsByNamespace(namespace=0, redirects=False):
+    conn, cursor = smwdb.createConnCursor()
+    if redirects:
+        cursor.execute("SELECT SUM(page_counter) AS count FROM %spage WHERE page_namespace=%d" % (namespace, smwconfig.preferences["tablePrefix"]))
+    else:
+        cursor.execute("SELECT SUM(page_counter) AS count FROM %spage WHERE page_namespace=%d AND page_is_redirect=0" % (namespace, smwconfig.preferences["tablePrefix"]))
+    result = int(cursor.fetchall()[0][0])
+    return result
+
+def getTotalFiles():
+    conn, cursor = smwdb.createConnCursor()
+    cursor.execute("SELECT COUNT(*) AS count FROM %simage WHERE 1" % smwconfig.preferences["tablePrefix"])
+    result = int(cursor.fetchall()[0][0])
+    return result
 
 def getImageUrl(img_name):
     img_name_ = re.sub(' ', '_', img_name) #espacios a _
