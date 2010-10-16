@@ -575,6 +575,141 @@ def generatePagesTopUsersTable(page_id):
 
     return output
 
+def generateGeneralAnalysis():
+    print "Generating general analysis"
+
+    totalusers = smwget.getTotalUsers()
+    totaledits = smwget.getTotalEdits()
+    totaleditsinarticles = smwget.getTotalEditsByNamespace(namespace=0)
+    totalpages = smwget.getTotalPages()
+    totalarticles = smwget.getTotalPagesByNamespace(namespace=0, redirects=False)
+    totalbytes = smwget.getTotalBytes()
+    totalbytesinarticles = smwget.getTotalBytesByNamespace(namespace=0, redirects=False)
+    totalvisits = smwget.getTotalVisits()
+    totalvisitsinarticles = smwget.getTotalVisitsByNamespace(namespace=0, redirects=False)
+    totalfiles = smwget.getTotalFiles()
+
+    dateGenerated = datetime.datetime.now().isoformat()
+    period = "%s &ndash; %s" % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
+
+    #avoiding zero division
+    totalarticlespercent = 0
+    if totalpages > 0:
+        totalarticlespercent = totalarticles/(totalpages/100.0)
+    totaleditsinarticlespercent = 0
+    if totaledits > 0:
+        totaleditsinarticlespercent = totaleditsinarticles/(totaledits/100.0)
+    totalbytesinarticlespercent = 0
+    if totalbytes > 0:
+        totalbytesinarticlespercent = totalbytesinarticles/(totalbytes/100.0)
+    totalvisitsinarticlespercent = 0
+    if totalvisits > 0:
+        totalvisitsinarticlespercent = totalvisitsinarticles/(totalvisits/100.0)
+
+    body = u"""<table class="sections">
+    <tr><th><b>Sections</b></th></tr>
+    <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
+    <tr><td><a href="#activity">Activity</a></td></tr>
+    <tr><td><a href="#users">Users</a></td></tr>
+    <tr><td><a href="#pages">Pages</a></td></tr>
+    <tr><td><a href="#categories">Categories</a></td></tr>
+    <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
+    </table>
+
+    <dl>
+    <dt>Site:</dt>
+    <dd><a href='%s'>%s</a></dd>
+    <dt>Report period:</dt>
+    <dd>%s &ndash; %s</dd>
+    <dt>Total pages:</dt>
+    <dd><a href="#pages">%d</a> (Articles: %d, %.1f%%)</dd>
+    <dt>Total edits:</dt>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
+    <dt>Total bytes:</dt>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
+    <dt>Total visits:</dt>
+    <dd>%d (In articles: %d, %.1f%%)</dd>
+    <dt>Total files:</dt>
+    <dd><a href="%s/%s/Special:Imagelist">%d</a></dd>
+    <dt>Users:</dt>
+    <dd><a href="#users">%d</a></dd>
+    <dt>Generated in:</dt>
+    <dd>%s</dd>
+    </dl>
+
+    <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
+    <div id="divcontentevolution">
+    <table class="downloads">
+    <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/general/general_content_evolution.png">PNG</a></td></tr>
+    <tr><td><a href="csv/general/general_content_evolution.csv">CSV</a></td></tr>
+    </table>
+    <center>
+    <img src="graphs/general/general_content_evolution.png" alt="Content evolution" />
+    </center>
+    </div>
+
+    <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
+    <div id="divactivity">
+    <center>
+    <table class="downloads">
+    <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/general/general_hour_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/general/general_hour_activity.csv">CSV</a></td></tr>
+    </table>
+    <img src="graphs/general/general_hour_activity.png" alt="Hour activity" /><br/>
+
+    <table class="downloads">
+    <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/general/general_dayofweek_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/general/general_dayofweek_activity.csv">CSV</a></td></tr>
+    </table>
+    <img src="graphs/general/general_dayofweek_activity.png" alt="Day of week activity" /><br/>
+
+    <table class="downloads">
+    <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/general/general_month_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/general/general_month_activity.csv">CSV</a></td></tr>
+    </table>
+    <img src="graphs/general/general_month_activity.png" alt="Month activity" />
+    </center>
+    </div>
+
+    <h2 id="users"><span class="showhide">[ <a href="javascript:showHide('divusers')">Show/Hide</a> ]</span>Users</h2>
+    <div id="divusers">
+    <center>
+    %s
+    </center>
+    </div>
+
+    <h2 id="pages"><span class="showhide">[ <a href="javascript:showHide('divpages')">Show/Hide</a> ]</span>Pages</h2>
+    <div id="divpages">
+    <center>
+    %s
+    </center>
+    </div>
+
+    <h2 id="categories"><span class="showhide">[ <a href="javascript:showHide('divcategories')">Show/Hide</a> ]</span>Categories</h2>
+    <div id="divcategories">
+    <p>This analysis includes pages aggregated by categories.</p>
+    <center>
+    %s
+    </center>
+    </div>
+
+    <h2 id="tagscloud"><span class="showhide">[ <a href="javascript:showHide('divtagscloud')">Show/Hide</a> ]</span>Tags cloud</h2>
+    <div id="divtagscloud">
+    <center>
+    %s
+    </center>
+    </div>
+    """ % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
+
+    generateGeneralContentEvolution()
+    generateGeneralTimeActivity()
+
+    smwhtml.printHTML(type="general", title=smwconfig.preferences["siteName"], body=body)
+
 def generateUsersAnalysis():
     for user_id, user_props in smwconfig.users.items():
         user_name = user_props["user_name"]
@@ -687,140 +822,6 @@ def generateUsersAnalysis():
         title = "%s: User:%s" % (smwconfig.preferences["siteName"], user_name)
         if not smwconfig.preferences["anonymous"]:
             smwhtml.printHTML(type="users", file="user_%s.html" % user_id, title=title, body=body)
-
-def generateGeneralAnalysis():
-    print "Generating general analysis"
-
-    totalusers = smwget.getTotalUsers()
-    totaledits = smwget.getTotalEdits()
-    totaleditsinarticles = smwget.getTotalEditsByNamespace(namespace=0)
-    totalpages = smwget.getTotalPages()
-    totalarticles = smwget.getTotalPagesByNamespace(namespace=0, redirects=False)
-    totalbytes = smwget.getTotalBytes()
-    totalbytesinarticles = smwget.getTotalBytesByNamespace(namespace=0, redirects=False)
-    totalvisits = smwget.getTotalVisits()
-    totalvisitsinarticles = smwget.getTotalVisitsByNamespace(namespace=0, redirects=False)
-    totalfiles = smwget.getTotalFiles()
-
-    dateGenerated = datetime.datetime.now().isoformat()
-    period = "%s &ndash; %s" % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
-
-    #avoiding zero division
-    totalarticlespercent = 0
-    if totalpages > 0:
-        totalarticlespercent = totalarticles/(totalpages/100.0)
-    totaleditsinarticlespercent = 0
-    if totaledits > 0:
-        totaleditsinarticlespercent = totaleditsinarticles/(totaledits/100.0)
-    totalbytesinarticlespercent = 0
-    if totalbytes > 0:
-        totalbytesinarticlespercent = totalbytesinarticles/(totalbytes/100.0)
-    totalvisitsinarticlespercent = 0
-    if totalvisits > 0:
-        totalvisitsinarticlespercent = totalvisitsinarticles/(totalvisits/100.0)
-
-    body = u"""<table class="sections">
-    <tr><th><b>Sections</b></th></tr>
-    <tr><td><a href="#contentevolution">Content evolution</a></td></tr>
-    <tr><td><a href="#activity">Activity</a></td></tr>
-    <tr><td><a href="#users">Users</a></td></tr>
-    <tr><td><a href="#pages">Pages</a></td></tr>
-    <tr><td><a href="#categories">Categories</a></td></tr>
-    <tr><td><a href="#tagscloud">Tags cloud</a></td></tr>
-    </table>
-    <dl>
-    <dt>Site:</dt>
-    <dd><a href='%s'>%s</a></dd>
-    <dt>Report period:</dt>
-    <dd>%s &ndash; %s</dd>
-    <dt>Total pages:</dt>
-    <dd><a href="#pages">%d</a> (Articles: %d, %.1f%%)</dd>
-    <dt>Total edits:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total bytes:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total visits:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total files:</dt>
-    <dd><a href="%s/%s/Special:Imagelist">%d</a></dd>
-    <dt>Users:</dt>
-    <dd><a href="#users">%d</a></dd>
-    <dt>Generated in:</dt>
-    <dd>%s</dd>
-    </dl>
-
-    <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
-    <div id="divcontentevolution">
-    <table class="downloads">
-    <tr><th><b>Download as</b></th></tr>
-    <tr><td><a href="graphs/general/general_content_evolution.png">PNG</a></td></tr>
-    <tr><td><a href="csv/general/general_content_evolution.csv">CSV</a></td></tr>
-    </table>
-    <center>
-    <img src="graphs/general/general_content_evolution.png" alt="Content evolution" />
-    </center>
-    </div>
-
-    <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
-    <div id="divactivity">
-    <center>
-    <table class="downloads">
-    <tr><th><b>Download as</b></th></tr>
-    <tr><td><a href="graphs/general/general_hour_activity.png">PNG</a></td></tr>
-    <tr><td><a href="csv/general/general_hour_activity.csv">CSV</a></td></tr>
-    </table>
-    <img src="graphs/general/general_hour_activity.png" alt="Hour activity" /><br/>
-
-    <table class="downloads">
-    <tr><th><b>Download as</b></th></tr>
-    <tr><td><a href="graphs/general/general_dayofweek_activity.png">PNG</a></td></tr>
-    <tr><td><a href="csv/general/general_dayofweek_activity.csv">CSV</a></td></tr>
-    </table>
-    <img src="graphs/general/general_dayofweek_activity.png" alt="Day of week activity" /><br/>
-
-    <table class="downloads">
-    <tr><th><b>Download as</b></th></tr>
-    <tr><td><a href="graphs/general/general_month_activity.png">PNG</a></td></tr>
-    <tr><td><a href="csv/general/general_month_activity.csv">CSV</a></td></tr>
-    </table>
-    <img src="graphs/general/general_month_activity.png" alt="Month activity" />
-    </center>
-    </div>
-
-    <h2 id="users"><span class="showhide">[ <a href="javascript:showHide('divusers')">Show/Hide</a> ]</span>Users</h2>
-    <div id="divusers">
-    <center>
-    %s
-    </center>
-    </div>
-
-    <h2 id="pages"><span class="showhide">[ <a href="javascript:showHide('divpages')">Show/Hide</a> ]</span>Pages</h2>
-    <div id="divpages">
-    <center>
-    %s
-    </center>
-    </div>
-
-    <h2 id="categories"><span class="showhide">[ <a href="javascript:showHide('divcategories')">Show/Hide</a> ]</span>Categories</h2>
-    <div id="divcategories">
-    <p>This analysis includes pages aggregated by categories.</p>
-    <center>
-    %s
-    </center>
-    </div>
-
-    <h2 id="tagscloud"><span class="showhide">[ <a href="javascript:showHide('divtagscloud')">Show/Hide</a> ]</span>Tags cloud</h2>
-    <div id="divtagscloud">
-    <center>
-    %s
-    </center>
-    </div>
-    """ % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
-
-    generateGeneralContentEvolution()
-    generateGeneralTimeActivity()
-
-    smwhtml.printHTML(type="general", title=smwconfig.preferences["siteName"], body=body)
 
 def generatePagesAnalysis():
     for page_id, page_props in smwconfig.pages.items():
