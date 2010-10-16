@@ -619,7 +619,9 @@ def generateUsersAnalysis():
         <dt>Files uploaded:</dt>
         <dd><a href="#uploads">%d</a></dd>
         </dl>
-        <h2 id="contentevolution">Content evolution</h2>
+        <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
+
+        <div id="divcontentevolution">
         <table class="downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/users/user_%s_content_evolution.png">PNG</a></td></tr>
@@ -628,8 +630,11 @@ def generateUsersAnalysis():
         <center>
         <img src="../../graphs/users/user_%s_content_evolution.png" alt="Content evolution" />
         </center>
+        </div>
 
-        <h2 id="activity">Activity</h2>
+        <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
+
+        <div id="divactivity">
         <center>
         <table class="downloads">
         <tr><th><b>Download as</b></th></tr>
@@ -652,19 +657,30 @@ def generateUsersAnalysis():
         </table>
         <img src="../../graphs/users/user_%s_month_activity.png" alt="Month activity" />
         </center>
-        <h2 id="mostedited">Most edited pages</h2>
+        </div>
+
+        <h2 id="mostedited"><span class="showhide">[ <a href="javascript:showHide('divmostedited')">Show/Hide</a> ]</span>Most edited pages</h2>
+        <div id="divmostedited">
         <center>
         %s
         </center>
-        <h2 id="uploads">Uploads</h2>
+        </div>
+
+        <h2 id="uploads"><span class="showhide">[ <a href="javascript:showHide('divuploads')">Show/Hide</a> ]</span>Uploads</h2>
+        <div id="divuploads">
         This user has uploaded %s files.<br/>
         <center>
         %s
         </center>
-        <h2 id="tagscloud">Tags cloud</h2>
+        </div>
+
+        <h2 id="tagscloud"><span class="showhide">[ <a href="javascript:showHide('divtagscloud')">Show/Hide</a> ]</span>Tags cloud</h2>
+        <div id="divtagscloud">
         <center>
         %s
         </center>
+        </div>
+
         &lt;&lt; <a href="../../%s">Back</a>
         """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_name, user_name, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_name, useredits, usernm0edits, usernm0editspercent, userbytes, usernm0bytes, usernm0bytespercent, len(user_props["images"]), user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(smwconfig.users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), smwconfig.preferences["indexFilename"])
 
@@ -754,8 +770,9 @@ def generateGeneralAnalysis():
     <dt>Generated in:</dt>
     <dd>%s</dd>
     </dl>
-    <h2 id="contentevolution">Content evolution</h2>
 
+    <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
+    <div id="divcontentevolution">
     <table class="downloads">
     <tr><th><b>Download as</b></th></tr>
     <tr><td><a href="graphs/general/general_content_evolution.png">PNG</a></td></tr>
@@ -764,8 +781,10 @@ def generateGeneralAnalysis():
     <center>
     <img src="graphs/general/general_content_evolution.png" alt="Content evolution" />
     </center>
+    </div>
 
-    <h2 id="activity">Activity</h2>
+    <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
+    <div id="divactivity">
     <center>
     <table class="downloads">
     <tr><th><b>Download as</b></th></tr>
@@ -788,24 +807,36 @@ def generateGeneralAnalysis():
     </table>
     <img src="graphs/general/general_month_activity.png" alt="Month activity" />
     </center>
+    </div>
 
-    <h2 id="users">Users</h2>
+    <h2 id="users"><span class="showhide">[ <a href="javascript:showHide('divusers')">Show/Hide</a> ]</span>Users</h2>
+    <div id="divusers">
     <center>
     %s
     </center>
-    <h2 id="pages">Pages</h2>
+    </div>
+
+    <h2 id="pages"><span class="showhide">[ <a href="javascript:showHide('divpages')">Show/Hide</a> ]</span>Pages</h2>
+    <div id="divpages">
     <center>
     %s
     </center>
-    <h2 id="categories">Categories</h2>
+    </div>
+
+    <h2 id="categories"><span class="showhide">[ <a href="javascript:showHide('divcategories')">Show/Hide</a> ]</span>Categories</h2>
+    <div id="divcategories">
     <p>This analysis includes pages aggregated by categories.</p>
     <center>
     %s
     </center>
-    <h2 id="tagscloud">Tags cloud</h2>
+    </div>
+
+    <h2 id="tagscloud"><span class="showhide">[ <a href="javascript:showHide('divtagscloud')">Show/Hide</a> ]</span>Tags cloud</h2>
+    <div id="divtagscloud">
     <center>
     %s
     </center>
+    </div>
     """ % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
 
     generateGeneralContentEvolution()
@@ -850,7 +881,8 @@ def generatePagesAnalysis():
         <dd>%s</dd>
         </dl>
 
-        <h2 id="contentevolution">Content evolution</h2>
+        <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
+        <div id="divcontentevolution">
         <table class="downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/pages/page_%s_content_evolution.png">PNG</a></td></tr>
@@ -859,8 +891,10 @@ def generatePagesAnalysis():
         <center>
         <img src="../../graphs/pages/page_%s_content_evolution.png" alt="Content evolution" />
         </center>
+        </div>
 
-        <h2 id="activity">Activity</h2>
+        <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
+        <div id="divactivity">
         <center>
         <table class="downloads">
         <tr><th><b>Download as</b></th></tr>
@@ -883,14 +917,21 @@ def generatePagesAnalysis():
         </table>
         <img src="../../graphs/pages/page_%s_month_activity.png" alt="Month activity" />
         </center>
-        <h2 id="topusers">Top users</h2>
+        </div>
+
+        <h2 id="topusers"><span class="showhide">[ <a href="javascript:showHide('divtopusers')">Show/Hide</a> ]</span>Top users</h2>
+        <div id="divtopusers">
         <center>
         %s
         </center>
-        <h2 id="tagscloud">Tags cloud</h2>
+        </div>
+
+        <h2 id="tagscloud"><span class="showhide">[ <a href="javascript:showHide('divtagscloud')">Show/Hide</a> ]</span>Tags cloud</h2>
+        <div id="divtagscloud">
         <center>
         %s
         </center>
+        </div>
         &lt;&lt; <a href="../../%s">Back</a>
         """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], page_title, page_title, smwconfig.preferences["siteUrl"], page_title, pageedits, pageanonedits, pageanoneditspercent, pageregedits, pageregeditspercent, page_props["page_len"], page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, generatePagesTopUsersTable(page_id=page_id), generatePagesCloud(page_id=page_id), smwconfig.preferences["indexFilename"])
 
@@ -948,7 +989,9 @@ def generateCategoriesAnalysis():
         <dt>Pages:</dt>
         <dd>%s</dd>
         </dl>
-        <h2 id="contentevolution">Content evolution</h2>
+
+        <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
+        <div id="divcontentevolution">
         <table class="downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/categories/category_%d_content_evolution.png">PNG</a></td></tr>
@@ -957,8 +1000,10 @@ def generateCategoriesAnalysis():
         <center>
         <img src="../../graphs/categories/category_%d_content_evolution.png" alt="Content evolution" />
         </center>
+        </div>
 
-        <h2 id="activity">Activity</h2>
+        <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
+        <div id="divactivity">
         <center>
         <table class="downloads">
         <tr><th><b>Download as</b></th></tr>
@@ -981,18 +1026,28 @@ def generateCategoriesAnalysis():
         </table>
         <img src="../../graphs/categories/category_%d_month_activity.png" alt="Month activity" />
         </center>
-        <h2 id="topusers">Top users</h2>
+        </div>
+
+        <h2 id="topusers"><span class="showhide">[ <a href="javascript:showHide('divtopusers')">Show/Hide</a> ]</span>Top users</h2>
+        <div id="divtopusers">
         <center>
         %s
         </center>
-        <h2 id="topusers">Top pages</h2>
+        </div>
+
+        <h2 id="toppages"><span class="showhide">[ <a href="javascript:showHide('divtoppages')">Show/Hide</a> ]</span>Top pages</h2>
+        <div id="divtoppages">
         <center>
         %s
         </center>
-        <h2 id="tagscloud">Tags cloud</h2>
+        </div>
+
+        <h2 id="tagscloud"><span class="showhide">[ <a href="javascript:showHide('divtagscloud')">Show/Hide</a> ]</span>Tags cloud</h2>
+        <div id="divtagscloud">
         <center>
         %s
         </center>
+        </div>
         &lt;&lt; <a href="../../%s">Back</a>
         """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_title, category_title, smwconfig.preferences["siteUrl"], category_title, catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(smwconfig.categories[category_title]), category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, "", "", generateCategoriesCloud(category_id=category_id, page_ids=page_ids), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 

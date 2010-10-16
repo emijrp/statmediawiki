@@ -19,9 +19,11 @@ import smwconfig
 
 def printHTML(type=None, file="", title="", body=""):
     stylesdir = "styles"
+    jsdir = "js"
     if file:
         file = "%s/html/%s/%s" % (smwconfig.preferences["outputDir"], type, file)
         stylesdir = "../../%s" % stylesdir
+        jsdir = "../../%s" % jsdir
     else:
         file = "%s/%s" % (smwconfig.preferences["outputDir"], smwconfig.preferences["indexFilename"])
 
@@ -31,6 +33,7 @@ def printHTML(type=None, file="", title="", body=""):
     <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="%s/style.css" type="text/css" media="all" />
+    <script src="%s/common.js" type="text/javascript"></script>
     <title>StatMediaWiki: %s</title>
     </head>
     <body>
@@ -42,7 +45,7 @@ def printHTML(type=None, file="", title="", body=""):
     <p><a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88" /></a></p>
     </center>
     </body>
-    </html>""" % (stylesdir, title, title, body)
+    </html>""" % (stylesdir, jsdir, title, title, body)
 
     f.write(output.encode("utf-8"))
     f.close()

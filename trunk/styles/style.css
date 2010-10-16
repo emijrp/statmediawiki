@@ -63,6 +63,9 @@ table.downloads {
     position: absolute;
     right: 0px;
 }
+span.showhide {
+    float: right;
+}
 /*
 estilo para los párrafos, tablas...
 */

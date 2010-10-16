@@ -39,6 +39,7 @@ def manageOutputDir():
         "%s/html/users" % smwconfig.preferences["outputDir"],
         "%s/html/pages" % smwconfig.preferences["outputDir"],
         "%s/html/categories" % smwconfig.preferences["outputDir"],
+        "%s/js" % smwconfig.preferences["outputDir"],
         "%s/styles" % smwconfig.preferences["outputDir"],
     ]
     for directory in directories:
@@ -54,6 +55,7 @@ def copyFiles():
     #Copiando ficheros individuales
     #Van en el nivel principal (están duplicados con la línea anterior)
     os.system("cp %s/styles/*.css %s/styles" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
+    os.system("cp %s/js/*.js %s/js" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
     #Los CSV no se copian, se generan directamente en outputdir
     #os.system("cp %s/csv/general/*.csv %s/csv/general" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
     #os.system("cp %s/csv/pages/*.csv %s/csv/pages" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
