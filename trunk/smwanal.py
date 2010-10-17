@@ -147,7 +147,7 @@ def generateCategoriesTimeActivity(category_props=None): #fix category_props
     conds2 = ["1", "rev_user=0", "rev_user!=0"] #todas, anónimas o registrados
     conds = []
     for cond in conds2:
-        conds.append("%s and rev_page in (select cl_from from categorylinks where cl_to='%s')" % (cond, category_props["category_title_"])) #fix cuidado con nombres de categorías con '
+        conds.append("%s and rev_page in (select cl_from from categorylinks where cl_to='%s')" % (cond, category_props["category_title_"].encode("utf-8"))) #fix cuidado con nombres de categorías con '
     headers = ["Edits in category %s (all users)" % category_props["category_title"], "Edits in category %s (only anonymous users)" % category_props["category_title"], "Edits in category %s (only registered users)" % category_props["category_title"]]
     generateTimeActivity(timesplit="hour", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
     generateTimeActivity(timesplit="dayofweek", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
@@ -155,7 +155,7 @@ def generateCategoriesTimeActivity(category_props=None): #fix category_props
 
 def generateUsersTimeActivity(user_props=None):
     assert user_props
-    conds = ["rev_user_text='%s'" % user_props["user_name"], "page_namespace=0 and rev_user_text='%s'" % user_props["user_name"], "page_namespace=1 and rev_user_text='%s'" % user_props["user_name"]] # artículo o todas, #todo añadir escape() para comillas?
+    conds = ["rev_user_text='%s'" % user_props["user_name"].encode("utf-8"), "page_namespace=0 and rev_user_text='%s'" % user_props["user_name"].encode("utf-8"), "page_namespace=1 and rev_user_text='%s'" % user_props["user_name"].encode("utf-8")] # artículo o todas, #todo añadir escape() para comillas?
     headers = ["Edits by %s (all pages)" % user_props["user_name"], "Edits by %s (only articles)" % user_props["user_name"], "Edits by %s (only articles talks)" % user_props["user_name"]]
     filesubfix = user_props["user_id"]
     if filesubfix == 0:
@@ -173,7 +173,7 @@ def generateCloud(type=None, user_props=None, page_props=None, category_props=No
             continue
         elif type == "pages" and rev_props["rev_page"] != page_props["page_id"]:
             continue
-        elif type == "categories" and rev_props["rev_page"] not in category_props["page_ids"]: #no ponemos and page_ids, puesto que puede ser una categoría vacía
+        elif type == "categories" and rev_props["rev_page"] not in category_props["pages"]: #no ponemos and page_ids, puesto que puede ser una categoría vacía
             continue
 
         comment = rev_props["rev_comment"].lower().strip()
@@ -754,21 +754,21 @@ def generateGlobalAnalysis():
     </center>
     </div>
 
-    <h2 id="users"><span class="showhide">[ <a href="javascript:showHide('divusers')">Show/Hide</a> ]</span>Users</h2>
+    <h2 id="topusers"><span class="showhide">[ <a href="javascript:showHide('divusers')">Show/Hide</a> ]</span>Users</h2>
     <div id="divusers">
     <center>
     %s
     </center>
     </div>
 
-    <h2 id="pages"><span class="showhide">[ <a href="javascript:showHide('divpages')">Show/Hide</a> ]</span>Pages</h2>
+    <h2 id="toppages"><span class="showhide">[ <a href="javascript:showHide('divpages')">Show/Hide</a> ]</span>Pages</h2>
     <div id="divpages">
     <center>
     %s
     </center>
     </div>
 
-    <h2 id="categories"><span class="showhide">[ <a href="javascript:showHide('divcategories')">Show/Hide</a> ]</span>Categories</h2>
+    <h2 id="topcategories"><span class="showhide">[ <a href="javascript:showHide('divcategories')">Show/Hide</a> ]</span>Categories</h2>
     <div id="divcategories">
     <p>This analysis includes pages aggregated by categories.</p>
     <center>
@@ -848,7 +848,7 @@ def generateUsersAnalysis():
         </center>
         </div>
 
-        <h2 id="mostedited"><span class="showhide">[ <a href="javascript:showHide('divmostedited')">Show/Hide</a> ]</span>Most edited pages</h2>
+        <h2 id="toppages"><span class="showhide">[ <a href="javascript:showHide('divmostedited')">Show/Hide</a> ]</span>Most edited pages</h2>
         <div id="divmostedited">
         <center>
         %s
@@ -882,17 +882,6 @@ def generatePagesAnalysis():
         print u"Generating analysis to the page: %s" % (page_props["page_title"])
         generateContentEvolution(type="pages", page_props=page_props)
         generatePagesTimeActivity(page_props=page_props)
-
-        """#avoiding zero division
-        pageedits = page_props["edits"]
-        pageanonedits = page_props["revisionsbyuserclass"]["anon"]
-        pageanoneditspercent = 0
-        if pageedits > 0:
-            pageanoneditspercent = pageanonedits/(pageedits/100.0)
-        pageregedits = page_props["revisionsbyuserclass"]["reg"]
-        pageregeditspercent = 0
-        if pageedits > 0:
-            pageregeditspercent = pageregedits/(pageedits/100.0)"""
 
         body = """%s\n%s\n%s
 

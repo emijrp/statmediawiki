@@ -67,7 +67,7 @@ def printHTML(type=None, file="", title="", body=""):
     <h1>StatMediaWiki: %s</h1>
     %s
 
-    <h2 id="about">
+    <h2 id="about">About</h2>
     <p>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a>
     <a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88" /></a></p>
     </body>
