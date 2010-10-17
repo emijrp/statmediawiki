@@ -26,6 +26,7 @@ import smwget
 
 def load():
     loadDateRange()
+    loadNamespaces()
     loadCategories()
     loadImages()
     loadPages()
