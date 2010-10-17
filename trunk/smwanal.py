@@ -433,9 +433,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
 
     output = ''
     #legend
-    output += '<table><tr><td>&nbsp;&nbsp;Low&nbsp;&nbsp;</td>'
-    output += ''.join(['<td class="cellcolor%d">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>' % (i) for i in range(smwconfig.preferences["numColors"])])
-    output += '<td>&nbsp;&nbsp;High&nbsp;&nbsp;</td></tr></table>'
+    output += smwhtml.getLegend()
 
     #table
     output += '<table><tr>'
@@ -473,6 +471,11 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         sys.exit()
 
     c = 1
+    acumrevisions = 0
+    acumrevisionsinarticles = 0
+    acumbytes = 0
+    acumbytesinarticles = 0
+    acumuploads = 0
     for numrevisions, user_text_ in usersSorted:
         filesubfix = smwconfig.users[user_text_]["user_id"]
         if filesubfix == 0: #ip
@@ -481,17 +484,19 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         #start row
         output += '<tr><td>%d</td>' % (c)
         output += '<td><a href="%s/users/user_%s.html">%s</a></td>' % (type == "global" and 'html' or '..', filesubfix, smwconfig.users[user_text_]["user_name"])
-        #edits
+        #revisions
+        acumrevisions += numrevisions
         percent = totalrevisions > 0 and numrevisions/(totalrevisions/100.0) or 0
         maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisions()] + [0]))
-        color = maxi > smwconfig.preferences["numColors"] and numrevisions/(maxi/smwconfig.preferences["numColors"]) or 0
+        color = maxi and numrevisions/(maxi/smwconfig.preferences["numColors"]) or 0
         output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numrevisions, color, percent)
-        #edits in articles
+        #revisions in articles
         if type == "global":
             numrevisionsinarticles = smwget.getTotalRevisionsByUserInNamespace(user_text_=user_text_, namespace=0)
+            acumrevisionsinarticles += numrevisionsinarticles
             percent = totalrevisionsinarticles > 0 and numrevisionsinarticles/(totalrevisionsinarticles/100.0) or 0
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisionsInNamespace(namespace=0)] + [0]))
-            color = maxi > smwconfig.preferences["numColors"] and numrevisionsinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
+            color = maxi and numrevisionsinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
             output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numrevisionsinarticles, color, percent)
         elif type == "pages":
             pass #no required
@@ -508,15 +513,17 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInPage(page_id=page_props["page_id"])] + [0]))
         elif type == "category":
             pass #todo
+        acumbytes += numbytes
         percent = totalbytes > 0 and numbytes/(totalbytes/100.0) or 0
-        color = maxi > smwconfig.preferences["numColors"] and numbytes/(maxi/smwconfig.preferences["numColors"]) or 0
+        color = maxi and numbytes/(maxi/smwconfig.preferences["numColors"]) or 0
         output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numbytes, color, percent)
         #bytes in articles
         if type == "global":
             numbytesinarticles = smwget.getTotalBytesByUserInNamespace(user_text_=user_text_, namespace=0)
+            acumbytesinarticles += numbytesinarticles
             percent = totalbytesinarticles > 0 and numbytesinarticles/(totalbytesinarticles/100.0) or 0
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInNamespace(namespace=0)] + [0]))
-            color = maxi > smwconfig.preferences["numColors"] and numbytesinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
+            color = maxi and numbytesinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
             output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numbytesinarticles, color, percent)
         elif type == "pages":
             pass #no required
@@ -525,19 +532,32 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         #uploads
         if type == "global":
             numuploads = smwget.getTotalImagesByUser(user_text_=user_text_)
+            acumuploads += numuploads
             percent = totaluploads > 0 and numuploads/(totaluploads/100.0) or 0
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalImages()] + [0]))
-            color = maxi > smwconfig.preferences["numColors"] and numuploads/(maxi/smwconfig.preferences["numColors"]) or 0
+            color = maxi and numuploads/(maxi/smwconfig.preferences["numColors"]) or 0
             output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numuploads, color, percent)
         #end row
         output += '</tr>\n'
         c += 1
 
-    """
-    output += u'<tr><td></td><td>Total</td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s</td></tr>\n' % (edits, editsinarticles, bytes, bytesinarticles, uploads)
-    """
-    output += u'</table>'
-    output += u'<ul><li id="note1">Note 1: This figure can be greater than the total bytes in the wiki, as byte erased are not discounted in this ranking.</li></ul>'
+    #total row
+    output += '<tr><td colspan="2">Total</td>'
+    output += '<td>%d</td><td>%.1f%%</td>' % (acumrevisions, totalrevisions and acumrevisions/(totalrevisions/100.0) or 0)
+    if type != "pages":
+        output += '<td>%d</td><td>%.1f%%</td>' % (acumrevisionsinarticles, totalrevisionsinarticles and acumrevisionsinarticles/(totalrevisionsinarticles/100.0) or 0)
+    output += '<td>%d</td><td>%.1f%%<sup>[<a href="#note1">1</a>]</sup></td>' % (acumbytes, totalbytes and acumbytes/(totalbytes/100.0) or 0)
+    if type != "pages":
+        output += '<td>%d</td><td>%.1f%%<sup>[<a href="#note1">1</a>]</sup></td>' % (acumbytesinarticles, totalbytesinarticles and acumbytesinarticles/(totalbytesinarticles/100.0) or 0)
+    if type == "global":
+        output += '<td>%d</td><td>%.1f%%</td>' % (acumuploads, totaluploads and acumuploads/(totaluploads/100.0) or 0)
+    output += '</tr>'
+
+    #<td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s</td></tr>\n'
+    output += '</table>'
+
+    #notes
+    output += '<ul><li id="note1">Note 1: This figure can be greater than the total bytes in the wiki, as byte erased are not discounted in this ranking.</li></ul>'
 
     return output
 
@@ -545,7 +565,12 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
     assert type == "global" or (type == "users" and user_props) or (type == "categories" and category_props)
     assert type != "pages" # no necesaria esta tabla para pages
 
-    output = '<table><tr>'
+    output = ''
+    #legend
+    output += smwhtml.getLegend()
+
+    #table
+    output += '<table><tr>'
     output += '<th>#</th><th>Page</th><th>Namespace</th><th>Edits</th><th>%</th><th>Bytes</th><th>%</th>'
     if type == "global":
         output += '<th>Visits</th><th>%</th>'

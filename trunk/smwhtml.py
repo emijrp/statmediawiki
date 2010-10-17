@@ -38,6 +38,12 @@ def getSections(type=None):
 
     return output
 
+def getLegend():
+    output = '<table><tr><td>&nbsp;&nbsp;Low&nbsp;&nbsp;</td>'
+    output += ''.join(['<td class="cellcolor%d">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>' % (i) for i in range(smwconfig.preferences["numColors"])])
+    output += '<td>&nbsp;&nbsp;High&nbsp;&nbsp;</td></tr></table>'
+    return output
+
 def printHTML(type=None, file="", title="", body=""):
     stylesdir = "styles"
     jsdir = "js"
