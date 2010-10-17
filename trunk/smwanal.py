@@ -433,9 +433,9 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
 
     output = ''
     #legend
-    output += '<table><tr><td>Low</td>'
-    output += ''.join(['<td class="cellcolor%d">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>' % (i) for i in range(smwconfig.preferences["numColors"])])
-    output += '<td>High</td></tr></table>'
+    output += '<table><tr><td>&nbsp;&nbsp;Low&nbsp;&nbsp;</td>'
+    output += ''.join(['<td class="cellcolor%d">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>' % (i) for i in range(smwconfig.preferences["numColors"])])
+    output += '<td>&nbsp;&nbsp;High&nbsp;&nbsp;</td></tr></table>'
 
     #table
     output += '<table><tr>'
