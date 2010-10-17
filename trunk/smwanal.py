@@ -644,7 +644,7 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
 
 def generateCategoriesTable():
     output = u"""<table>
-    <tr><th>#</th><th>Category</th><th>Pages</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
+    <tr><th>#</th><th>Category</th><th>Pages</th><th>%</th><th>Edits</th><th>%</th><th>Bytes</th><th>%</th><th>Visits</th><th>%</th></tr>"""
 
     categoriesSorted = [] #by edits
 
@@ -686,26 +686,22 @@ def generateCategoriesTable():
                 numbytes += page_props["page_len"]
                 numvisits += page_props["page_counter"]
 
-        #to avoid zero division
-        numpagespercent = 0
-        if totalpages > 0:
-            numpagespercent = numpages/(totalpages/100.0)
-        numeditspercent = 0
-        if totaledits > 0:
-            numeditspercent = numedits/(totaledits/100.0)
-        numbytespercent = 0
-        if totalbytes > 0:
-            numbytespercent = numbytes/(totalbytes/100.0)
         numvisitspercent = 0
         if totalvisits > 0:
             numvisitspercent = numvisits/(totalvisits/100.0)
 
-        output += u"""<tr><td>%d</td><td><a href="html/categories/category_%d.html">%s</a></td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td></tr>\n""" % (c, category_id, category_props["category_title"], numpages, numpagespercent, numedits, numeditspercent, numbytes, numbytespercent, numvisits, numvisitspercent)
+        output += '<tr>'
+        output += '<td>%d</td><td><a href="html/categories/category_%d.html">%s</a></td>' % (c, category_id, category_props["category_title"])
+        output += '<td>%d</td><td>%.1f%%</td>' % (numpages, totalpages and numpages/(totalpages/100.0) or 0)
+        output += '<td>%d</td><td>%.1f%%</td>' % (numedits, totaledits and numedits/(totaledits/100.0) or 0)
+        output += '<td>%d</td><td>%.1f%%</td>' % (numbytes, totalbytes and numbytes/(totalbytes/100.0) or 0)
+        output += '<td>%d</td><td>%.1f%%</td>' % (numvisits, totalvisits and numvisits/(totalvisits/100.0) or 0)
+        output += '</tr>\n'
         c += 1
 
-    output += """<tr><td></td><td>Total</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td></tr>\n""" % (totalpages, totaledits, totalbytes, totalvisits)
-    output += """</table>"""
-    output += """<center>Due to some pages can be contained in various categories, the sum of the colums can be different to the total row</center>"""
+    output += '<tr><td></td><td>Total</td><td>%d</td><td>100%%</td><td>%d</td><td>100%%</td><td>%d</td><td>100%%</td><td>%d</td><td>100%%</td></tr>\n' % (totalpages, totaledits, totalbytes, totalvisits)
+    output += '</table>'
+    output += '<center>Due to some pages can be contained in various categories, the sum of the colums can be different to the total row</center>'
 
     return output
 
