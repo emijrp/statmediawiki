@@ -71,6 +71,7 @@ def loadCategories():
             smwconfig.categories[cl_to_] = {
                 "category_title": cl_to,
                 "category_title_": cl_to_,
+                "category_id": None, #las categorías sin página creada quedarán como None
                 "pages": [cl_from]
             }
 

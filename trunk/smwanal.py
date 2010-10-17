@@ -966,12 +966,12 @@ def generateCategoriesAnalysis():
         #avoiding zero division
         catedits = 0
         for page_id, page_props in smwconfig.pages.items():
-            if page_id in page_ids:
+            if page_id in category_props["pages"]:
                 catedits += page_props["edits"]
 
         catanonedits = 0
         for page_id, page_props in smwconfig.pages.items():
-            if page_id in page_ids:
+            if page_id in category_props["pages"]:
                 catanonedits += page_props["revisionsbyuserclass"]["anon"]
         catanoneditspercent = 0
         if catedits > 0:
@@ -979,7 +979,7 @@ def generateCategoriesAnalysis():
 
         catregedits = 0
         for page_id, page_props in smwconfig.pages.items():
-            if page_id in page_ids:
+            if page_id in category_props["pages"]:
                 catregedits += page_props["revisionsbyuserclass"]["reg"]
         catregeditspercent = 0
         if catedits > 0:
@@ -1062,7 +1062,7 @@ def generateCategoriesAnalysis():
         </center>
         </div>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"], catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(smwconfig.categories[category_title]["pages"]), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], "", "", generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"], catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(category_props["pages"]), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], "", "", generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (smwconfig.preferences["siteName"], category_props["category_title"])
         smwhtml.printHTML(type="categories", file="category_%d.html" % category_props["category_id"], title=title, body=body)
