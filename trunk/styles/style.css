@@ -1,6 +1,6 @@
 body {
     background: #ffffff;
-    color: #002070;
+    color: #060606;
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: 12px;
 }
@@ -87,3 +87,18 @@ p{
 img{
     border: 0px;
 }
+
+/* cellcolors para porcentajes */
+/* los colores van de peor puntuación 0 a máxima 10-11 */
+/* de rojo pasando por verde hasta azul */
+td.cellcolor0 { background-color: #B22222 }
+td.cellcolor1 { background-color: #CD5C5C }
+td.cellcolor2 { background-color: #FFA07A }
+td.cellcolor3 { background-color: #808000 }
+td.cellcolor4 { background-color: #6B8E23 }
+td.cellcolor5 { background-color: #228B22 }
+td.cellcolor6 { background-color: #2E8B57 }
+td.cellcolor7 { background-color: #3CB371 }
+td.cellcolor8 { background-color: #7FFFD4 }
+td.cellcolor9 { background-color: #66CDAA }
+td.cellcolor10, td.cellcolor11 { background-color: #4682B4 } /* the last two are the same */

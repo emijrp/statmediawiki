@@ -43,4 +43,4 @@ preferences["currentPath"] = os.path.dirname(__file__)
 if not preferences["currentPath"]:
     preferences["currentPath"] = '.' #current
 preferences["anonymous"] = False
-
+preferences["numColors"] = 10 #depends on style.css
