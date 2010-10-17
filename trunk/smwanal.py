@@ -29,8 +29,8 @@ import smwplot
 
 def generateAnalysis():
     generateGlobalAnalysis()
-    #generateUsersAnalysis()
-    #generatePagesAnalysis()
+    generateUsersAnalysis()
+    generatePagesAnalysis()
     generateCategoriesAnalysis()
 
 def generadorColumnaFechas(startDate, delta=datetime.timedelta(days=1)):
@@ -228,7 +228,7 @@ def generateCloud(type=None, user_props=None, page_props=None, category_props=No
         output += u"""<span style="font-size: %s%%">%s</span> &nbsp;&nbsp;&nbsp;""" % (fontsize, tag)
 
     if not output:
-        output += u"%s has no comments in edits." % type
+        output += u"There is no comments in edits." % type
 
     return output
 
