@@ -63,6 +63,12 @@ table.downloads {
     position: absolute;
     right: 0px;
 }
+
+table.summary {
+    text-align: left;
+    border: 0px;
+}
+
 span.showhide {
     float: right;
 }
