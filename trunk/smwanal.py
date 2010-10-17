@@ -426,8 +426,9 @@ def generateContentEvolution(type, user_props=None, page_props=None, category_pr
 
 def generateUsersTable(type=None, page_props=None, category_props=None):
     assert type == "global" or (type == "pages" and page_props) or (type == "categories" and category_props)
+    assert type != "users" #no necesaria esta tabla para usuarios
 
-    if type == "users" and smwconfig.preferences["anonymous"]:
+    if type == "pages" and smwconfig.preferences["anonymous"]:
         return u"""<p>This is an anonymous analysis. This information will not be showed.</p>\n"""
 
     output = '<table><tr>'
@@ -516,6 +517,8 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
 
 def generatePagesTable(type=None, user_props=None, category_props=None):
     assert type == "global" or (type == "users" and user_props) or (type == "categories" and category_props)
+    assert type != "pages" # no necesaria esta tabla para pages
+
     #fix fusionar con generateusersmosteditedtable
     output = '<table><tr>'
     output += '<th>#</th><th>Page</th><th>Namespace</th><th>Edits</th><th>%</th><th>Bytes</th><th>%</th>'
@@ -526,10 +529,12 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
     pagesSorted = [] #by edits
     totalrevisions = 0
     totalbytes = 0
+    totalvisits = 0
     if type == "global":
         pagesSorted = smwget.getPagesSortedByTotalEdits()
         totalrevisions = smwget.getTotalRevisions()
         totalbytes = smwget.getTotalBytes()
+        totalvisits = smwget.getTotalVisits()
     elif type == "users":
         pagesSorted = smwget.getPagesSortedByTotalEditsByUser(user_text_=user_props["user_name_"])
         totalrevisions = smwget.getTotalRevisionsByUser(user_text_=user_props["user_name_"])
@@ -549,7 +554,20 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
         full_page_title_ = re.sub(' ', '_', full_page_title)
         output += '<td><a href="%s/pages/page_%d.html">%s</a></td><td>%s</td>' % (type == "global" and 'html' or '..', page_id, full_page_title, smwconfig.namespaces[smwconfig.pages[page_id]["page_namespace"]])
         #edits
-
+        output += '<td>%d</td><td>%.1f</td>' % (numrevisions, totalrevisions > 0 and numrevisions/(totalrevisions/100.0) or 0)
+        #bytes
+        numbytes = 0
+        if type == "global":
+            numbytes = page_props["page_len"]
+        elif type == "users":
+            numbytes = smwget.getTotalBytesByUserInPage(user_text_=user_props["user_name_"], page_id=page_id)
+        elif type == "categories":
+            pass #todo
+        output += '<td>%d</td><td>%.1f%%</td>' % (numbytes, totalbytes > 0 and numbytes/(totalbytes/100.0) or 0)
+        if type == "global":
+            output += '<td>%d</td><td>%.1f%%</td>' % (page_props["page_counter"], totalvisits > 0 and page_props["page_counter"]/(totalvisits/100.0) or 0)
+        #end row
+        output += '</tr>'
         c += 1
 
     #output += '<tr><td></td><td>Total</td><td></td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n'

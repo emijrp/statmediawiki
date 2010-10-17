@@ -147,19 +147,18 @@ def getTotalEditsByNamespace(namespace=0):
 
 def getTotalPagesByNamespace(namespace=0, redirects=False):
     if redirects:
-        return int(getSingleValue("SELECT COUNT(*) AS count FROM %spage WHERE page_namespace=%d" % (smwconfig.preferences["tablePrefix"], namespace)))
+        return len([page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace])
     else:
-        return int(getSingleValue("SELECT COUNT(*) AS count FROM %spage WHERE page_namespace=%d AND page_is_redirect=0" % (smwconfig.preferences["tablePrefix"], namespace)))
-
+        return len([page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]])
 
 def getTotalVisits():
-    return int(getSingleValue("SELECT SUM(page_counter) AS count FROM %spage WHERE 1" % smwconfig.preferences["tablePrefix"]))
+    return sum([page_props["page_counter"] for page_id, page_props in smwconfig.pages.items()])
 
 def getTotalVisitsByNamespace(namespace=0, redirects=False):
     if redirects:
-        return int(getSingleValue("SELECT SUM(page_counter) AS count FROM %spage WHERE page_namespace=%d" % (smwconfig.preferences["tablePrefix"], namespace)))
+        return sum([page_props["page_counter"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace])
     else:
-        return int(getSingleValue("SELECT SUM(page_counter) AS count FROM %spage WHERE page_namespace=%d AND page_is_redirect=0" % (smwconfig.preferences["tablePrefix"], namespace)))
+        return sum([page_props["page_counter"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]])
 
 def getTotalFiles():
     return int(getSingleValue("SELECT COUNT(*) AS count FROM %simage WHERE 1" % smwconfig.preferences["tablePrefix"]))

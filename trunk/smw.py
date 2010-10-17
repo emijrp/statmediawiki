@@ -25,14 +25,15 @@ import smwload
 import smwoutput
 
 #todo:
-#con que numero se lanzan los sys.exit() cuando hay un fallo?
-#que las rutas ../../ no sean relativas, buscar algo como $IP o __file__ ?
-#len() devuelve bytes?
+"""
+mejorar los summary
+meter campos que faltan en lista de pages
+separar campos % en lista categorias
+arreglar nombres secciones y enlaces internos #
+"""
 
-#conv:
 #convenciones:
 #solo contamos los añadidos de texto, no cuando se elimina texto (no se penaliza a nadie)
-
 #el usuario que hace las consultas sql debe tener acceso lectura a las bbdd, con los datos de .my.cnf
 
 def main():
