@@ -87,7 +87,7 @@ def getRevisionsByUser(user_id=None, user_text_=None):
 
 def getTotalRevisionsByUser(user_id=None, user_text_=None):
     assert user_id or user_text_
-    return len(getRevisionByUser(user_id=user_id, user_text_=user_text_))
+    return len(getRevisionsByUser(user_id=user_id, user_text_=user_text_))
 
 def getRevisionsByUserInNamespace(user_id=None, user_text_=None, namespace=0):
     assert user_id or user_text_
@@ -108,6 +108,39 @@ def getPages():
 
 def getPagesByNamespace(namespace=0):
     return [page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace]
+
+def getPagesSortedByTotalEdits():
+    pagesSorted = {}
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if pagesSorted.has_key(rev_props["rev_page"]):
+            pagesSorted[rev_props["rev_page"]] += 1
+        else:
+            pagesSorted[rev_props["rev_page"]] = 1
+
+    list = [[v, k] for k, v in pagesSorted.items()]
+    list.sort()
+    list.reverse()
+
+    return list
+
+def getPagesSortedByTotalEditsByUser(user_id=None, user_text_=None):
+    assert user_id or user_text_
+    pagesSorted = {}
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if user_id and rev_props["rev_user"] != user_id:
+            continue
+        if user_text_ and rev_props["rev_user_text_"] != user_text_:
+            continue
+        if pagesSorted.has_key(rev_props["rev_page"]):
+            pagesSorted[rev_props["rev_page"]] += 1
+        else:
+            pagesSorted[rev_props["rev_page"]] = 1
+
+    list = [[v, k] for k, v in pagesSorted.items()]
+    list.sort()
+    list.reverse()
+
+    return list
 
 def getTotalEditsByNamespace(namespace=0):
     return int(getSingleValue("SELECT COUNT(rev_id) AS count FROM %srevision WHERE rev_page IN (SELECT page_id FROM %spage WHERE page_namespace=%d)" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], namespace)))
@@ -138,11 +171,14 @@ def getImageUrl(img_name):
     return img_url
 
 def getImagesByUser(user_text_=None, user_id=None):
+    assert user_id or user_text_
     if user_id:
         return [img_name_ for img_name_, img_props in smwconfig.images.items() if img_props["img_user"] == user_id]
     elif user_text_:
         return [img_name_ for img_name_, img_props in smwconfig.images.items() if img_props["img_user_text_"] == user_text_]
 
+def getTotalImagesByUser(user_text_=None, user_id=None):
+    return len(getImagesByUser(user_text_=user_text_, user_id=user_id))
 
 def getUsersSortedByTotalEdits():
     usersSorted = {}
@@ -175,17 +211,15 @@ def getUsersSortedByTotalEditsInPage(page_id=None):
 
     return list
 
-def pagetitle2pageid(page_title=None, page_namespace=None):
+def pagetitle2pageid(page_title=None, page_title_=None, page_namespace=None):
     #recibe un page_title sin prefijo de espacio de nombres
     #el espacio de nombres se sabe por page_namespace
-    if page_title and page_namespace:
-        for page_id, page_props in smwconfig.pages.items():
-            if page_props["page_namespace"] == page_namespace:
-                page_title2 = page_props["page_title"]
-                if page_props["page_namespace"] != 0:
-                    #le quitamos el prefijo de espacio de nombres antes de comparar
-                    page_title2 = ':'.join(page_title2.split(':')[1:])
-                if page_title == page_title2:
-                    return page_id
+    assert (page_title or page_title_) and page_namespace
+    if page_title:
+        page_title_ = re.sub(' ', '_', page_title)
+
+    for page_id, page_props in smwconfig.pages.items():
+        if page_props["page_title_"] == page_title_ and page_props["page_namespace"] == page_namespace:
+            return page_id
 
     return None

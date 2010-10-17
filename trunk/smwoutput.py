@@ -25,17 +25,17 @@ def manageOutputDir():
     directories = [
         smwconfig.preferences["outputDir"],
         "%s/csv" % smwconfig.preferences["outputDir"],
-        "%s/csv/general" % smwconfig.preferences["outputDir"],
+        "%s/csv/global" % smwconfig.preferences["outputDir"],
         "%s/csv/users" % smwconfig.preferences["outputDir"],
         "%s/csv/pages" % smwconfig.preferences["outputDir"],
         "%s/csv/categories" % smwconfig.preferences["outputDir"],
         "%s/graphs" % smwconfig.preferences["outputDir"],
-        "%s/graphs/general" % smwconfig.preferences["outputDir"],
+        "%s/graphs/global" % smwconfig.preferences["outputDir"],
         "%s/graphs/users" % smwconfig.preferences["outputDir"],
         "%s/graphs/pages" % smwconfig.preferences["outputDir"],
         "%s/graphs/categories" % smwconfig.preferences["outputDir"],
         "%s/html" % smwconfig.preferences["outputDir"],
-        "%s/html/general" % smwconfig.preferences["outputDir"],
+        "%s/html/global" % smwconfig.preferences["outputDir"],
         "%s/html/users" % smwconfig.preferences["outputDir"],
         "%s/html/pages" % smwconfig.preferences["outputDir"],
         "%s/html/categories" % smwconfig.preferences["outputDir"],
@@ -57,6 +57,6 @@ def copyFiles():
     os.system("cp %s/styles/*.css %s/styles" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
     os.system("cp %s/js/*.js %s/js" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
     #Los CSV no se copian, se generan directamente en outputdir
-    #os.system("cp %s/csv/general/*.csv %s/csv/general" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
+    #os.system("cp %s/csv/global/*.csv %s/csv/global" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
     #os.system("cp %s/csv/pages/*.csv %s/csv/pages" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))
     #os.system("cp %s/csv/users/*.csv %s/csv/users" % (smwconfig.preferences["currentPath"], smwconfig.preferences["outputDir"]))

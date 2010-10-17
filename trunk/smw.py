@@ -39,12 +39,7 @@ def main():
     smwinit.welcome()
     smwinit.getParameters()
 
-    smwload.loadDateRange()
-    smwload.loadCategories()
-    smwload.loadImages()
-    smwload.loadPages()
-    smwload.loadRevisions() #require startDate and endDate initialized
-    smwload.loadUsers()
+    smwload.load()
 
     if smwconfig.preferences["anonymous"]:
         smwanon.anonimize()

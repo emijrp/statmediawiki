@@ -18,7 +18,7 @@
 import smwconfig
 
 def printCSV(type, subtype, fileprefix, headers, rows):
-    # Type puede ser: general, users o pages
+    # Type puede ser: global, users o pages
     file = "%s/csv/%s/%s_%s.csv" % (smwconfig.preferences["outputDir"], type,
                                     fileprefix, subtype)
     f = open(file, "w")

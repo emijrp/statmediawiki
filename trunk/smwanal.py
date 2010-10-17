@@ -28,7 +28,7 @@ import smwhtml
 import smwplot
 
 def generateAnalysis():
-    generateGeneralAnalysis()
+    generateGlobalAnalysis()
     generateUsersAnalysis()
     generatePagesAnalysis()
     #generateCategoriesAnalysis()
@@ -42,7 +42,8 @@ def generadorColumnaFechas(startDate, delta=datetime.timedelta(days=1)):
         yield currentDate
         currentDate += delta
 
-def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_id=None, page_id=None):
+def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props=None, page_props=None):
+    assert type == "global" or (type == "users" and user_props) or (type == "pages" and page_props)
     results = {}
 
     conn, cursor = smwdb.createConnCursor()
@@ -87,7 +88,7 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_id=No
     rows=[row0, row1, row2, row3]
 
     title = ""
-    if type=="general":
+    if type=="global":
         if timesplit == "hour":
             title = u"Hour activity in %s" % smwconfig.preferences["siteName"]
         elif timesplit == "dayofweek":
@@ -95,21 +96,19 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_id=No
         elif timesplit == "month":
             title = u"Month activity in %s" % smwconfig.preferences["siteName"]
     elif type == "users":
-        user_name = smwconfig.users[user_id]["user_name"]
         if timesplit == "hour":
-            title = u"Hour activity by %s" % user_name
+            title = u"Hour activity by %s" % user_props["user_name"]
         elif timesplit == "dayofweek":
-            title = u"Day of week activity by %s" % user_name
+            title = u"Day of week activity by %s" % user_props["user_name"]
         elif timesplit == "month":
-            title = u"Month activity by %s" % user_name
+            title = u"Month activity by %s" % user_props["user_name"]
     elif type == "pages":
-        page_title = smwconfig.pages[page_id]["page_title"]
         if timesplit == "hour":
-            title = u"Hour activity in %s" % page_title
+            title = u"Hour activity in %s" % page_props["page_title"]
         elif timesplit == "dayofweek":
-            title = u"Day of week activity in %s" % page_title
+            title = u"Day of week activity in %s" % page_props["page_title"]
         elif timesplit == "month":
-            title = u"Month activity in %s" % page_title
+            title = u"Month activity in %s" % page_props["page_title"]
 
     # Print rows
     smwcsv.printCSV(type=type, subtype="activity", fileprefix=fileprefix,
@@ -119,22 +118,25 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_id=No
 
     smwdb.destroyConnCursor(conn, cursor)
 
-def generateGeneralTimeActivity():
+def generateGlobalTimeActivity():
     conds = ["1", "page_namespace=0", "page_namespace=1"] # artículo o todas
     headers = ["Edits (all pages)", "Edits (only articles)", "Edits (only articles talks)"]
-    generateTimeActivity(timesplit="hour", type="general", fileprefix="general", conds=conds, headers=headers)
-    generateTimeActivity(timesplit="dayofweek", type="general", fileprefix="general", conds=conds, headers=headers)
-    generateTimeActivity(timesplit="month", type="general", fileprefix="general", conds=conds, headers=headers)
+    generateTimeActivity(timesplit="hour", type="global", fileprefix="global", conds=conds, headers=headers)
+    generateTimeActivity(timesplit="dayofweek", type="global", fileprefix="global", conds=conds, headers=headers)
+    generateTimeActivity(timesplit="month", type="global", fileprefix="global", conds=conds, headers=headers)
 
-def generatePagesTimeActivity(page_id):
-    page_title = smwconfig.pages[page_id]["page_title"] #todo namespaces
+def generatePagesTimeActivity(page_props=None):
+    assert page_props
+    full_page_title = page_props["page_title"]
+    if page_props["page_namespace"] != 0:
+        full_page_title = '%s:%s' % (page_props["page_namespace"], page_props["page_title"])
     conds = ["1", "rev_user=0", "rev_user!=0"] #todas, anónimas o registrados
-    headers = ["Edits in %s (all users)" % page_title, "Edits in %s (only anonymous users)" % page_title, "Edits in %s (only registered users)" % page_title]
-    generateTimeActivity(timesplit="hour", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-    generateTimeActivity(timesplit="dayofweek", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-    generateTimeActivity(timesplit="month", type="pages", fileprefix="page_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+    headers = ["Edits in %s (all users)" % full_page_title, "Edits in %s (only anonymous users)" % full_page_title, "Edits in %s (only registered users)" % full_page_title]
+    generateTimeActivity(timesplit="hour", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
+    generateTimeActivity(timesplit="dayofweek", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
+    generateTimeActivity(timesplit="month", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
 
-def generateCategoriesTimeActivity(page_id):
+def generateCategoriesTimeActivity(page_id): #fix category_props
     category_title = ':'.join(smwconfig.pages[page_id]["page_title"].split(':')[1:]) #todo namespaces
     conds2 = ["1", "rev_user=0", "rev_user!=0"] #todas, anónimas o registrados
     conds = []
@@ -145,16 +147,16 @@ def generateCategoriesTimeActivity(page_id):
     generateTimeActivity(timesplit="dayofweek", type="categories", fileprefix="category_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
     generateTimeActivity(timesplit="month", type="categories", fileprefix="category_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
 
-def generateUsersTimeActivity(user_id):
-    user_name = smwconfig.users[user_id]["user_name"]
-    if user_name == user_id: #ip
-        conds = ["rev_user_text='%s'" % user_id, "page_namespace=0 and rev_user_text='%s'" % user_id, "page_namespace=1 and rev_user_text='%s'" % user_id] # artículo o todas, #todo añadir escape() para comillas?
-    else:
-        conds = ["rev_user=%d" % user_id, "page_namespace=0 and rev_user=%d" % user_id, "page_namespace=1 and rev_user=%d" % user_id] # artículo o todas
-    headers = ["Edits by %s (all pages)" % user_name, "Edits by %s (only articles)" % user_name, "Edits by %s (only articles talks)" % user_name]
-    generateTimeActivity(timesplit="hour", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
-    generateTimeActivity(timesplit="dayofweek", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
-    generateTimeActivity(timesplit="month", type="users", fileprefix="user_%s" % user_id, conds=conds, headers=headers, user_id=user_id)
+def generateUsersTimeActivity(user_props=None):
+    assert user_props
+    conds = ["rev_user_text='%s'" % user_props["user_name"], "page_namespace=0 and rev_user_text='%s'" % user_props["user_name"], "page_namespace=1 and rev_user_text='%s'" % user_props["user_name"]] # artículo o todas, #todo añadir escape() para comillas?
+    headers = ["Edits by %s (all pages)" % user_props["user_name"], "Edits by %s (only articles)" % user_props["user_name"], "Edits by %s (only articles talks)" % user_props["user_name"]]
+    filesubfix = user_props["user_id"]
+    if filesubfix == 0:
+        filesubfix = user_props["user_name_"]
+    generateTimeActivity(timesplit="hour", type="users", fileprefix="user_%s" % filesubfix, conds=conds, headers=headers, user_props=user_props)
+    generateTimeActivity(timesplit="dayofweek", type="users", fileprefix="user_%s" % filesubfix, conds=conds, headers=headers, user_props=user_props)
+    generateTimeActivity(timesplit="month", type="users", fileprefix="user_%s" % filesubfix, conds=conds, headers=headers, user_props=user_props)
 
 def generateCloud(type, user_id=None, page_id=None, category_id=None, page_ids=[]):
     cloud = {}
@@ -238,8 +240,8 @@ def generateCloud(type, user_id=None, page_id=None, category_id=None, page_ids=[
 
     return output
 
-def generateGeneralCloud():
-    return generateCloud(type="general")
+def generateGlobalCloud():
+    return generateCloud(type="global")
 
 def generateUsersCloud(user_id):
     return generateCloud(type="users", user_id=user_id)
@@ -316,7 +318,7 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
     <dd><a href="#users">%d</a></dd>
     <dt>Generated in:</dt>
     <dd>%s</dd>
-    </dl> (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGeneralCloud())
+    </dl> (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGlobalCloud())
 
 
     <dl>
@@ -330,6 +332,17 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         <dt>Files uploaded:</dt>
         <dd><a href="#uploads">%d</a></dd>
         </dl>
+                #avoiding zero division
+        useredits = user_props["revisionsbynamespace"]["*"]
+        usernm0edits = user_props["revisionsbynamespace"][0]
+        usernm0editspercent = 0
+        if useredits > 0:
+            usernm0editspercent = usernm0edits/(useredits/100.0)
+        userbytes = user_props["bytesbynamespace"]["*"]
+        usernm0bytes = user_props["bytesbynamespace"][0]
+        usernm0bytespercent = 0
+        if userbytes > 0:
+            usernm0bytespercent = usernm0bytes/(userbytes/100.0)
 
     """
 
@@ -337,8 +350,8 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
 
     return output
 
-def generateGeneralSummary():
-    return generateSummary(type="general")
+def generateGlobalSummary():
+    return generateSummary(type="global")
 
 def generateUserSummary(user_props):
     return generateSummary(type="users", user_props=user_props)
@@ -349,7 +362,9 @@ def generatePageSummary(page_props):
 def generateCategorySummary(category_props):
     return generateSummary(type="categories", category_props=category_props)
 
-def generateContentEvolution(type, user_id=None, page_id=None, category_id=None, page_ids=[]): #fix, convertir a _props?
+def generateContentEvolution(type, user_props=None, page_props=None, category_props=None):
+    assert type == "global" or (type == "users" and user_props) or (type == "pages" and page_props) or (type == "categories" and category_props)
+
     fecha = smwconfig.preferences["startDate"]
     fechaincremento = datetime.timedelta(days=1)
     graph1 = []
@@ -360,31 +375,22 @@ def generateContentEvolution(type, user_id=None, page_id=None, category_id=None,
     count3 = 0
     while fecha < smwconfig.preferences["endDate"]:
         for rev_id, rev_props in smwconfig.revisions.items():
-            if type == "general":
+            if type == "global":
                 pass #nos interesan todas
             elif type == "users":
-                if not user_id:
-                    print "Error: no hay user_id"
-                    sys.exit()
-                if rev_props["rev_user"] != user_id:
+                if rev_props["rev_user_text_"] != user_props["user_name_"]:
                     continue #nos la saltamos, no es de este usuario
             elif type == "pages":
-                if not page_id:
-                    print "Error: no hay page_id"
-                    sys.exit()
-                if rev_props["rev_page"] != page_id:
+                if rev_props["rev_page"] != page_props["page_id"]:
                     continue #nos la saltamos, no es de esta página
             elif type == "categories":
-                if not category_id: #no poner not page_ids, ya que la categoría puede estar vacía y no tener page_id de página alguna
-                    print "Error: no hay category_id"
-                    sys.exit()
-                if rev_props["rev_page"] not in page_ids:
+                if rev_props["rev_page"] not in category_props["pages"]:
                     continue #nos la saltamos, esta revisión no es de una página de esta categoría
 
             if rev_props["rev_timestamp"] < fecha and rev_props["rev_timestamp"] >= fecha - fechaincremento: # 00:00:00 < fecha < 23:59:59
                 rev_page = rev_props["rev_page"]
-                if type == "general":
-                    #más adelante quizás convenga poner la evolución del contenido según anónimos y registrados, para el caso general
+                if type == "global":
+                    #más adelante quizás convenga poner la evolución del contenido según anónimos y registrados, para el caso global
                     if smwconfig.pages[rev_page]["page_namespace"] == 0:
                         count2 += rev_props["len_diff"]
                     if smwconfig.pages[rev_page]["page_namespace"] == 1:
@@ -415,32 +421,28 @@ def generateContentEvolution(type, user_id=None, page_id=None, category_id=None,
 
         fecha += fechaincremento
 
-    #if type == "users":
-    #    smwconfig.users[user_id]["bytesbynamespace"]["*"] = count1
-    #    smwconfig.users[user_id]["bytesbynamespace"][0] = count2
-
-    title = u""
-    fileprefix = u""
-    owner = u""
-    if type == "general":
+    title = ''
+    fileprefix = ''
+    owner = ''
+    if type == "global":
         title = u"Content evolution in %s" % smwconfig.preferences["siteName"]
-        fileprefix = "general"
+        fileprefix = "global"
         owner = smwconfig.preferences["siteName"]
     elif type == "users":
-        user_name = smwconfig.users[user_id]["user_name"]
-        title = u"Content evolution by %s" % user_name
-        fileprefix = "user_%s" % user_id
-        owner = user_name
+        title = u"Content evolution by %s" % user_props["user_name"]
+        if user_props["user_id"] == 0:
+            fileprefix = "user_%s" % user_props["user_name_"]
+        else:
+            fileprefix = "user_%s" % user_props["user_id"]
+        owner = user_props["user_name"]
     elif type == "pages":
-        page_title = smwconfig.pages[page_id]["page_title"]
-        title = u"Content evolution in %s" % page_title
-        fileprefix = "page_%s" % page_id
-        owner = page_title
+        title = u"Content evolution in %s" % page_props["page_title"]
+        fileprefix = "page_%s" % page_props["page_id"]
+        owner = page_props["page_title"]
     elif type == "categories":
-        category_title = smwconfig.pages[category_id]["page_title"]
-        title = u"Content evolution for pages in %s" % category_title
-        fileprefix = "category_%s" % category_id
-        owner = category_title
+        title = u"Content evolution for pages in %s" % category_props["category_title"]
+        fileprefix = "category_%s" % pagetitle2pageid(page_title_=category_props["category_title_"], page_namespace=14)
+        owner = category_props["category_title"]
 
     if type == "pages" or type == "categories":
         headers = ["Date", "%s content (all users)" % owner, "%s content (only anonymous users)" % owner, "%s content (only registered users)" % owner]
@@ -458,14 +460,14 @@ def generateContentEvolution(type, user_id=None, page_id=None, category_id=None,
                                    title=title, headers=headers,
                                    rows=[graph1, graph2, graph3])
 
-def generateGeneralContentEvolution():
-    generateContentEvolution(type="general")
+def generateGlobalContentEvolution():
+    generateContentEvolution(type="global")
 
-def generateUsersContentEvolution(user_id):
-    generateContentEvolution(type="users", user_id=user_id)
+def generateUsersContentEvolution(user_props):
+    generateContentEvolution(type="users", user_props=user_props)
 
-def generatePagesContentEvolution(page_id):
-    generateContentEvolution(type="pages", page_id=page_id)
+def generatePagesContentEvolution(page_props):
+    generateContentEvolution(type="pages", page_props=page_props)
 
 def generateCategoriesContentEvolution(category_id, page_ids):
     generateContentEvolution(type="categories", category_id=category_id, page_ids=page_ids)
@@ -485,15 +487,15 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         output += '<th>Bytes added in articles</th><th>%</th><th>Uploads</th><th>%</th>'
     output += '</tr>'
 
-    sortedUsers = []
+    usersSorted = []
     totalrevisions = 0
     totalbytes = 0
     if type == "global":
-        sortedUsers = smwget.getUsersSortedByTotalEdits()
+        usersSorted = smwget.getUsersSortedByTotalEdits()
         totalrevisions = smwget.getTotalRevisions()
         totalbytes = smwget.getTotalBytes()
     elif type == "pages":
-        sortedUsers = smwget.getUsersSortedByTotalEditsInPage(page_id=page_props["page_id"])
+        usersSorted = smwget.getUsersSortedByTotalEditsInPage(page_id=page_props["page_id"])
         totalrevisions = smwget.getTotalRevisionsByPage(page_id=page_props["page_id"])
         totalbytes = page_props["page_len"]
     elif type == "categories":
@@ -503,10 +505,10 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         sys.exit()
 
     c = 1
-    for numrevisions, user_text_ in sortedUsers:
+    for numrevisions, user_text_ in usersSorted:
         filesubfix = smwconfig.users[user_text_]["user_id"]
         if filesubfix == 0: #ip
-            filesubfix = smwconfig.users[user_text_]["user_name"]
+            filesubfix = user_text_
 
         #start row
         output += '<tr><td>%d</td>' % (c)
@@ -552,101 +554,41 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
 
     return output
 
-def generatePagesTable():
+def generatePagesTable(type=None, user_props=None, category_props=None):
+    assert type == "global" or (type == "users" and user_props) or (type == "categories" and category_props)
     #fix fusionar con generateusersmosteditedtable
-    output = u"""<table>
-    <tr><th>#</th><th>Page</th><th>Namespace</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
+    output = '<table><tr>'
+    output += '<th>#</th><th>Page</th><th>Namespace</th><th>Edits</th><th>%</th><th>Bytes</th><th>%</th>'
+    if type == "global":
+        output += '<th>Visits</th><th>%</th>'
+    output += '</tr>'
 
-    sortedPages = [] #by edits
-
-    edits = 0
-    bytes = 0
-    visits = 0
-    for page_id, page_props in smwconfig.pages.items():
-        edits += page_props["edits"]
-        bytes += page_props["page_len"]
-        visits += page_props["page_counter"]
-        sortedPages.append([page_props["edits"], page_id])
-    sortedPages.sort()
-    sortedPages.reverse()
-
-    c = 1
-    for page_edits, page_id in sortedPages:
-        page_props = smwconfig.pages[page_id]
-        edits_percent = page_props["edits"] / (edits / 100.0)
-        bytes_percent = page_props["page_len"] / (bytes / 100.0)
-        visits_percent = page_props["page_counter"] / (visits / 100.0)
-        output += u"""<tr><td>%s</td><td><a href="html/pages/page_%s.html">%s</a></td><td>%s</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td><td>%s (%.2f%%)</td></tr>\n""" % (c, page_id, page_props["page_title"], smwconfig.namespaces[page_props["page_namespace"]], page_props["edits"], edits_percent, page_props["page_len"], bytes_percent, page_props["page_counter"], visits_percent)
-        c += 1
-
-    output += """<tr><td></td><td>Total</td><td></td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n""" % (edits, bytes, visits)
-    output += """</table>"""
-
-    return output
-
-def generateCategoriesTable():
-    output = u"""<table>
-    <tr><th>#</th><th>Category</th><th>Pages</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
-
-    sortedCategories = [] #by edits
-
-    all_categorised_page_ids = set()
-    for category_title, page_ids in smwconfig.categories.items():
-        category_id = smwget.pagetitle2pageid(page_title=category_title, page_namespace=14)
-        if category_id: #si la página de la categoría existe
-            [all_categorised_page_ids.add(i) for i in page_ids] #a set to avoid dupes
-
-    totaledits = 0
+    pagesSorted = [] #by edits
+    totalrevisions = 0
     totalbytes = 0
-    totalvisits = 0
-    for page_id, page_props in smwconfig.pages.items():
-        if page_id in all_categorised_page_ids: #for the totals, only count categorised pages info
-            totaledits += page_props["edits"]
-            totalbytes += page_props["page_len"]
-            totalvisits += page_props["page_counter"]
-    totalpages = len(all_categorised_page_ids)
-
-    for category_title, page_ids in smwconfig.categories.items():
-        sortedCategories.append([len(page_ids), category_title])
-    sortedCategories.sort()
-    sortedCategories.reverse()
+    if type == "global":
+        pagesSorted = smwget.getPagesSortedByTotalEdits()
+        totalrevisions = smwget.getTotalRevisions()
+        totalbytes = smwget.getTotalBytes()
+    elif type == "users":
+        pagesSorted = smwget.getPagesSortedByTotalEditsByUser(user_text_=user_props["user_name_"])
+        totalrevisions = smwget.getTotalRevisionsByUser(user_text_=user_props["user_name_"])
+        totalbytes = smwget.getTotalBytesByUser(user_text_=user_props["user_name_"])
+    elif type == "categories":
+        pass
+    else:
+        print "Error type =", type
+        sys.exit()
 
     c = 1
-    for numpages, category_title in sortedCategories:
-        category_id = smwget.pagetitle2pageid(page_title=category_title, page_namespace=14)
-        if not category_id: #categorías que contienen páginas pero que no tienen página creada, por lo tanto no tienen page_id
-            continue
+    for numrevisions, page_id in pagesSorted:
+        #start row
+        output += '<tr><td>%d</td>' % (c)
+        output += '<td><a href="../pages/page_%d.html">%s</a></td>' % (page_id, smwconfig.pages[page_id]["page_title"])
+        #edits
 
-        #acumulado para las páginas de esta categoría
-        numedits = 0
-        numbytes = 0
-        numvisits = 0
-        page_ids = smwconfig.categories[category_title]
-        for page_id, page_props in smwconfig.pages.items():
-            if page_id in page_ids:
-                numedits += page_props["edits"]
-                numbytes += page_props["page_len"]
-                numvisits += page_props["page_counter"]
-
-        numpagespercent = 0
-        if totalpages > 0:
-            numpagespercent = numpages/(totalpages/100.0)
-        numeditspercent = 0
-        if totaledits > 0:
-            numeditspercent = numedits/(totaledits/100.0)
-        numbytespercent = 0
-        if totalbytes > 0:
-            numbytespercent = numbytes/(totalbytes/100.0)
-        numvisitspercent = 0
-        if totalvisits > 0:
-            numvisitspercent = numvisits/(totalvisits/100.0)
-
-        output += u"""<tr><td>%d</td><td><a href="html/categories/category_%s.html">%s</a></td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td></tr>\n""" % (c, category_id, category_title, numpages, numpagespercent, numedits, numeditspercent, numbytes, numbytespercent, numvisits, numvisitspercent)
-        c += 1
-
-    output += """<tr><td></td><td>Total</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td></tr>\n""" % (totalpages, totaledits, totalbytes, totalvisits)
-    output += """</table>"""
-    output += """<center>Due to some pages can be contained in various categories, the sum of the colums can be different to the total row</center>"""
+    #output += '<tr><td></td><td>Total</td><td></td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n'
+    output += '</table>'
 
     return output
 
@@ -685,7 +627,74 @@ def generateUsersMostEditedTable(user_id):
 
     return output
 
-def generateGeneralAnalysis(): #fix cambiar General->Global ? así es como lo llamo en los type
+def generateCategoriesTable():
+    output = u"""<table>
+    <tr><th>#</th><th>Category</th><th>Pages</th><th>Edits</th><th>Bytes</th><th>Visits</th></tr>"""
+
+    categoriesSorted = [] #by edits
+
+    all_categorised_page_ids = set()
+    for category_title_, category_props in smwconfig.categories.items(): #fix page_ids es pages incluido dentro de category props
+        category_id = smwget.pagetitle2pageid(page_title_=category_title_, page_namespace=14)
+        if category_id: #si la página de la categoría existe
+            [all_categorised_page_ids.add(i) for i in category_props["pages"]] #a set to avoid dupes
+
+    totaledits = 0
+    totalbytes = 0
+    totalvisits = 0
+    for page_id, page_props in smwconfig.pages.items():
+        if page_id in all_categorised_page_ids: #for the totals, only count categorised pages info
+            totaledits += smwget.getTotalRevisionsByPage(page_id=page_id)
+            totalbytes += page_props["page_len"]
+            totalvisits += page_props["page_counter"]
+    totalpages = len(all_categorised_page_ids)
+
+    for category_title_, category_props in smwconfig.categories.items():
+        categoriesSorted.append([len(category_props["pages"]), category_title_])
+    categoriesSorted.sort()
+    categoriesSorted.reverse()
+
+    c = 1
+    for numpages, category_title_ in categoriesSorted:
+        category_id = smwget.pagetitle2pageid(page_title_=category_title_, page_namespace=14)
+        category_props = smwconfig.categories[category_title_]
+        if not category_id: #categorías que contienen páginas pero que no tienen página creada, por lo tanto no tienen page_id
+            continue
+
+        #acumulado para las páginas de esta categoría
+        numedits = 0
+        numbytes = 0
+        numvisits = 0
+        for page_id, page_props in smwconfig.pages.items():
+            if page_id in category_props["pages"]:
+                numedits += smwget.getTotalRevisionsByPage(page_id=page_id)
+                numbytes += page_props["page_len"]
+                numvisits += page_props["page_counter"]
+
+        #to avoid zero division
+        numpagespercent = 0
+        if totalpages > 0:
+            numpagespercent = numpages/(totalpages/100.0)
+        numeditspercent = 0
+        if totaledits > 0:
+            numeditspercent = numedits/(totaledits/100.0)
+        numbytespercent = 0
+        if totalbytes > 0:
+            numbytespercent = numbytes/(totalbytes/100.0)
+        numvisitspercent = 0
+        if totalvisits > 0:
+            numvisitspercent = numvisits/(totalvisits/100.0)
+
+        output += u"""<tr><td>%d</td><td><a href="html/categories/category_%d.html">%s</a></td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td><td>%d (%.1f%%)</td></tr>\n""" % (c, category_id, category_props["category_title"], numpages, numpagespercent, numedits, numeditspercent, numbytes, numbytespercent, numvisits, numvisitspercent)
+        c += 1
+
+    output += """<tr><td></td><td>Total</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td><td>%d (100%%)</td></tr>\n""" % (totalpages, totaledits, totalbytes, totalvisits)
+    output += """</table>"""
+    output += """<center>Due to some pages can be contained in various categories, the sum of the colums can be different to the total row</center>"""
+
+    return output
+
+def generateGlobalAnalysis():
     print "Generating global analysis"
     body = u"""%s
 
@@ -695,11 +704,11 @@ def generateGeneralAnalysis(): #fix cambiar General->Global ? así es como lo ll
     <div id="divcontentevolution">
     <table class="downloads">
     <tr><th><b>Download as</b></th></tr>
-    <tr><td><a href="graphs/general/general_content_evolution.png">PNG</a></td></tr>
-    <tr><td><a href="csv/general/general_content_evolution.csv">CSV</a></td></tr>
+    <tr><td><a href="graphs/global/global_content_evolution.png">PNG</a></td></tr>
+    <tr><td><a href="csv/global/global_content_evolution.csv">CSV</a></td></tr>
     </table>
     <center>
-    <img src="graphs/general/general_content_evolution.png" alt="Content evolution" />
+    <img src="graphs/global/global_content_evolution.png" alt="Content evolution" />
     </center>
     </div>
 
@@ -708,24 +717,24 @@ def generateGeneralAnalysis(): #fix cambiar General->Global ? así es como lo ll
     <center>
     <table class="downloads">
     <tr><th><b>Download as</b></th></tr>
-    <tr><td><a href="graphs/general/general_hour_activity.png">PNG</a></td></tr>
-    <tr><td><a href="csv/general/general_hour_activity.csv">CSV</a></td></tr>
+    <tr><td><a href="graphs/global/global_hour_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/global/global_hour_activity.csv">CSV</a></td></tr>
     </table>
-    <img src="graphs/general/general_hour_activity.png" alt="Hour activity" /><br/>
+    <img src="graphs/global/global_hour_activity.png" alt="Hour activity" /><br/>
 
     <table class="downloads">
     <tr><th><b>Download as</b></th></tr>
-    <tr><td><a href="graphs/general/general_dayofweek_activity.png">PNG</a></td></tr>
-    <tr><td><a href="csv/general/general_dayofweek_activity.csv">CSV</a></td></tr>
+    <tr><td><a href="graphs/global/global_dayofweek_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/global/global_dayofweek_activity.csv">CSV</a></td></tr>
     </table>
-    <img src="graphs/general/general_dayofweek_activity.png" alt="Day of week activity" /><br/>
+    <img src="graphs/global/global_dayofweek_activity.png" alt="Day of week activity" /><br/>
 
     <table class="downloads">
     <tr><th><b>Download as</b></th></tr>
-    <tr><td><a href="graphs/general/general_month_activity.png">PNG</a></td></tr>
-    <tr><td><a href="csv/general/general_month_activity.csv">CSV</a></td></tr>
+    <tr><td><a href="graphs/global/global_month_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/global/global_month_activity.csv">CSV</a></td></tr>
     </table>
-    <img src="graphs/general/general_month_activity.png" alt="Month activity" />
+    <img src="graphs/global/global_month_activity.png" alt="Month activity" />
     </center>
     </div>
 
@@ -757,37 +766,25 @@ def generateGeneralAnalysis(): #fix cambiar General->Global ? así es como lo ll
     %s
     </center>
     </div>
-    """ % (smwhtml.getSections(type="global"), generateSummary(type="global"), generateUsersTable(type="global"), generatePagesTable(type="global"), generateCategoriesTable(), generateGeneralCloud())
+    """ % (smwhtml.getSections(type="global"), generateSummary(type="global"), generateUsersTable(type="global"), generatePagesTable(type="global"), generateCategoriesTable(), generateGlobalCloud())
 
-    generateGeneralContentEvolution()
-    generateGeneralTimeActivity()
+    generateGlobalContentEvolution()
+    generateGlobalTimeActivity()
 
-    smwhtml.printHTML(type="general", title=smwconfig.preferences["siteName"], body=body)
+    smwhtml.printHTML(type="global", title=smwconfig.preferences["siteName"], body=body)
 
 def generateUsersAnalysis():
     for user_id, user_props in smwconfig.users.items():
         user_name = user_props["user_name"]
         print u"Generating analysis to user: %s" % user_name
-        generateUsersContentEvolution(user_id=user_id) #debe ir antes de rellenar el body, cuenta bytes, y antes de cortar por anonymous, #fix hacerlo independiente, calcularlo en el load
+        generateUsersContentEvolution(user_props=user_props)
         if smwconfig.preferences["anonymous"]:
             continue
-        generateUsersTimeActivity(user_id=user_id)
+        generateUsersTimeActivity(user_props=user_props)
 
         gallery = ''
         for img_name_ in smwget.getImagesByUser(user_text_=user_props["user_name_"]):
             gallery += u"""<a href='%s/%s/Image:%s'><img src="%s" width="200px" alt="%s"/></a>&nbsp;&nbsp;&nbsp;""" % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], img_name_, smwconfig.images[img_name_]["img_url"], img_name_)
-
-        """#avoiding zero division
-        useredits = user_props["revisionsbynamespace"]["*"]
-        usernm0edits = user_props["revisionsbynamespace"][0]
-        usernm0editspercent = 0
-        if useredits > 0:
-            usernm0editspercent = usernm0edits/(useredits/100.0)
-        userbytes = user_props["bytesbynamespace"]["*"]
-        usernm0bytes = user_props["bytesbynamespace"][0]
-        usernm0bytespercent = 0
-        if userbytes > 0:
-            usernm0bytespercent = usernm0bytes/(userbytes/100.0)"""
 
         body = u"""%s\n%s\n%s
 
@@ -854,8 +851,8 @@ def generateUsersAnalysis():
         </center>
         </div>
 
-        &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="users"), generateSummary(type="users", user_props=user_props), user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, generateUsersMostEditedTable(user_id=user_id), len(smwconfig.users[user_id]["images"]), gallery, generateUsersCloud(user_id=user_id), smwconfig.preferences["indexFilename"])
+        %s
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="users"), generateSummary(type="users", user_props=user_props), user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, generatePagesTable(type="users", user_props=user_props), smwget.getTotalImagesByUser(user_text_=user_props["user_name_"]), gallery, generateUsersCloud(user_id=user_id), smwhtml.getBacklink())
 
         title = "%s: User:%s" % (smwconfig.preferences["siteName"], user_name)
         if not smwconfig.preferences["anonymous"]:
@@ -864,8 +861,8 @@ def generateUsersAnalysis():
 def generatePagesAnalysis():
     for page_id, page_props in smwconfig.pages.items():
         print u"Generating analysis to the page: %s" % (page_props["page_title"])
-        generatePagesContentEvolution(page_id=page_id)
-        generatePagesTimeActivity(page_id=page_id)
+        generatePagesContentEvolution(page_props=page_props)
+        generatePagesTimeActivity(page_props=page_props)
 
         """#avoiding zero division
         pageedits = page_props["edits"]
@@ -938,14 +935,14 @@ def generatePagesAnalysis():
         smwhtml.printHTML(type="pages", file="page_%d.html" % page_id, title=title, body=body)
 
 def generateCategoriesAnalysis():
-    for category_title, page_ids in smwconfig.categories.items():
-        category_id = smwget.pagetitle2pageid(page_title=category_title, page_namespace=14)
+    for category_title_, page_ids in smwconfig.categories.items(): #fix category_props en vez de page_ids
+        category_id = smwget.pagetitle2pageid(page_title_=category_title_, page_namespace=14)
         if not category_id:
             #necesitamos un page_id para la categoría, para los nombres de los ficheros, no nos lo vamos a inventar
             #así que si no existe, no generamos análisis para esa categoría
-            print "Some pages are categorised into %s but there is no page for that category" % (category_title)
+            print "Some pages are categorised into %s but there is no page for that category" % (category_title_)
             continue
-        print u"Generating analysis to the category: %s" % category_title
+        print u"Generating analysis to the category: %s" % category_title_
         generateCategoriesContentEvolution(category_id=category_id, page_ids=page_ids)
         generateCategoriesTimeActivity(page_id=category_id)
 

@@ -24,6 +24,14 @@ import smwget
 
 #this is the only module that must read from the database
 
+def load():
+    loadDateRange()
+    loadCategories()
+    loadImages()
+    loadPages()
+    loadRevisions() #require startDate and endDate initialized
+    loadUsers()
+
 def loadCategories():
     smwconfig.categories.clear() #reset
     conn, cursor = smwdb.createConnCursor()
