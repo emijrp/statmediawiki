@@ -29,9 +29,9 @@ import smwplot
 
 def generateAnalysis():
     generateGlobalAnalysis()
-    generateUsersAnalysis()
-    generatePagesAnalysis()
-    #generateCategoriesAnalysis()
+    #generateUsersAnalysis()
+    #generatePagesAnalysis()
+    generateCategoriesAnalysis()
 
 def generadorColumnaFechas(startDate, delta=datetime.timedelta(days=1)):
     # Generamos una columna virtual con fechas a partir de una fecha
@@ -42,8 +42,8 @@ def generadorColumnaFechas(startDate, delta=datetime.timedelta(days=1)):
         yield currentDate
         currentDate += delta
 
-def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props=None, page_props=None):
-    assert type == "global" or (type == "users" and user_props) or (type == "pages" and page_props)
+def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props=None, page_props=None, category_props=None):
+    assert type == "global" or (type == "users" and user_props) or (type == "pages" and page_props) or (type == "categories" and category_props)
     results = {}
 
     conn, cursor = smwdb.createConnCursor()
@@ -110,6 +110,13 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
             title = u"Day of week activity in %s" % page_props["page_title"]
         elif timesplit == "month":
             title = u"Month activity in %s" % page_props["page_title"]
+    elif type == "categories":
+        if timesplit == "hour":
+            title = u"Hour activity in category %s" % category_props["category_title"]
+        elif timesplit == "dayofweek":
+            title = u"Day of week activity in category %s" % category_props["category_title"]
+        elif timesplit == "month":
+            title = u"Month activity in category %s" % category_props["category_title"]
 
     # Print rows
     smwcsv.printCSV(type=type, subtype="activity", fileprefix=fileprefix,
@@ -137,15 +144,14 @@ def generatePagesTimeActivity(page_props=None):
 
 def generateCategoriesTimeActivity(category_props=None): #fix category_props
     assert category_props
-    category_title = ':'.join(smwconfig.pages[page_id]["page_title"].split(':')[1:]) #todo namespaces
     conds2 = ["1", "rev_user=0", "rev_user!=0"] #todas, anónimas o registrados
     conds = []
     for cond in conds2:
-        conds.append("%s and rev_page in (select cl_from from categorylinks where cl_to='%s')" % (cond, re.sub(' ', '_', category_title).encode('utf-8'))) #fix cuidado con nombres de categorías con '
-    headers = ["Edits in category %s (all users)" % category_title, "Edits in category %s (only anonymous users)" % category_title, "Edits in category %s (only registered users)" % category_title]
-    generateTimeActivity(timesplit="hour", type="categories", fileprefix="category_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-    generateTimeActivity(timesplit="dayofweek", type="categories", fileprefix="category_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
-    generateTimeActivity(timesplit="month", type="categories", fileprefix="category_%d" % page_id, conds=conds, headers=headers, page_id=page_id)
+        conds.append("%s and rev_page in (select cl_from from categorylinks where cl_to='%s')" % (cond, category_props["category_title_"])) #fix cuidado con nombres de categorías con '
+    headers = ["Edits in category %s (all users)" % category_props["category_title"], "Edits in category %s (only anonymous users)" % category_props["category_title"], "Edits in category %s (only registered users)" % category_props["category_title"]]
+    generateTimeActivity(timesplit="hour", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
+    generateTimeActivity(timesplit="dayofweek", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
+    generateTimeActivity(timesplit="month", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
 
 def generateUsersTimeActivity(user_props=None):
     assert user_props
@@ -422,7 +428,7 @@ def generateContentEvolution(type, user_props=None, page_props=None, category_pr
         owner = page_props["page_title"]
     elif type == "categories":
         title = u"Content evolution for pages in %s" % category_props["category_title"]
-        fileprefix = "category_%s" % pagetitle2pageid(page_title_=category_props["category_title_"], page_namespace=14)
+        fileprefix = "category_%s" % category_props["category_id"]
         owner = category_props["category_title"]
 
     if type == "pages" or type == "categories":
@@ -650,8 +656,7 @@ def generateCategoriesTable():
 
     all_categorised_page_ids = set()
     for category_title_, category_props in smwconfig.categories.items(): #fix page_ids es pages incluido dentro de category props
-        category_id = smwget.pagetitle2pageid(page_title_=category_title_, page_namespace=14)
-        if category_id: #si la página de la categoría existe
+        if category_props["category_id"] != None: #si la página de la categoría existe
             [all_categorised_page_ids.add(i) for i in category_props["pages"]] #a set to avoid dupes
 
     totaledits = 0
@@ -671,9 +676,8 @@ def generateCategoriesTable():
 
     c = 1
     for numpages, category_title_ in categoriesSorted:
-        category_id = smwget.pagetitle2pageid(page_title_=category_title_, page_namespace=14)
         category_props = smwconfig.categories[category_title_]
-        if not category_id: #categorías que contienen páginas pero que no tienen página creada, por lo tanto no tienen page_id
+        if category_props["category_id"] == None: #categorías que contienen páginas pero que no tienen página creada, por lo tanto no tienen page_id
             continue
 
         #acumulado para las páginas de esta categoría
@@ -691,7 +695,7 @@ def generateCategoriesTable():
             numvisitspercent = numvisits/(totalvisits/100.0)
 
         output += '<tr>'
-        output += '<td>%d</td><td><a href="html/categories/category_%d.html">%s</a></td>' % (c, category_id, category_props["category_title"])
+        output += '<td>%d</td><td><a href="html/categories/category_%d.html">%s</a></td>' % (c, category_props["category_id"], category_props["category_title"])
         output += '<td>%d</td><td>%.1f%%</td>' % (numpages, totalpages and numpages/(totalpages/100.0) or 0)
         output += '<td>%d</td><td>%.1f%%</td>' % (numedits, totaledits and numedits/(totaledits/100.0) or 0)
         output += '<td>%d</td><td>%.1f%%</td>' % (numbytes, totalbytes and numbytes/(totalbytes/100.0) or 0)
@@ -949,16 +953,15 @@ def generatePagesAnalysis():
         smwhtml.printHTML(type="pages", file="page_%d.html" % page_id, title=title, body=body)
 
 def generateCategoriesAnalysis():
-    for category_title_, page_ids in smwconfig.categories.items(): #fix category_props en vez de page_ids
-        category_id = smwget.pagetitle2pageid(page_title_=category_title_, page_namespace=14)
-        if not category_id:
+    for category_title_, category_props in smwconfig.categories.items(): #fix category_props en vez de page_ids
+        if category_props["category_id"] == None:
             #necesitamos un page_id para la categoría, para los nombres de los ficheros, no nos lo vamos a inventar
             #así que si no existe, no generamos análisis para esa categoría
             print "Some pages are categorised into %s but there is no page for that category" % (category_title_)
             continue
         print u"Generating analysis to the category: %s" % category_title_
         generateContentEvolution(type="categories", category_props=category_props)
-        generateCategoriesTimeActivity(page_id=category_id)
+        generateCategoriesTimeActivity(category_props=category_props)
 
         #avoiding zero division
         catedits = 0
@@ -1059,8 +1062,8 @@ def generateCategoriesAnalysis():
         </center>
         </div>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_title, category_title, smwconfig.preferences["siteUrl"], category_title, catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(smwconfig.categories[category_title]), category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, category_id, "", "", generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        """ % (smwconfig.preferences["indexFilename"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"], catedits, catanonedits, catanoneditspercent, catregedits, catregeditspercent, len(smwconfig.categories[category_title]["pages"]), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], "", "", generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
-        title = "%s: Pages in category %s" % (smwconfig.preferences["siteName"], category_title)
-        smwhtml.printHTML(type="categories", file="category_%s.html" % category_id, title=title, body=body)
+        title = "%s: Pages in category %s" % (smwconfig.preferences["siteName"], category_props["category_title"])
+        smwhtml.printHTML(type="categories", file="category_%d.html" % category_props["category_id"], title=title, body=body)
 

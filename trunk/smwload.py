@@ -34,6 +34,7 @@ def load():
     loadUsers()
 
     fillPagelen()
+    fillCategoryids()
 
 def fillPagelen():
     for page_id, page_props in smwconfig.pages.items():
@@ -46,6 +47,12 @@ def fillPagelen():
                     temprevtimestamp = rev_props["rev_timestamp"]
                     temppagelen = len(rev_props["old_text"])
         smwconfig.pages[page_id]["page_len"] = temppagelen
+
+def fillCategoryids():
+    for category_title_, category_props in smwconfig.categories.items():
+        for page_id, page_props in smwconfig.pages.items():
+            if page_props["page_namespace"] == 14 and page_props["page_title_"] == category_title_:
+                smwconfig.categories[category_title_]["category_id"] = page_id
 
 def loadCategories():
     smwconfig.categories.clear() #reset
@@ -78,6 +85,7 @@ def loadCategories():
             smwconfig.categories[page_title_] = {
                 "category_title": page_title,
                 "category_title_": page_title_,
+                "category_id": None, #las categorías sin página creada quedarán como None
                 "pages": []
             }
 
