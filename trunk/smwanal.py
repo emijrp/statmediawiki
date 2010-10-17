@@ -48,13 +48,14 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
 
     conn, cursor = smwdb.createConnCursor()
     for cond in conds:
-        cursor.execute("SELECT %s(rev_timestamp) AS time, COUNT(rev_id) AS count FROM %srevision INNER JOIN %spage ON rev_page=page_id WHERE %s GROUP BY time ORDER BY time" % (timesplit, smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], cond))
+        cursor.execute("SELECT %s(rev_timestamp) AS time, COUNT(rev_id) AS count FROM %srevision, %spage WHERE rev_page=page_id and %s GROUP BY time ORDER BY time" % (timesplit, smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], cond))
         result = cursor.fetchall()
         results[cond] = {}
         for timestamp, edits in result:
             if timesplit in ["dayofweek", "month"]:
                 timestamp = timestamp - 1
             results[cond][str(timestamp)] = str(edits)
+    smwdb.destroyConnCursor(conn, cursor)
 
     headers = [timesplit] + headers
     fileprefix = "%s_%s" % (fileprefix, timesplit)
@@ -115,8 +116,6 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
              headers=headers, rows=rows)
     smwplot.printGraphTimeActivity(type=type, fileprefix=fileprefix, title=title,
                            headers=headers, rows=rows)
-
-    smwdb.destroyConnCursor(conn, cursor)
 
 def generateGlobalTimeActivity():
     conds = ["1", "page_namespace=0", "page_namespace=1"] # artículo o todas
