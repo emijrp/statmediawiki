@@ -160,9 +160,6 @@ def getTotalVisitsByNamespace(namespace=0, redirects=False):
     else:
         return sum([page_props["page_counter"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]])
 
-def getTotalFiles():
-    return int(getSingleValue("SELECT COUNT(*) AS count FROM %simage WHERE 1" % smwconfig.preferences["tablePrefix"]))
-
 def getImageUrl(img_name):
     img_name_ = re.sub(' ', '_', img_name) #espacios a _
     md5_ = md5.md5(img_name_.encode('utf-8')).hexdigest() #digest hexadecimal
