@@ -33,6 +33,20 @@ def load():
     loadRevisions() #require startDate and endDate initialized
     loadUsers()
 
+    fillPagelen()
+
+def fillPagelen():
+    for page_id, page_props in smwconfig.pages.items():
+        temprevtimestamp = None
+        temppagelen = None
+        for rev_id, rev_props in smwconfig.revisions.items():
+
+            if page_id == rev_props["rev_page"]:
+                if not temprevtimestamp or temprevtimestamp < rev_props["rev_timestamp"]:
+                    temprevtimestamp = rev_props["rev_timestamp"]
+                    temppagelen = len(rev_props["old_text"])
+        smwconfig.pages[page_id]["page_len"] = temppagelen
+
 def loadCategories():
     smwconfig.categories.clear() #reset
     conn, cursor = smwdb.createConnCursor()

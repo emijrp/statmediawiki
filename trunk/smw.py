@@ -27,7 +27,9 @@ import smwoutput
 #todo:
 """
 mejorar los summary
-meter campos que faltan en lista de pages
+meter total rows en tablas
+marcar redirecciones en las tablas (con #R ? )
+poner de otro color (rojo o azul) al campo que gana en cada columna de cada tabla
 separar campos % en lista categorias
 arreglar nombres secciones y enlaces internos #
 """
