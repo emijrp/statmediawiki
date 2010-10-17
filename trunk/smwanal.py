@@ -433,9 +433,9 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
 
     output = ''
     #legend
-    output += '<table><tr>'
-    output += ''.join(['<td class="cellcolor%d">&nbsp;&nbsp;&nbsp;</td>' % (i) for i in range(smwconfig.preferences["numColors"] + 1)])
-    output += '</tr></table>'
+    output += '<table><tr><td>Low</td>'
+    output += ''.join(['<td class="cellcolor%d">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>' % (i) for i in range(smwconfig.preferences["numColors"])])
+    output += '<td>High</td></tr></table>'
 
     #table
     output += '<table><tr>'
@@ -483,14 +483,14 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         output += '<td><a href="%s/users/user_%s.html">%s</a></td>' % (type == "global" and 'html' or '..', filesubfix, smwconfig.users[user_text_]["user_name"])
         #edits
         percent = totalrevisions > 0 and numrevisions/(totalrevisions/100.0) or 0
-        maxi = max([k for k, v in smwget.getUsersSortedByTotalRevisions()] + [0])
+        maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisions()] + [0]))
         color = maxi > smwconfig.preferences["numColors"] and numrevisions/(maxi/smwconfig.preferences["numColors"]) or 0
         output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numrevisions, color, percent)
         #edits in articles
         if type == "global":
             numrevisionsinarticles = smwget.getTotalRevisionsByUserInNamespace(user_text_=user_text_, namespace=0)
             percent = totalrevisionsinarticles > 0 and numrevisionsinarticles/(totalrevisionsinarticles/100.0) or 0
-            maxi = max([k for k, v in smwget.getUsersSortedByTotalRevisionsInNamespace(namespace=0)] + [0])
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisionsInNamespace(namespace=0)] + [0]))
             color = maxi > smwconfig.preferences["numColors"] and numrevisionsinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
             output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numrevisionsinarticles, color, percent)
         elif type == "pages":
@@ -502,10 +502,10 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         maxi = 0
         if type == "global":
             numbytes = smwget.getTotalBytesByUser(user_text_=user_text_)
-            maxi = max([k for k, v in smwget.getUsersSortedByTotalBytes()] + [0])
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytes()] + [0]))
         elif type == "pages":
             numbytes = smwget.getTotalBytesByUserInPage(user_text_=user_text_, page_id=page_props["page_id"])
-            maxi = max([k for k, v in smwget.getUsersSortedByTotalBytesInPage(page_id=page_props["page_id"])] + [0])
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInPage(page_id=page_props["page_id"])] + [0]))
         elif type == "category":
             pass #todo
         percent = totalbytes > 0 and numbytes/(totalbytes/100.0) or 0
@@ -515,7 +515,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         if type == "global":
             numbytesinarticles = smwget.getTotalBytesByUserInNamespace(user_text_=user_text_, namespace=0)
             percent = totalbytesinarticles > 0 and numbytesinarticles/(totalbytesinarticles/100.0) or 0
-            maxi = max([k for k, v in smwget.getUsersSortedByTotalBytesInNamespace(namespace=0)] + [0])
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInNamespace(namespace=0)] + [0]))
             color = maxi > smwconfig.preferences["numColors"] and numbytesinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
             output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numbytesinarticles, color, percent)
         elif type == "pages":
@@ -526,7 +526,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         if type == "global":
             numuploads = smwget.getTotalImagesByUser(user_text_=user_text_)
             percent = totaluploads > 0 and numuploads/(totaluploads/100.0) or 0
-            maxi = max([k for k, v in smwget.getUsersSortedByTotalImages()] + [0])
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalImages()] + [0]))
             color = maxi > smwconfig.preferences["numColors"] and numuploads/(maxi/smwconfig.preferences["numColors"]) or 0
             output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numuploads, color, percent)
         #end row
