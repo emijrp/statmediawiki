@@ -274,6 +274,7 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
         output += '<tr><td><b>Total pages included:</b></td><td>%d</td></tr>' % (len(category_props["pages"]))
         output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByCategory(category_props=category_props))
+        output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>' % (smwget.getTotalBytesByCategory(category_props=category_props))
 
     output += '<tr><td><b>Generated in:</b></td><td>%s</td></tr>' % (datetime.datetime.now().isoformat())
 

@@ -27,6 +27,10 @@ import smwconfig
 def getTotalBytes():
     return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items()])
 
+def getTotalBytesByCategory(category_props=None):
+    assert category_props
+    return sum([getTotalBytesByPage(page_id=page_id) for page_id in category_props["pages"]])
+
 def getTotalBytesByNamespace(namespace=0, redirects=False):
     if redirects:
         return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace])
