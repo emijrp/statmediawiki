@@ -29,7 +29,7 @@ def getTotalBytes():
 
 def getTotalBytesByCategory(category_props=None):
     assert category_props
-    return sum([getTotalBytesByPage(page_id=page_id) for page_id in category_props["pages"]])
+    return sum([smwconfig.pages[page_id]["page_len"] for page_id in category_props["pages"]])
 
 def getTotalBytesByNamespace(namespace=0, redirects=False):
     if redirects:
@@ -44,12 +44,26 @@ def getTotalBytesByUser(user_id=None, user_text_=None):
         return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and rev_props["len_diff"] > 0])
     assert False
 
+def getTotalBytesByUserInCategory(user_id=None, user_text_=None, category_props=None):
+    assert (user_id or user_text_) and category_props
+    if user_id:
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and rev_props["rev_page"] in category_props["pages"] and rev_props["len_diff"] > 0])
+    elif user_text_:
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and rev_props["rev_page"] in category_props["pages"] and rev_props["len_diff"] > 0])
+
+def getTotalBytesByUserByCategoryInNamespace(user_id=None, user_text_=None, category_props=None, namespace=0):
+    assert (user_id or user_text_) and category_props
+    if user_id:
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and rev_props["rev_page"] in category_props["pages"] and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace and rev_props["len_diff"] > 0])
+    elif user_text_:
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and rev_props["rev_page"] in category_props["pages"] and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace and rev_props["len_diff"] > 0])
+
 def getTotalBytesByUserInNamespace(user_id=None, user_text_=None, namespace=0):
     assert user_id or user_text_
     if user_id:
-        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and rev_props["rev_page"] in getPagesByNamespace(namespace=namespace) and rev_props["len_diff"] > 0])
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace and rev_props["len_diff"] > 0])
     elif user_text_:
-        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and rev_props["rev_page"] in getPagesByNamespace(namespace=namespace) and rev_props["len_diff"] > 0])
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace and rev_props["len_diff"] > 0])
 
 def getTotalBytesByUserInPage(user_id=None, user_text_=None, page_id=None):
     assert (user_id or user_text_) and page_id
@@ -80,7 +94,17 @@ def getTotalRevisionsByCategory(category_props=None):
     return sum([getTotalRevisionsByPage(page_id=page_id) for page_id in category_props["pages"]])
 
 def getTotalRevisionsByNamespace(namespace=0):
-    return len([rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in getPagesByNamespace(namespace=namespace)])
+    return len([rev_id for rev_id, rev_props in smwconfig.revisions.items() if smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace])
+
+def getTotalRevisionsByCategoryByNamespace(category_props=None, namespace=0):
+    assert category_props
+    #set para evitar contar más de una vez las ediciones de páginas que estén categorizadas en subcategorías de la actual
+    #para cuando se hagan análisis recursivos por categorías
+    return len(set([rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in category_props["pages"] and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace]))
+
+def getTotalBytesByCategoryByNamespace(category_props=None, namespace=0):
+    assert category_props
+    return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and page_id in category_props["pages"]])
 
 def getTotalRevisionsByPage(page_id=None):
     assert page_id
@@ -97,12 +121,23 @@ def getTotalRevisionsByUser(user_id=None, user_text_=None):
     assert user_id or user_text_
     return len(getRevisionsByUser(user_id=user_id, user_text_=user_text_))
 
+def getRevisionsByUserByCategoryInNamespace(user_id=None, user_text_=None, category_props=None, namespace=0):
+    assert (user_id or user_text_) and category_props
+    if user_id:
+        return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and rev_props["rev_page"] in category_props["pages"] and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace]
+    elif user_text_:
+        return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and rev_props["rev_page"] in category_props["pages"] and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace]
+
+def getTotalRevisionsByUserByCategoryInNamespace(user_id=None, user_text_=None, category_props=None, namespace=0):
+    assert (user_id or user_text_) and category_props
+    return len(getRevisionsByUserByCategoryInNamespace(user_id=user_id, user_text_=user_text_, category_props=category_props, namespace=namespace))
+
 def getRevisionsByUserInNamespace(user_id=None, user_text_=None, namespace=0):
     assert user_id or user_text_
     if user_id:
-        return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and rev_props["rev_page"] in getPagesByNamespace(namespace=namespace)]
+        return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace]
     elif user_text_:
-        return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and rev_props["rev_page"] in getPagesByNamespace(namespace=namespace)]
+        return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace]
 
 def getTotalRevisionsByUserInNamespace(user_id=None, user_text_=None, namespace=0):
     assert user_id or user_text_
@@ -110,6 +145,10 @@ def getTotalRevisionsByUserInNamespace(user_id=None, user_text_=None, namespace=
 
 def getTotalUsers():
     return len(smwconfig.users)
+
+def getTotalUsersByCategory(category_props=None):
+    assert category_props
+    return len(set([rev_props["rev_user_text"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in category_props["pages"]]))
 
 def getTotalUsersByPage(page_id=None):
     assert page_id
@@ -154,9 +193,6 @@ def getPagesSortedByTotalRevisionsByUser(user_id=None, user_text_=None):
 
     return list
 
-def getTotalEditsByNamespace(namespace=0):
-    return int(getSingleValue("SELECT COUNT(rev_id) AS count FROM %srevision WHERE rev_page IN (SELECT page_id FROM %spage WHERE page_namespace=%d)" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], namespace)))
-
 def getTotalPagesByNamespace(namespace=0, redirects=False):
     if redirects:
         return len([page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace])
@@ -191,6 +227,47 @@ def getTotalImagesByUser(user_text_=None, user_id=None):
 def getUsersSortedByTotalBytes():
     usersSorted = {}
     for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["len_diff"] <= 0:
+            continue
+        if usersSorted.has_key(rev_props["rev_user_text_"]):
+            usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
+        else:
+            usersSorted[rev_props["rev_user_text_"]] = rev_props["len_diff"]
+
+    list = [[v, k] for k, v in usersSorted.items()]
+    list.sort()
+    list.reverse()
+
+    return list
+
+def getUsersSortedByTotalBytesInCategory(category_props=None):
+    assert category_props
+    usersSorted = {}
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_page"] not in category_props["pages"]:
+            continue
+        if rev_props["len_diff"] <= 0:
+            continue
+        if usersSorted.has_key(rev_props["rev_user_text_"]):
+            usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
+        else:
+            usersSorted[rev_props["rev_user_text_"]] = rev_props["len_diff"]
+
+    list = [[v, k] for k, v in usersSorted.items()]
+    list.sort()
+    list.reverse()
+
+    return list
+
+def getUsersSortedByTotalBytesByCategoryInNamespace(category_props=None, namespace=0):
+    assert category_props
+    usersSorted = {}
+    pageslist = getPagesByNamespace(namespace=namespace)
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_page"] not in pageslist:
+            continue
+        if rev_props["rev_page"] not in category_props["pages"]:
+            continue
         if rev_props["len_diff"] <= 0:
             continue
         if usersSorted.has_key(rev_props["rev_user_text_"]):
@@ -260,6 +337,44 @@ def getUsersSortedByTotalImages():
 def getUsersSortedByTotalRevisions():
     usersSorted = {}
     for rev_id, rev_props in smwconfig.revisions.items():
+        if usersSorted.has_key(rev_props["rev_user_text_"]):
+            usersSorted[rev_props["rev_user_text_"]] += 1
+        else:
+            usersSorted[rev_props["rev_user_text_"]] = 1
+
+    list = [[v, k] for k, v in usersSorted.items()]
+    list.sort()
+    list.reverse()
+
+    return list
+
+
+def getUsersSortedByTotalRevisionsInCategory(category_props=None):
+    assert category_props
+    usersSorted = {}
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_page"] not in category_props["pages"]:
+            continue
+        if usersSorted.has_key(rev_props["rev_user_text_"]):
+            usersSorted[rev_props["rev_user_text_"]] += 1
+        else:
+            usersSorted[rev_props["rev_user_text_"]] = 1
+
+    list = [[v, k] for k, v in usersSorted.items()]
+    list.sort()
+    list.reverse()
+
+    return list
+
+def getUsersSortedByTotalRevisionsByCategoryInNamespace(category_props=None, namespace=0):
+    assert category_props
+    usersSorted = {}
+    pageslist = getPagesByNamespace(namespace=namespace)
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_page"] not in pageslist:
+            continue
+        if rev_props["rev_page"] not in category_props["pages"]:
+            continue
         if usersSorted.has_key(rev_props["rev_user_text_"]):
             usersSorted[rev_props["rev_user_text_"]] += 1
         else:

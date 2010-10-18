@@ -249,11 +249,11 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
     if type == "global":
         output += '<tr><td><b>Site:</b></td><td><a href="%s">%s</a> (<a href="%s/%s/Special:Recentchanges">recent changes</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
+        output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsers())
         output += '<tr><td><b>Total pages:</b></td><td><a href="#toppages">%d</a> %s</td></tr>' % (smwget.getTotalPages(), generateTableByNamespace(htmlid='global-pages', fun=smwget.getTotalPagesByNamespace))
         output += '<tr><td><b>Total edits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalRevisions(), generateTableByNamespace(htmlid='global-edits', fun=smwget.getTotalRevisionsByNamespace))
         output += '<tr><td><b>Total bytes:</b></td><td>%d %s</td></tr>' % (smwget.getTotalBytes(), generateTableByNamespace(htmlid='global-bytes', fun=smwget.getTotalBytesByNamespace))
         output += '<tr><td><b>Total files:</b></td><td>%d</td></tr>' % (smwget.getTotalImages())
-        output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsers())
         output += '<tr><td><b>Total visits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalVisits(), generateTableByNamespace(htmlid='global-visits', fun=smwget.getTotalVisitsByNamespace))
     elif type == "users":
         output += '<tr><td><b>User:</b></td><td><a href="%s/%s/User:%s">%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"], user_props["user_name"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"])
@@ -267,13 +267,14 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         full_page_title_ = re.sub(' ', '_', full_page_title)
         output += '<tr><td><b>Page:</b></td><td><a href="%s/%s/%s">%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], full_page_title_, full_page_title, smwconfig.preferences["siteUrl"], full_page_title_)
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
+        output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsersByPage(page_id=page_props["page_id"]))
         output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByPage(page_id=page_props["page_id"]))
         output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>' % (page_props["page_len"])
-        output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsersByPage(page_id=page_props["page_id"]))
     elif type == "categories":
         output += '<tr><td><b>Category:</b></td><td><a href="%s/%s/Category:%s">%s</a> (<a href="%s/index.php?title=Category:%s&amp;action=history">history</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
-        output += '<tr><td><b>Total pages included:</b></td><td>%d</td></tr>' % (len(category_props["pages"]))
+        output += '<tr><td><b>Total pages included:</b></td><td><a href="#toppages">%d</a></td></tr>' % (len(category_props["pages"]))
+        output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsersByCategory(category_props=category_props))
         output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByCategory(category_props=category_props))
         output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>' % (smwget.getTotalBytesByCategory(category_props=category_props))
 
@@ -493,10 +494,11 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         totalrevisions = smwget.getTotalRevisionsByPage(page_id=page_props["page_id"])
         totalbytes = page_props["page_len"]
     elif type == "categories":
-        pass
-    else:
-        print "Error type =", type
-        sys.exit()
+        usersSorted = smwget.getUsersSortedByTotalRevisionsInCategory(category_props=category_props)
+        totalrevisions = smwget.getTotalRevisionsByCategory(category_props=category_props)
+        totalrevisionsinarticles = smwget.getTotalRevisionsByCategoryByNamespace(category_props=category_props, namespace=0)
+        totalbytes = smwget.getTotalBytesByCategory(category_props=category_props)
+        totalbytesinarticles = smwget.getTotalBytesByCategoryByNamespace(category_props=category_props, namespace=0)
 
     c = 1
     acumrevisions = 0
@@ -512,24 +514,37 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         #start row
         output += '<tr><td>%d</td>' % (c)
         output += '<td><a href="%s/users/user_%s.html">%s</a></td>' % (type == "global" and 'html' or '..', filesubfix, smwconfig.users[user_text_]["user_name"])
+
         #revisions
+        maxi = 0
+        if type == "global":
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisions()] + [0]))
+        elif type == "pages":
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisionsInPage(page_id=page_props["page_id"])] + [0]))
+        elif type == "categories":
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisionsInCategory(category_props=category_props)] + [0]))
         acumrevisions += numrevisions
         percent = totalrevisions > 0 and numrevisions/(totalrevisions/100.0) or 0
-        maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisions()] + [0]))
         color = maxi and numrevisions/(maxi/smwconfig.preferences["numColors"]) or 0
         output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numrevisions, color, percent)
+
         #revisions in articles
+        numrevisionsinarticles = 0
+        maxi = 0
         if type == "global":
             numrevisionsinarticles = smwget.getTotalRevisionsByUserInNamespace(user_text_=user_text_, namespace=0)
-            acumrevisionsinarticles += numrevisionsinarticles
-            percent = totalrevisionsinarticles > 0 and numrevisionsinarticles/(totalrevisionsinarticles/100.0) or 0
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisionsInNamespace(namespace=0)] + [0]))
-            color = maxi and numrevisionsinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
-            output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numrevisionsinarticles, color, percent)
         elif type == "pages":
             pass #no required
         elif type == "categories":
-            pass #todo
+            numrevisionsinarticles = smwget.getTotalRevisionsByUserByCategoryInNamespace(user_text_=user_text_, category_props=category_props, namespace=0)
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisionsByCategoryInNamespace(category_props=category_props, namespace=0)] + [0]))
+        if type != "pages":
+            acumrevisionsinarticles += numrevisionsinarticles
+            percent = totalrevisionsinarticles > 0 and numrevisionsinarticles/(totalrevisionsinarticles/100.0) or 0
+            color = maxi and numrevisionsinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
+            output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numrevisionsinarticles, color, percent)
+
         #bytes
         numbytes = 0
         maxi = 0
@@ -540,23 +555,29 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
             numbytes = smwget.getTotalBytesByUserInPage(user_text_=user_text_, page_id=page_props["page_id"])
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInPage(page_id=page_props["page_id"])] + [0]))
         elif type == "category":
-            pass #todo
+            numbytes = smwget.getTotalBytesByUserInCategory(user_text_=user_text_, category_props=category_props)
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInCategory(category_props=category_props)] + [0]))
         acumbytes += numbytes
         percent = totalbytes > 0 and numbytes/(totalbytes/100.0) or 0
         color = maxi and numbytes/(maxi/smwconfig.preferences["numColors"]) or 0
         output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numbytes, color, percent)
+
         #bytes in articles
+        numbytesinarticles = 0
         if type == "global":
             numbytesinarticles = smwget.getTotalBytesByUserInNamespace(user_text_=user_text_, namespace=0)
-            acumbytesinarticles += numbytesinarticles
-            percent = totalbytesinarticles > 0 and numbytesinarticles/(totalbytesinarticles/100.0) or 0
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInNamespace(namespace=0)] + [0]))
-            color = maxi and numbytesinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
-            output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numbytesinarticles, color, percent)
         elif type == "pages":
             pass #no required
         elif type == "categories":
-            pass #todo
+            numbytesinarticles = smwget.getTotalBytesByUserByCategoryInNamespace(user_text_=user_text_, category_props=category_props, namespace=0)
+            maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesByCategoryInNamespace(category_props=category_props, namespace=0)] + [0]))
+        if type != "pages":
+            acumbytesinarticles += numbytesinarticles
+            percent = totalbytesinarticles > 0 and numbytesinarticles/(totalbytesinarticles/100.0) or 0
+            color = maxi and numbytesinarticles/(maxi/smwconfig.preferences["numColors"]) or 0
+            output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numbytesinarticles, color, percent)
+
         #uploads
         if type == "global":
             numuploads = smwget.getTotalImagesByUser(user_text_=user_text_)
@@ -565,6 +586,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalImages()] + [0]))
             color = maxi and numuploads/(maxi/smwconfig.preferences["numColors"]) or 0
             output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numuploads, color, percent)
+
         #end row
         output += '</tr>\n'
         c += 1
@@ -574,14 +596,12 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
     output += '<td>%d</td><td>%.1f%%</td>' % (acumrevisions, totalrevisions and acumrevisions/(totalrevisions/100.0) or 0)
     if type != "pages":
         output += '<td>%d</td><td>%.1f%%</td>' % (acumrevisionsinarticles, totalrevisionsinarticles and acumrevisionsinarticles/(totalrevisionsinarticles/100.0) or 0)
-    output += '<td>%d</td><td>%.1f%%<sup>[<a href="#note1">1</a>]</sup></td>' % (acumbytes, totalbytes and acumbytes/(totalbytes/100.0) or 0)
+    output += '<td>%d<sup>[<a href="#note1">1</a>]</sup></td><td>%.1f%%<sup>[<a href="#note1">1</a>]</sup></td>' % (acumbytes, totalbytes and acumbytes/(totalbytes/100.0) or 0)
     if type != "pages":
-        output += '<td>%d</td><td>%.1f%%<sup>[<a href="#note1">1</a>]</sup></td>' % (acumbytesinarticles, totalbytesinarticles and acumbytesinarticles/(totalbytesinarticles/100.0) or 0)
+        output += '<td>%d<sup>[<a href="#note1">1</a>]</sup></td><td>%.1f%%<sup>[<a href="#note1">1</a>]</sup></td>' % (acumbytesinarticles, totalbytesinarticles and acumbytesinarticles/(totalbytesinarticles/100.0) or 0)
     if type == "global":
         output += '<td>%d</td><td>%.1f%%</td>' % (acumuploads, totaluploads and acumuploads/(totaluploads/100.0) or 0)
     output += '</tr>'
-
-    #<td>%s (100%%)</td><td>%s (100%%)</td><td>%s<sup>[<a href="#note1">note 1</a>]</sup> (100%%)</td><td>%s</td></tr>\n'
     output += '</table>'
 
     #notes
@@ -1018,7 +1038,7 @@ def generateCategoriesAnalysis():
         </center>
         </div>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="categories"), generateSummary(type="categories", category_props=category_props), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], "", "", generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="categories"), generateSummary(type="categories", category_props=category_props), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], generateUsersTable(type="categories", category_props=category_props), "", generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (smwconfig.preferences["siteName"], category_props["category_title"])
         smwhtml.printHTML(type="categories", file="category_%d.html" % category_props["category_id"], title=title, body=body)
