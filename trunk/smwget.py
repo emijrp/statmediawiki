@@ -111,6 +111,10 @@ def getTotalRevisionsByUserInNamespace(user_id=None, user_text_=None, namespace=
 def getTotalUsers():
     return len(smwconfig.users)
 
+def getTotalUsersByPage(page_id=None):
+    assert page_id
+    return len(set([rev_props["rev_user_text"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] == page_id]))
+
 def getPages():
     return smwconfig.pages.keys()
 

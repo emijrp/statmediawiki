@@ -249,19 +249,19 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
     if type == "global":
         output += '<tr><td><b>Site:</b></td><td><a href="%s">%s</a> (<a href="%s/%s/Special:Recentchanges">recent changes</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
-        output += '<tr><td><b>Total pages:</b></td><td>%d %s</td></tr>' % (smwget.getTotalPages(), generateTableByNamespace(htmlid='global-pages', fun=smwget.getTotalPagesByNamespace))
+        output += '<tr><td><b>Total pages:</b></td><td><a href="#toppages">%d</a> %s</td></tr>' % (smwget.getTotalPages(), generateTableByNamespace(htmlid='global-pages', fun=smwget.getTotalPagesByNamespace))
         output += '<tr><td><b>Total edits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalRevisions(), generateTableByNamespace(htmlid='global-edits', fun=smwget.getTotalRevisionsByNamespace))
         output += '<tr><td><b>Total bytes:</b></td><td>%d %s</td></tr>' % (smwget.getTotalBytes(), generateTableByNamespace(htmlid='global-bytes', fun=smwget.getTotalBytesByNamespace))
         output += '<tr><td><b>Total files:</b></td><td>%d</td></tr>' % (smwget.getTotalImages())
-        output += '<tr><td><b>Total users:</b></td><td>%d</td></tr>' % (smwget.getTotalUsers())
+        output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsers())
         output += '<tr><td><b>Total visits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalVisits(), generateTableByNamespace(htmlid='global-visits', fun=smwget.getTotalVisitsByNamespace))
     elif type == "users":
         output += '<tr><td><b>User:</b></td><td><a href="%s/%s/User:%s">%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"], user_props["user_name"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
-        output += '<tr><td><b>Total pages edited:</b></td><td>%d</td></tr>' % (smwget.getTotalPagesByUser(user_text_=user_props["user_name_"]))#fix: renombrar a PagesEdited y hacer PagesCreated?
+        output += '<tr><td><b>Total pages edited:</b></td><td><a href="#toppages">%d</a></td></tr>' % (smwget.getTotalPagesByUser(user_text_=user_props["user_name_"]))#fix: renombrar a PagesEdited y hacer PagesCreated?
         output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByUser(user_text_=user_props["user_name_"]))
         output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>' % (smwget.getTotalBytesByUser(user_text_=user_props["user_name_"]))
-        output += '<tr><td><b>Total files:</b></td><td>%d</td></tr>' % (smwget.getTotalImagesByUser(user_text_=user_props["user_name_"]))
+        output += '<tr><td><b>Total files:</b></td><td><a href="#uploads">%d</a></td></tr>' % (smwget.getTotalImagesByUser(user_text_=user_props["user_name_"]))
     elif type == "pages":
         full_page_title = page_props["page_namespace"] == 0 and page_props["page_title"] or '%s:%s' % (smwconfig.namespaces[page_props["page_namespace"]], page_props["page_title"])
         full_page_title_ = re.sub(' ', '_', full_page_title)
@@ -269,6 +269,7 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
         output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByPage(page_id=page_props["page_id"]))
         output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>' % (page_props["page_len"])
+        output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsersByPage(page_id=page_props["page_id"]))
     elif type == "categories":
         output += '<tr><td><b>Category:</b></td><td><a href="%s/%s/Category:%s">%s</a> (<a href="%s/index.php?title=Category:%s&amp;action=history">history</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
