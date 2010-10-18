@@ -654,6 +654,9 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
         totalbytes = smwget.getTotalBytesByCategory(category_props=category_props)
 
     c = 1
+    acumrevisions = 0
+    acumbytes = 0
+    acumvisits = 0
     for numrevisions, page_id in pagesSorted:
         if type != "global" and numrevisions == 0:
             continue
@@ -667,6 +670,7 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
         output += '<td><a href="%s/pages/page_%d.html">%s</a></td><td>%s</td>' % (type == "global" and 'html' or '..', page_id, full_page_title, smwconfig.namespaces[smwconfig.pages[page_id]["page_namespace"]])
 
         #revisions
+        acumrevisions += numrevisions
         percent = totalrevisions > 0 and numrevisions/(totalrevisions/100.0) or 0
         output += '<td>%d</td><td>%.1f</td>' % (numrevisions, percent)
 
@@ -678,19 +682,27 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
             numbytes = smwget.getTotalBytesByUserInPage(user_text_=user_props["user_name_"], page_id=page_id)
         elif type == "categories":
             numbytes = page_props["page_len"]
+        acumbytes += numbytes
         percent = totalbytes > 0 and numbytes/(totalbytes/100.0) or 0
         output += '<td>%d</td><td>%.1f%%</td>' % (numbytes, percent)
 
         #visits
         if type == "global":
-            output += '<td>%d</td><td>%.1f%%</td>' % (page_props["page_counter"], totalvisits > 0 and page_props["page_counter"]/(totalvisits/100.0) or 0)
+            acumvisits += page_props["page_counter"]
+            percent = totalvisits > 0 and page_props["page_counter"]/(totalvisits/100.0) or 0
+            output += '<td>%d</td><td>%.1f%%</td>' % (page_props["page_counter"], percent)
 
         #end row
         output += '</tr>\n'
         c += 1
 
     #total row
-    #output += '<tr><td></td><td>Total</td><td></td><td>%s (100%%)</td><td>%s (100%%)</td><td>%s (100%%)</td></tr>\n'
+    output += '<tr><td colspan="3">Total</td>'
+    output += '<td>%d</td><td>%.1f%%</td>' % (acumrevisions, totalrevisions and acumrevisions/(totalrevisions/100.0) or 0)
+    output += '<td>%d</td><td>%.1f%%</td>' % (acumbytes, totalbytes and acumbytes/(totalbytes/100.0) or 0)
+    if type == "global":
+        output += '<td>%d</td><td>%.1f%%</td>' % (acumvisits, totalvisits and acumvisits/(totalvisits/100.0) or 0)
+    output += '</tr>'
     output += '</table>'
 
     return output
