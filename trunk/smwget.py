@@ -23,6 +23,7 @@ import smwdb
 import smwconfig
 
 #todo: convertir todos los getSingleValue y sus queries en consultas a los diccionarios
+#pasar todos los page_id a page_props, los user_text_ y user_id a user_props y corregir las llamadas desde los otros módulos
 
 def pagesSortedDic():
     dic = {}
@@ -70,12 +71,10 @@ def getTotalBytesByUserByCategoryInNamespace(user_id=None, user_text_=None, cate
     elif user_text_:
         return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and rev_props["rev_page"] in category_props["pages"] and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace and rev_props["len_diff"] > 0])
 
-def getTotalBytesByUserInNamespace(user_id=None, user_text_=None, namespace=0):
-    assert user_id or user_text_
-    if user_id:
-        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace and rev_props["len_diff"] > 0])
-    elif user_text_:
-        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace and rev_props["len_diff"] > 0])
+def getTotalBytesByUserInNamespace(user_props=None, namespace=0):
+    #hacer getBytesByUserInNamespace y llamarla no tiene mucho sentido, no? sería una lista de bytes añadidos a las páginas de ese namespace
+    assert user_props
+    return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_props["user_name_"] and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace and rev_props["len_diff"] > 0])
 
 def getTotalBytesByUserInPage(user_id=None, user_text_=None, page_id=None):
     assert (user_id or user_text_) and page_id
@@ -144,16 +143,13 @@ def getTotalRevisionsByUserByCategoryInNamespace(user_id=None, user_text_=None, 
     assert (user_id or user_text_) and category_props
     return len(getRevisionsByUserByCategoryInNamespace(user_id=user_id, user_text_=user_text_, category_props=category_props, namespace=namespace))
 
-def getRevisionsByUserInNamespace(user_id=None, user_text_=None, namespace=0):
-    assert user_id or user_text_
-    if user_id:
-        return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace]
-    elif user_text_:
-        return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_text_ and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace]
+def getRevisionsByUserInNamespace(user_props=None, namespace=0):
+    assert user_props
+    return [rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_props["user_name_"] and smwconfig.pages[rev_props["rev_page"]]["page_namespace"] == namespace]
 
-def getTotalRevisionsByUserInNamespace(user_id=None, user_text_=None, namespace=0):
-    assert user_id or user_text_
-    return len(getRevisionsByUserInNamespace(user_id=user_id, user_text_=user_text_, namespace=namespace))
+def getTotalRevisionsByUserInNamespace(user_props=None, namespace=0):
+    assert user_props
+    return len(getRevisionsByUserInNamespace(user_props=user_props, namespace=namespace))
 
 def getTotalUsers():
     return len(smwconfig.users)
@@ -227,6 +223,19 @@ def getTotalPagesByNamespace(namespace=0, redirects=False):
         return len([page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace])
     else:
         return len([page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]])
+
+def getPagesByUserByNamespace(user_props=None, namespace=0, redirects=False):
+    assert user_props
+    if redirects:
+        pageslist = [page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace]
+        return set([rev_props["rev_page"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_props["user_name_"] and rev_props["rev_page"] in pageslist])
+    else:
+        pageslist = [page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]]
+        return set([rev_props["rev_page"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user_text_"] == user_props["user_name_"] and rev_props["rev_page"] in pageslist])
+
+def getTotalPagesByUserByNamespace(user_props=None, namespace=0, redirects=False):
+    assert user_props
+    return len(getPagesByUserByNamespace(user_props=user_props, namespace=namespace, redirects=redirects))
 
 def getTotalVisits():
     return sum([page_props["page_counter"] for page_id, page_props in smwconfig.pages.items()])

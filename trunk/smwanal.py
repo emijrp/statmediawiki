@@ -232,13 +232,20 @@ def generateCloud(type=None, user_props=None, page_props=None, category_props=No
 
     return output
 
-def generateTableByNamespace(htmlid=None, fun=None):
-    assert htmlid and fun
+def generateTableByNamespace(type=None, htmlid=None, fun=None, user_props=None, page_props=None, category_props=None):
+    assert (type == "global" or (type == "users" and user_props) or (type == "pages" and page_props) or (type == "categories" and category_props)) and htmlid and fun
     output = '[<a href="javascript:showHide(\'%s\')">Show/Hide</a>]\n<div id="%s" style="display: none;"><table>' % (htmlid, htmlid)
     namespaces = smwconfig.namespaces.items()
     namespaces.sort()
     for nmnum, nmname in namespaces:
-        output += '<tr><td><b>%s</b></td><td>%d</td></tr>' % (nmname, fun(namespace=nmnum))
+        if type == "global":
+            output += '<tr><td><b>%s</b></td><td>%d</td></tr>' % (nmname, fun(namespace=nmnum))
+        elif type == "users":
+            output += '<tr><td><b>%s</b></td><td>%d</td></tr>' % (nmname, fun(user_props=user_props, namespace=nmnum))
+        elif type == "pages":
+            pass #todo
+        elif type == "categories":
+            pass #todo
     output += '</table></div>'
     return output
 
@@ -250,17 +257,17 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         output += '<tr><td><b>Site:</b></td><td><a href="%s">%s</a> (<a href="%s/%s/Special:Recentchanges">recent changes</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
         output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsers())
-        output += '<tr><td><b>Total pages:</b></td><td><a href="#toppages">%d</a> %s</td></tr>' % (smwget.getTotalPages(), generateTableByNamespace(htmlid='global-pages', fun=smwget.getTotalPagesByNamespace))
-        output += '<tr><td><b>Total edits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalRevisions(), generateTableByNamespace(htmlid='global-edits', fun=smwget.getTotalRevisionsByNamespace))
-        output += '<tr><td><b>Total bytes:</b></td><td>%d %s</td></tr>' % (smwget.getTotalBytes(), generateTableByNamespace(htmlid='global-bytes', fun=smwget.getTotalBytesByNamespace))
+        output += '<tr><td><b>Total pages:</b></td><td><a href="#toppages">%d</a> %s</td></tr>' % (smwget.getTotalPages(), generateTableByNamespace(type="global", htmlid='global-pages', fun=smwget.getTotalPagesByNamespace))
+        output += '<tr><td><b>Total edits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalRevisions(), generateTableByNamespace(type="global", htmlid='global-edits', fun=smwget.getTotalRevisionsByNamespace))
+        output += '<tr><td><b>Total bytes:</b></td><td>%d %s</td></tr>' % (smwget.getTotalBytes(), generateTableByNamespace(type="global", htmlid='global-bytes', fun=smwget.getTotalBytesByNamespace))
         output += '<tr><td><b>Total files:</b></td><td>%d</td></tr>' % (smwget.getTotalImages())
-        output += '<tr><td><b>Total visits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalVisits(), generateTableByNamespace(htmlid='global-visits', fun=smwget.getTotalVisitsByNamespace))
+        output += '<tr><td><b>Total visits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalVisits(), generateTableByNamespace(type="global", htmlid='global-visits', fun=smwget.getTotalVisitsByNamespace))
     elif type == "users":
         output += '<tr><td><b>User:</b></td><td><a href="%s/%s/User:%s">%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"], user_props["user_name"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
-        output += '<tr><td><b>Total pages edited:</b></td><td><a href="#toppages">%d</a></td></tr>' % (smwget.getTotalPagesByUser(user_text_=user_props["user_name_"]))#fix: renombrar a PagesEdited y hacer PagesCreated?
-        output += '<tr><td><b>Total edits:</b></td><td>%d (<a href="../../%s#topusers">#%d</a>)</td></tr>' % (smwget.getTotalRevisionsByUser(user_text_=user_props["user_name_"]), smwconfig.preferences["indexFilename"], [v for k, v in smwget.getUsersSortedByTotalRevisions()].index(user_props["user_name_"]) + 1)
-        output += '<tr><td><b>Total bytes:</b></td><td>%d (<a href="../../%s#topusers">#%d</a>)</td></tr>' % (smwget.getTotalBytesByUser(user_text_=user_props["user_name_"]), smwconfig.preferences["indexFilename"], [v for k, v in smwget.getUsersSortedByTotalBytes()].index(user_props["user_name_"]) + 1)
+        output += '<tr><td><b>Total pages edited:</b></td><td><a href="#toppages">%d</a> %s</td></tr>' % (smwget.getTotalPagesByUser(user_text_=user_props["user_name_"]), generateTableByNamespace(type="users", htmlid='user-pages', fun=smwget.getTotalPagesByUserByNamespace, user_props=user_props))#fix: renombrar a PagesEdited y hacer PagesCreated?
+        output += '<tr><td><b>Total edits:</b></td><td>%d (<a href="../../%s#topusers">#%d</a>) %s</td></tr>' % (smwget.getTotalRevisionsByUser(user_text_=user_props["user_name_"]), smwconfig.preferences["indexFilename"], [v for k, v in smwget.getUsersSortedByTotalRevisions()].index(user_props["user_name_"]) + 1, generateTableByNamespace(type="users", htmlid='user-edits', fun=smwget.getTotalRevisionsByUserInNamespace, user_props=user_props))
+        output += '<tr><td><b>Total bytes:</b></td><td>%d (<a href="../../%s#topusers">#%d</a>) %s</td></tr>' % (smwget.getTotalBytesByUser(user_text_=user_props["user_name_"]), smwconfig.preferences["indexFilename"], [v for k, v in smwget.getUsersSortedByTotalBytes()].index(user_props["user_name_"]) + 1, generateTableByNamespace(type="users", htmlid='user-bytes', fun=smwget.getTotalBytesByUserInNamespace, user_props=user_props))
         output += '<tr><td><b>Total files:</b></td><td><a href="#uploads">%d</a> (<a href="../../%s#topusers">#%d</a>)</td></tr>' % (smwget.getTotalImagesByUser(user_text_=user_props["user_name_"]), smwconfig.preferences["indexFilename"], [v for k, v in smwget.getUsersSortedByTotalImages()].index(user_props["user_name_"]) + 1)
     elif type == "pages":
         full_page_title = page_props["page_namespace"] == 0 and page_props["page_title"] or '%s:%s' % (smwconfig.namespaces[page_props["page_namespace"]], page_props["page_title"])
@@ -536,7 +543,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         numrevisionsinarticles = 0
         maxi = 0
         if type == "global":
-            numrevisionsinarticles = smwget.getTotalRevisionsByUserInNamespace(user_text_=user_text_, namespace=0)
+            numrevisionsinarticles = smwget.getTotalRevisionsByUserInNamespace(user_props=smwconfig.users[user_text_], namespace=0)
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalRevisionsInNamespace(namespace=0)] + [0]))
         elif type == "pages":
             pass #no required
@@ -569,7 +576,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         #bytes in articles
         numbytesinarticles = 0
         if type == "global":
-            numbytesinarticles = smwget.getTotalBytesByUserInNamespace(user_text_=user_text_, namespace=0)
+            numbytesinarticles = smwget.getTotalBytesByUserInNamespace(user_props=smwconfig.users[user_text_], namespace=0)
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInNamespace(namespace=0)] + [0]))
         elif type == "pages":
             pass #no required
