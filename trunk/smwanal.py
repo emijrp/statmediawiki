@@ -259,9 +259,9 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         output += '<tr><td><b>User:</b></td><td><a href="%s/%s/User:%s">%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"], user_props["user_name"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
         output += '<tr><td><b>Total pages edited:</b></td><td><a href="#toppages">%d</a></td></tr>' % (smwget.getTotalPagesByUser(user_text_=user_props["user_name_"]))#fix: renombrar a PagesEdited y hacer PagesCreated?
-        output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByUser(user_text_=user_props["user_name_"]))
-        output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>' % (smwget.getTotalBytesByUser(user_text_=user_props["user_name_"]))
-        output += '<tr><td><b>Total files:</b></td><td><a href="#uploads">%d</a></td></tr>' % (smwget.getTotalImagesByUser(user_text_=user_props["user_name_"]))
+        output += '<tr><td><b>Total edits:</b></td><td>%d (<a href="../../%s#topusers">#%d</a>)</td></tr>' % (smwget.getTotalRevisionsByUser(user_text_=user_props["user_name_"]), smwconfig.preferences["indexFilename"], [v for k, v in smwget.getUsersSortedByTotalRevisions()].index(user_props["user_name_"]) + 1)
+        output += '<tr><td><b>Total bytes:</b></td><td>%d (<a href="../../%s#topusers">#%d</a>)</td></tr>' % (smwget.getTotalBytesByUser(user_text_=user_props["user_name_"]), smwconfig.preferences["indexFilename"], [v for k, v in smwget.getUsersSortedByTotalBytes()].index(user_props["user_name_"]) + 1)
+        output += '<tr><td><b>Total files:</b></td><td><a href="#uploads">%d</a> (<a href="../../%s#topusers">#%d</a>)</td></tr>' % (smwget.getTotalImagesByUser(user_text_=user_props["user_name_"]), smwconfig.preferences["indexFilename"], [v for k, v in smwget.getUsersSortedByTotalImages()].index(user_props["user_name_"]) + 1)
     elif type == "pages":
         full_page_title = page_props["page_namespace"] == 0 and page_props["page_title"] or '%s:%s' % (smwconfig.namespaces[page_props["page_namespace"]], page_props["page_title"])
         full_page_title_ = re.sub(' ', '_', full_page_title)

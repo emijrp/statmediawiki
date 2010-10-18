@@ -24,6 +24,12 @@ import smwconfig
 
 #todo: convertir todos los getSingleValue y sus queries en consultas a los diccionarios
 
+def usersSortedDic():
+    dic = {}
+    for user_name_, user_props in smwconfig.users.items():
+        dic[user_name_] = 0
+    return dic
+
 def getTotalBytes():
     return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items()])
 
@@ -225,7 +231,7 @@ def getTotalImagesByUser(user_text_=None, user_id=None):
     return len(getImagesByUser(user_text_=user_text_, user_id=user_id))
 
 def getUsersSortedByTotalBytes():
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["len_diff"] <= 0:
             continue
@@ -242,7 +248,7 @@ def getUsersSortedByTotalBytes():
 
 def getUsersSortedByTotalBytesInCategory(category_props=None):
     assert category_props
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in category_props["pages"]:
             continue
@@ -261,7 +267,7 @@ def getUsersSortedByTotalBytesInCategory(category_props=None):
 
 def getUsersSortedByTotalBytesByCategoryInNamespace(category_props=None, namespace=0):
     assert category_props
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     pageslist = getPagesByNamespace(namespace=namespace)
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in pageslist:
@@ -282,7 +288,7 @@ def getUsersSortedByTotalBytesByCategoryInNamespace(category_props=None, namespa
     return list
 
 def getUsersSortedByTotalBytesInNamespace(namespace=0):
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     pageslist = getPagesByNamespace(namespace=namespace)
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in pageslist:
@@ -303,7 +309,7 @@ def getUsersSortedByTotalBytesInNamespace(namespace=0):
 def getUsersSortedByTotalBytesInPage(page_id=None):
     assert page_id
 
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] != page_id:
             continue
@@ -321,7 +327,7 @@ def getUsersSortedByTotalBytesInPage(page_id=None):
     return list
 
 def getUsersSortedByTotalImages():
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     for img_name_, img_props in smwconfig.images.items():
         if usersSorted.has_key(img_props["img_user_text_"]):
             usersSorted[img_props["img_user_text_"]] += 1
@@ -335,7 +341,7 @@ def getUsersSortedByTotalImages():
     return list
 
 def getUsersSortedByTotalRevisions():
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
         if usersSorted.has_key(rev_props["rev_user_text_"]):
             usersSorted[rev_props["rev_user_text_"]] += 1
@@ -351,7 +357,7 @@ def getUsersSortedByTotalRevisions():
 
 def getUsersSortedByTotalRevisionsInCategory(category_props=None):
     assert category_props
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in category_props["pages"]:
             continue
@@ -368,7 +374,7 @@ def getUsersSortedByTotalRevisionsInCategory(category_props=None):
 
 def getUsersSortedByTotalRevisionsByCategoryInNamespace(category_props=None, namespace=0):
     assert category_props
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     pageslist = getPagesByNamespace(namespace=namespace)
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in pageslist:
@@ -387,7 +393,7 @@ def getUsersSortedByTotalRevisionsByCategoryInNamespace(category_props=None, nam
     return list
 
 def getUsersSortedByTotalRevisionsInNamespace(namespace=0):
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     pageslist = getPagesByNamespace(namespace=namespace)
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in pageslist:
@@ -405,7 +411,7 @@ def getUsersSortedByTotalRevisionsInNamespace(namespace=0):
 
 def getUsersSortedByTotalRevisionsInPage(page_id=None):
     assert page_id
-    usersSorted = {}
+    usersSorted = usersSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] != page_id:
             continue
