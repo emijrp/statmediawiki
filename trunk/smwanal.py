@@ -270,6 +270,7 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>' % (smwget.getTotalUsersByPage(page_id=page_props["page_id"]))
         output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByPage(page_id=page_props["page_id"]))
         output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>' % (page_props["page_len"])
+        output += '<tr><td><b>Total visits:</b></td><td>%d</td></tr>' % (page_props["page_counter"])
     elif type == "categories":
         output += '<tr><td><b>Category:</b></td><td><a href="%s/%s/Category:%s">%s</a> (<a href="%s/index.php?title=Category:%s&amp;action=history">history</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
