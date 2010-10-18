@@ -22,8 +22,8 @@ import random
 import smwconfig
 
 def noise(s):
-    s = u"%s%s%s" % (random.randint(1, 999999999), s, random.randint(1, 999999999))
-    s = md5.new(s.encode('utf-8')).hexdigest()
+    s = "%s%s%s" % (random.randint(1, 999999999), s, random.randint(1, 999999999))
+    s = md5.new(s.encode(smwconfig.preferences['codification'])).hexdigest()
     return s
 
 def anonimize():

@@ -89,34 +89,34 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
     rows=[row0, row1, row2, row3]
 
     title = ""
-    if type=="global":
+    if type == "global":
         if timesplit == "hour":
-            title = u"Hour activity in %s" % smwconfig.preferences["siteName"]
+            title = 'Hour activity in %s' % smwconfig.preferences["siteName"]
         elif timesplit == "dayofweek":
-            title = u"Day of week activity in %s" % smwconfig.preferences["siteName"]
+            title = 'Day of week activity in %s' % smwconfig.preferences["siteName"]
         elif timesplit == "month":
-            title = u"Month activity in %s" % smwconfig.preferences["siteName"]
+            title = 'Month activity in %s' % smwconfig.preferences["siteName"]
     elif type == "users":
         if timesplit == "hour":
-            title = u"Hour activity by %s" % user_props["user_name"]
+            title = "Hour activity by %s" % user_props["user_name"]
         elif timesplit == "dayofweek":
-            title = u"Day of week activity by %s" % user_props["user_name"]
+            title = "Day of week activity by %s" % user_props["user_name"]
         elif timesplit == "month":
-            title = u"Month activity by %s" % user_props["user_name"]
+            title = "Month activity by %s" % user_props["user_name"]
     elif type == "pages":
         if timesplit == "hour":
-            title = u"Hour activity in %s" % page_props["page_title"]
+            title = "Hour activity in %s" % page_props["page_title"]
         elif timesplit == "dayofweek":
-            title = u"Day of week activity in %s" % page_props["page_title"]
+            title = "Day of week activity in %s" % page_props["page_title"]
         elif timesplit == "month":
-            title = u"Month activity in %s" % page_props["page_title"]
+            title = "Month activity in %s" % page_props["page_title"]
     elif type == "categories":
         if timesplit == "hour":
-            title = u"Hour activity in category %s" % category_props["category_title"]
+            title = "Hour activity in category %s" % category_props["category_title"]
         elif timesplit == "dayofweek":
-            title = u"Day of week activity in category %s" % category_props["category_title"]
+            title = "Day of week activity in category %s" % category_props["category_title"]
         elif timesplit == "month":
-            title = u"Month activity in category %s" % category_props["category_title"]
+            title = "Month activity in category %s" % category_props["category_title"]
 
     # Print rows
     smwcsv.printCSV(type=type, subtype="activity", fileprefix=fileprefix,
@@ -147,7 +147,7 @@ def generateCategoriesTimeActivity(category_props=None): #fix category_props
     conds2 = ["1", "rev_user=0", "rev_user!=0"] #todas, anónimas o registrados
     conds = []
     for cond in conds2:
-        conds.append("%s and rev_page in (select cl_from from categorylinks where cl_to='%s')" % (cond, category_props["category_title_"].encode("utf-8"))) #fix cuidado con nombres de categorías con '
+        conds.append("%s and rev_page in (select cl_from from categorylinks where cl_to='%s')" % (cond, category_props["category_title_"].encode(smwconfig.preferences['codification']))) #fix cuidado con nombres de categorías con '
     headers = ["Edits in category %s (all users)" % category_props["category_title"], "Edits in category %s (only anonymous users)" % category_props["category_title"], "Edits in category %s (only registered users)" % category_props["category_title"]]
     generateTimeActivity(timesplit="hour", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
     generateTimeActivity(timesplit="dayofweek", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
@@ -155,7 +155,7 @@ def generateCategoriesTimeActivity(category_props=None): #fix category_props
 
 def generateUsersTimeActivity(user_props=None):
     assert user_props
-    conds = ["rev_user_text='%s'" % user_props["user_name"].encode("utf-8"), "page_namespace=0 and rev_user_text='%s'" % user_props["user_name"].encode("utf-8"), "page_namespace=1 and rev_user_text='%s'" % user_props["user_name"].encode("utf-8")] # artículo o todas, #todo añadir escape() para comillas?
+    conds = ["rev_user_text='%s'" % user_props["user_name"].encode(smwconfig.preferences['codification']), "page_namespace=0 and rev_user_text='%s'" % user_props["user_name"].encode(smwconfig.preferences['codification']), "page_namespace=1 and rev_user_text='%s'" % user_props["user_name"].encode(smwconfig.preferences['codification'])] # artículo o todas, #todo añadir escape() para comillas?
     headers = ["Edits by %s (all pages)" % user_props["user_name"], "Edits by %s (only articles)" % user_props["user_name"], "Edits by %s (only articles talks)" % user_props["user_name"]]
     filesubfix = user_props["user_id"]
     if filesubfix == 0:
@@ -177,9 +177,9 @@ def generateCloud(type=None, user_props=None, page_props=None, category_props=No
             continue
 
         comment = rev_props["rev_comment"].lower().strip()
-        comment = re.sub(ur"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*\(\)\<\>\+\.\-\#\_\&]", ur" ", comment) #no commas, csv
-        comment = re.sub(ur"  +", ur" ", comment)
-        tags = comment.split(" ")
+        comment = re.sub(r"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*\(\)\<\>\+\.\-\#\_\&]", r" ", comment) #no commas, csv
+        comment = re.sub(r"  +", r" ", comment)
+        tags = comment.split(' ')
         for tag in tags:
             if len(tag)<4: #unuseful tags filter
                 continue
@@ -217,7 +217,7 @@ def generateCloud(type=None, user_props=None, page_props=None, category_props=No
         if minTimes>times:
             minTimes = times
 
-    output = u""
+    output = ''
     cloudListShuffle = cloudList[:limit]
     random.shuffle(cloudListShuffle)
     for times, tag in cloudListShuffle:
@@ -225,10 +225,10 @@ def generateCloud(type=None, user_props=None, page_props=None, category_props=No
             fontsize = 100 + ((times - minTimes) * (maxSize - minSize)) / (maxTimes - minTimes)
         else:
             fontsize = 100 + (maxSize - minSize ) / 2
-        output += u"""<span style="font-size: %s%%">%s</span> &nbsp;&nbsp;&nbsp;""" % (fontsize, tag)
+        output += '<span style="font-size: %s%%">%s</span> &nbsp;&nbsp;&nbsp;' % (fontsize, tag)
 
     if not output:
-        output += u"There is no comments in edits."
+        output += 'There is no comments in edits.'
 
     return output
 
@@ -426,22 +426,22 @@ def generateContentEvolution(type, user_props=None, page_props=None, category_pr
     fileprefix = ''
     owner = ''
     if type == "global":
-        title = u"Content evolution in %s" % smwconfig.preferences["siteName"]
+        title = 'Content evolution in %s' % smwconfig.preferences["siteName"]
         fileprefix = "global"
         owner = smwconfig.preferences["siteName"]
     elif type == "users":
-        title = u"Content evolution by %s" % user_props["user_name"]
+        title = 'Content evolution by %s' % user_props["user_name"]
         if user_props["user_id"] == 0:
             fileprefix = "user_%s" % user_props["user_name_"]
         else:
             fileprefix = "user_%s" % user_props["user_id"]
         owner = user_props["user_name"]
     elif type == "pages":
-        title = u"Content evolution in %s" % page_props["page_title"]
+        title = 'Content evolution in %s' % page_props["page_title"]
         fileprefix = "page_%s" % page_props["page_id"]
         owner = page_props["page_title"]
     elif type == "categories":
-        title = u"Content evolution for pages in %s" % category_props["category_title"]
+        title = 'Content evolution for pages in %s' % category_props["category_title"]
         fileprefix = "category_%s" % category_props["category_id"]
         owner = category_props["category_title"]
 
@@ -466,7 +466,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
     assert type != "users" #no necesaria esta tabla para usuarios
 
     if type == "pages" and smwconfig.preferences["anonymous"]:
-        return u"""<p>This is an anonymous analysis. This information will not be showed.</p>\n"""
+        return '<p>This is an anonymous analysis. This information will not be showed.</p>\n'
 
     output = ''
     #legend
@@ -723,7 +723,7 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
     return output
 
 def generateCategoriesTable():
-    output = u"""<table class="prettytable">
+    output = """<table class="prettytable">
     <tr><th>#</th><th>Category</th><th>Pages</th><th>%</th><th>Edits</th><th>%</th><th>Bytes</th><th>%</th><th>Visits</th><th>%</th></tr>"""
 
     categoriesSorted = [] #by edits
@@ -785,7 +785,7 @@ def generateCategoriesTable():
 
 def generateGlobalAnalysis():
     print "Generating global analysis"
-    body = u"""%s
+    body = """%s
 
     %s
 
@@ -864,7 +864,7 @@ def generateGlobalAnalysis():
 
 def generateUsersAnalysis():
     for user_name_, user_props in smwconfig.users.items():
-        print u"Generating analysis to user: %s" % user_props["user_name"]
+        print "Generating analysis to user: %s" % user_props["user_name"]
         generateContentEvolution(type="users", user_props=user_props)
         if smwconfig.preferences["anonymous"]:
             continue
@@ -872,13 +872,13 @@ def generateUsersAnalysis():
 
         gallery = ''
         for img_name_ in smwget.getImagesByUser(user_text_=user_name_):
-            gallery += u"""<a href='%s/%s/Image:%s'><img src="%s" width="200px" alt="%s"/></a>&nbsp;&nbsp;&nbsp;""" % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], img_name_, smwconfig.images[img_name_]["img_url"], img_name_)
+            gallery += """<a href='%s/%s/Image:%s'><img src="%s" width="200px" alt="%s"/></a>&nbsp;&nbsp;&nbsp;""" % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], img_name_, smwconfig.images[img_name_]["img_url"], img_name_)
 
         filesubfix = user_props["user_id"]
         if filesubfix == 0: #ip
             filesubfix = user_name_
 
-        body = u"""%s\n%s\n%s
+        body = """%s\n%s\n%s
 
 
         <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
@@ -952,7 +952,7 @@ def generateUsersAnalysis():
 
 def generatePagesAnalysis():
     for page_id, page_props in smwconfig.pages.items():
-        print u"Generating analysis to the page: %s" % (page_props["page_title"])
+        print "Generating analysis to the page: %s" % (page_props["page_title"])
         generateContentEvolution(type="pages", page_props=page_props)
         generatePagesTimeActivity(page_props=page_props)
 
@@ -1022,11 +1022,11 @@ def generateCategoriesAnalysis():
             #así que si no existe, no generamos análisis para esa categoría
             print "Some pages are categorised into %s but there is no page for that category" % (category_title_)
             continue
-        print u"Generating analysis to the category: %s" % category_title_
+        print "Generating analysis to the category: %s" % category_title_
         generateContentEvolution(type="categories", category_props=category_props)
         generateCategoriesTimeActivity(category_props=category_props)
 
-        body = u"""%s\n%s\n%s
+        body = """%s\n%s\n%s
 
         <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
         <div id="divcontentevolution">

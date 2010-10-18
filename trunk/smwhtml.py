@@ -75,5 +75,5 @@ def printHTML(type=None, file="", title="", body=""):
     </body>
     </html>""" % (stylesdir, jsdir, title, title, body)
 
-    f.write(output.encode("utf-8"))
+    f.write(output.encode(smwconfig.preferences['codification']))
     f.close()

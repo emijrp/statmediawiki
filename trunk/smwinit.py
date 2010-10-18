@@ -25,7 +25,7 @@ import smwdb
 
 def welcome():
     print "-"*75
-    print u"""Welcome to StatMediaWiki %s. Web: http://statmediawiki.forja.rediris.es""" % (smwconfig.CURRENT_VERSION)
+    print """Welcome to StatMediaWiki %s. Web: http://statmediawiki.forja.rediris.es""" % (smwconfig.CURRENT_VERSION)
     print "-"*75
 
 def bye():
@@ -88,7 +88,7 @@ def getParameters():
     if not smwconfig.preferences["dbName"] or \
        not smwconfig.preferences["siteUrl"] or \
        not smwconfig.preferences["siteName"]:
-        print u"""Error. Parameters --dbname, --siteurl and --sitename are required. Write --help for help."""
+        print """Error. Parameters --dbname, --siteurl and --sitename are required. Write --help for help."""
         sys.exit()
         #usage()
 

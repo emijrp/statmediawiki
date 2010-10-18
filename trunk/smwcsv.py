@@ -24,12 +24,12 @@ def printCSV(type, subtype, fileprefix, headers, rows):
     f = open(file, "w")
     output = ",".join(headers)
     output += "\n"
-    f.write(output.encode("utf-8"))
+    f.write(output.encode(smwconfig.preferences['codification']))
 
     # Cada "fila" tiene los datos de una columna, en realidad. Con
     # zip() hacemos la transpuesta de la matriz e imprimimos el CSV
     # correctamente.
     for row in zip(*rows):
         output = ",".join(str(e) for e in row) + "\n"
-        f.write(output.encode("utf-8"))
+        f.write(output.encode(smwconfig.preferences['codification']))
     f.close()

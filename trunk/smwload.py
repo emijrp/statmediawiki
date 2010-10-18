@@ -66,8 +66,8 @@ def loadCategories():
     result = cursor.fetchall()
     for row in result:
         cl_from = int(row[0])
-        cl_to = re.sub('_', ' ', unicode(row[1], "utf-8"))
-        cl_to_ = re.sub(' ', '_', unicode(row[1], "utf-8"))
+        cl_to = re.sub('_', ' ', unicode(row[1], smwconfig.preferences['codification']))
+        cl_to_ = re.sub(' ', '_', unicode(row[1], smwconfig.preferences['codification']))
 
         if smwconfig.categories.has_key(cl_to_):
             smwconfig.categories[cl_to_]["pages"].append(cl_from)
@@ -83,8 +83,8 @@ def loadCategories():
     cursor.execute("SELECT page_title FROM %spage WHERE page_namespace=14 AND page_id IN (SELECT DISTINCT rev_page FROM %srevision WHERE rev_timestamp>='%s' and rev_timestamp<='%s')" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
     result = cursor.fetchall()
     for row in result:
-        page_title = re.sub('_', ' ', unicode(row[0], "utf-8"))
-        page_title_ = re.sub(' ', '_', unicode(row[0], "utf-8"))
+        page_title = re.sub('_', ' ', unicode(row[0], smwconfig.preferences['codification']))
+        page_title_ = re.sub(' ', '_', unicode(row[0], smwconfig.preferences['codification']))
         #solo hay un caso, que no esté, y como hablamos de una categoría sin nada dentro, la creamos con []
         if not smwconfig.categories.has_key(page_title_):
             smwconfig.categories[page_title_] = {
@@ -126,11 +126,11 @@ def loadImages():
     cursor.execute("SELECT img_name, img_user, img_user_text, img_timestamp, img_size FROM %simage WHERE img_timestamp>='%s' AND img_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
     result = cursor.fetchall()
     for row in result:
-        img_name = re.sub('_', ' ', unicode(row[0], 'utf-8'))
-        img_name_ = re.sub(' ', '_', unicode(row[0], 'utf-8'))
+        img_name = re.sub('_', ' ', unicode(row[0], smwconfig.preferences['codification']))
+        img_name_ = re.sub(' ', '_', unicode(row[0], smwconfig.preferences['codification']))
         img_user = int(row[1])
-        img_user_text = re.sub('_', ' ', unicode(row[2], 'utf-8'))
-        img_user_text_ = re.sub(' ', '_', unicode(row[2], 'utf-8'))
+        img_user_text = re.sub('_', ' ', unicode(row[2], smwconfig.preferences['codification']))
+        img_user_text_ = re.sub(' ', '_', unicode(row[2], smwconfig.preferences['codification']))
         img_timestamp = row[3]
         img_size = int(row[4])
         smwconfig.images[img_name_] = {
@@ -149,7 +149,7 @@ def loadImages():
 def loadNamespaces():
     smwconfig.namespaces.clear() #reset
     #fix: debería cargarlos de la bbdd u otro sitio
-    smwconfig.namespaces = {-2: u"Media", -1: u"Special", 0: "Main", 1: u"Talk", 2: u"User", 3: u"User talk", 4: u"Project", 5: u"Project talk", 6: u"File", 7: u"File talk", 8: u"MediaWiki", 9: u"MediaWiki talk", 10: u"Template", 11: u"Template talk", 12: u"Help", 13: u"Help talk", 14: u"Category", 15: u"Category talk"}
+    smwconfig.namespaces = {-2: "Media", -1: "Special", 0: "Main", 1: "Talk", 2: "User", 3: "User talk", 4: "Project", 5: "Project talk", 6: "File", 7: "File talk", 8: "MediaWiki", 9: "MediaWiki talk", 10: "Template", 11: "Template talk", 12: "Help", 13: "Help talk", 14: "Category", 15: "Category talk"}
 
 def loadPages():
     smwconfig.pages.clear() #reset
@@ -159,8 +159,8 @@ def loadPages():
     for row in result:
         page_id = int(row[0])
         page_namespace = int(row[1])
-        page_title = re.sub('_', ' ', unicode(row[2], "utf-8"))
-        page_title_ = re.sub(' ', '_', unicode(row[2], "utf-8"))
+        page_title = re.sub('_', ' ', unicode(row[2], smwconfig.preferences['codification']))
+        page_title_ = re.sub(' ', '_', unicode(row[2], smwconfig.preferences['codification']))
         page_is_redirect = int(row[3])
         page_len = int(row[4])
         page_counter = int(row[5])
@@ -187,12 +187,12 @@ def loadRevisions():
         rev_id = int(row[0])
         rev_page = int(row[1])
         rev_user = int(row[2])
-        rev_user_text = unicode(re.sub('_', ' ', row[3]), "utf-8")
-        rev_user_text_ = unicode(re.sub(' ', '_', row[3]), "utf-8")
+        rev_user_text = unicode(re.sub('_', ' ', row[3]), smwconfig.preferences['codification'])
+        rev_user_text_ = unicode(re.sub(' ', '_', row[3]), smwconfig.preferences['codification'])
         rev_timestamp = row[4]
-        rev_comment = unicode(row[5].tostring(), "utf-8")
+        rev_comment = unicode(row[5].tostring(), smwconfig.preferences['codification'])
         rev_parent_id = int(row[6])
-        old_text = unicode(row[7].tostring(), "utf-8")
+        old_text = unicode(row[7].tostring(), smwconfig.preferences['codification'])
         smwconfig.revisions[rev_id] = {
             "rev_id": rev_id, #no es un error
             "rev_page": rev_page,
@@ -233,8 +233,8 @@ def loadUsers():
         result = cursor.fetchall()
         for row in result:
             user_id = int(row[0])
-            user_name = re.sub('_', ' ', unicode(row[1], 'utf-8'))
-            user_name_ = re.sub(' ', '_', unicode(row[1], 'utf-8'))
+            user_name = re.sub('_', ' ', unicode(row[1], smwconfig.preferences['codification']))
+            user_name_ = re.sub(' ', '_', unicode(row[1], smwconfig.preferences['codification']))
             if not smwconfig.users.has_key(user_id):
                 smwconfig.users[user_name_] = {
                     "user_id": user_id,

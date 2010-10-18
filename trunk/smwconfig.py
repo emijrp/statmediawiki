@@ -30,6 +30,7 @@ revisions = {}
 users = {}
 
 #user preferences
+preferences["codification"] = 'iso-8859-1' # 'iso-8859-1' makes history bytes equal in MediaWiki and StatMediaWiki (when accent appears)
 preferences["outputDir"] = 'output'
 preferences["indexFilename"] = 'index.html'
 preferences["siteName"] = ''

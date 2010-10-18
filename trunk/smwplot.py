@@ -17,6 +17,7 @@
 
 import datetime
 import Gnuplot
+import re
 
 import smwconfig
 
@@ -32,8 +33,8 @@ def printLinesGraph(title, file, labels, headers, rows):
         c += 1
     xticsperiod = xticsperiod[:len(xticsperiod)-1]
 
-    codifi = "iso-8859-1"
-    codifi_ = "iso_8859_1"
+    codifi = smwconfig.preferences['codification']
+    codifi_ = re.sub('-', '_', codifi)
     gp = Gnuplot.Gnuplot()
     #gp('set term png')
     gp('set encoding %s' % codifi_)
@@ -76,8 +77,8 @@ def printBarsGraph(title, file, headers, rows):
         xtics += '"%s" %s, ' % (xtic_, xtic)
     xtics = xtics[:-2]
     #print xtics
-    codifi = "iso-8859-1"
-    codifi_ = "iso_8859_1"
+    codifi = smwconfig.preferences['codification']
+    codifi_ = re.sub('-', '_', codifi)
     gp = Gnuplot.Gnuplot()
     #gp('set term png')
     gp('set encoding %s' % codifi_)

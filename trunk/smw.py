@@ -31,12 +31,6 @@ gnuplot fll curves for work-flow? http://gnuplot.sourceforge.net/demo_4.2/fillcr
 mejorar los summary
 marcar redirecciones en las tablas (con #R ? )
 arreglar nombres secciones y enlaces internos #
-
->>> len('En esta categoría se incluyen artículos relacionados con el tema de Negocio Electrónico de la aisgnatura')
-107
->>> len(unicode('En esta categoría se incluyen artículos relacionados con el tema de Negocio Electrónico de la aisgnatura', 'utf-8'))
-104
-
 """
 
 #convenciones:
