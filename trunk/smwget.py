@@ -283,7 +283,7 @@ def getTotalVisitsByNamespace(namespace=0, redirects=False):
 
 def getImageUrl(img_name):
     img_name_ = re.sub(' ', '_', img_name) #espacios a _
-    md5_ = md5.md5(img_name_.encode('utf-8')).hexdigest() #digest hexadecimal
+    md5_ = md5.md5(img_name_.encode(smwconfig.preferences["codification"])).hexdigest() #digest hexadecimal
     img_url = "%s/images/%s/%s/%s" % (smwconfig.preferences["siteUrl"], md5_[0], md5_[:2], img_name_)
     return img_url
 
