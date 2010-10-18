@@ -253,6 +253,7 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         output += '<tr><td><b>Total edits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalRevisions(), generateTableByNamespace(htmlid='global-edits', fun=smwget.getTotalRevisionsByNamespace))
         output += '<tr><td><b>Total bytes:</b></td><td>%d %s</td></tr>' % (smwget.getTotalBytes(), generateTableByNamespace(htmlid='global-bytes', fun=smwget.getTotalBytesByNamespace))
         output += '<tr><td><b>Total files:</b></td><td>%d</td></tr>' % (smwget.getTotalImages())
+        output += '<tr><td><b>Total users:</b></td><td>%d</td></tr>' % (smwget.getTotalUsers())
         output += '<tr><td><b>Total visits:</b></td><td>%d %s</td></tr>' % (smwget.getTotalVisits(), generateTableByNamespace(htmlid='global-visits', fun=smwget.getTotalVisitsByNamespace))
     elif type == "users":
         output += '<tr><td><b>User:</b></td><td><a href="%s/%s/User:%s">%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"], user_props["user_name"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], user_props["user_name_"])
@@ -269,9 +270,10 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByPage(page_id=page_props["page_id"]))
         output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>' % (page_props["page_len"])
     elif type == "categories":
-        output += '<tr><td><b>Category:</b></td><td><a href="%s/%s/%s">%s</a> (<a href="%s/index.php?title=%s&amp;action=history">history</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"])
+        output += '<tr><td><b>Category:</b></td><td><a href="%s/%s/Category:%s">%s</a> (<a href="%s/index.php?title=Category:%s&amp;action=history">history</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title"])
         output += '<tr><td><b>Report period:</b></td><td>%s &ndash; %s</td>' % (smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat())
         output += '<tr><td><b>Total pages included:</b></td><td>%d</td></tr>' % (len(category_props["pages"]))
+        output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>' % (smwget.getTotalRevisionsByCategory(category_props=category_props))
 
     output += '<tr><td><b>Generated in:</b></td><td>%s</td></tr>' % (datetime.datetime.now().isoformat())
 

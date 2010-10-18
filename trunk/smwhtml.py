@@ -68,8 +68,10 @@ def printHTML(type=None, file="", title="", body=""):
     %s
 
     <h2 id="about">About</h2>
-    <p>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a>
-    <a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88" /></a></p>
+    <!-- icons -->
+    <span style="float: right;"><a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88" /></a></span>
+    <p>Generated with <a href="http://statmediawiki.forja.rediris.es/">StatMediaWiki</a>.
+    </p>
     </body>
     </html>""" % (stylesdir, jsdir, title, title, body)
 

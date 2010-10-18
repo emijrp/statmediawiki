@@ -71,6 +71,10 @@ def getTotalPagesByUser(user_id=None, user_text_=None):
 def getTotalRevisions():
     return len(smwconfig.revisions)
 
+def getTotalRevisionsByCategory(category_props=None):
+    assert category_props
+    return sum([getTotalRevisionsByPage(page_id=page_id) for page_id in category_props["pages"]])
+
 def getTotalRevisionsByNamespace(namespace=0):
     return len([rev_id for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in getPagesByNamespace(namespace=namespace)])
 
