@@ -29,8 +29,8 @@ table.sections{
     text-align: center;
 }
 
-/* table style from Wikipedia: http://es.wikipedia.org/wiki/MediaWiki:Common.css */
-table {
+/* Pretty table from Wikipedia: http://es.wikipedia.org/wiki/MediaWiki:Common.css */
+table.prettytable {
     margin: 1em 1em 1em 1em;
     padding: 0.5em;
     font-size: 95%;
@@ -39,18 +39,19 @@ table {
     border-collapse: collapse;
     text-align: center;
 }
-table th, table td {
+table.prettytable th, table.prettytable td {
     border: 1px #aaa solid;
     padding: 0.2em;
 }
-table th {
+table.prettytable th {
     background-color: #f2f2f2;
     text-align: center;
 }
-table caption {
+table.prettytable caption {
     margin-left: inherit;
     margin-right: inherit;
 }
+/* end pretty table */
 
 table.sections {
     width: 150px;

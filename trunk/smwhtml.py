@@ -21,7 +21,7 @@ def getBacklink():
     return '&lt;&lt; <a href="../../%s">Back</a>' % (smwconfig.preferences["indexFilename"])
 
 def getSections(type=None):
-    output = '<table class="sections">'
+    output = '<table class="prettytable sections">'
     output += '<tr><th><b>Sections</b></th></tr>'
     output += '<tr><td><a href="#contentevolution">Content evolution</a></td></tr>'
     output += '<tr><td><a href="#activity">Activity</a></td></tr>'
@@ -39,7 +39,7 @@ def getSections(type=None):
     return output
 
 def getLegend():
-    output = '<table><tr><td>&nbsp;&nbsp;Low&nbsp;&nbsp;</td>'
+    output = '<table class="prettytable"><tr><td>&nbsp;&nbsp;Low&nbsp;&nbsp;</td>'
     output += ''.join(['<td class="cellcolor%d">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>' % (i) for i in range(smwconfig.preferences["numColors"])])
     output += '<td>&nbsp;&nbsp;High&nbsp;&nbsp;</td></tr></table>'
     return output

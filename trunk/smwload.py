@@ -103,9 +103,12 @@ def loadDateRange():
         smwconfig.preferences["startDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=0, minute=0, second=0)
 
     if not smwconfig.preferences["endDate"]:
-        cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (smwconfig.preferences["tablePrefix"]))
+        #if no end date, get now
+        now = datetime.datetime.now()
+        smwconfig.preferences["endDate"] = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=now.minute, second=now.second)
+        """cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (smwconfig.preferences["tablePrefix"]))
         a = cursor.fetchall()[0][0]
-        smwconfig.preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=23, minute=59, second=59)
+        smwconfig.preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=23, minute=59, second=59)"""
 
     smwdb.destroyConnCursor(conn, cursor)
 

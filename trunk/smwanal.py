@@ -234,7 +234,7 @@ def generateCloud(type=None, user_props=None, page_props=None, category_props=No
 
 def generateTableByNamespace(type=None, htmlid=None, fun=None, user_props=None, page_props=None, category_props=None):
     assert (type == "global" or (type == "users" and user_props) or (type == "pages" and page_props) or (type == "categories" and category_props)) and htmlid and fun
-    output = '[<a href="javascript:showHide(\'%s\')">Show/Hide</a>]\n<div id="%s" style="display: none;"><table>' % (htmlid, htmlid)
+    output = '[<a href="javascript:showHide(\'%s\')">Show/Hide</a>]\n<div id="%s" style="display: none;"><table class="prettytable">' % (htmlid, htmlid)
     namespaces = smwconfig.namespaces.items()
     namespaces.sort()
     for nmnum, nmname in namespaces:
@@ -251,7 +251,7 @@ def generateTableByNamespace(type=None, htmlid=None, fun=None, user_props=None, 
 
 def generateSummary(type, user_props=None, page_props=None, category_props=None):
     assert type == "global" or (type == "users" and user_props) or (type == "pages" and page_props) or (type == "categories" and category_props)
-    output = '<table class="summary">'
+    output = '<table class="prettytable summary">'
 
     if type == "global":
         output += '<tr><td><b>Site:</b></td><td><a href="%s">%s</a> (<a href="%s/%s/Special:Recentchanges">recent changes</a>)</td></tr>' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"])
@@ -473,7 +473,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
     output += smwhtml.getLegend()
 
     #table
-    output += '<table><tr>'
+    output += '<table class="prettytable"><tr>'
     output += '<th>#</th><th>User</th><th>Edits</th><th>%</th>'
     if type != "pages": # no tiene sentido dentro de páginas
         output += '<th>Edits in articles</th><th>%</th>'
@@ -629,7 +629,7 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
     output += smwhtml.getLegend()
 
     #table
-    output += '<table><tr>'
+    output += '<table class="prettytable"><tr>'
     output += '<th>#</th><th>Page</th><th>Namespace</th><th>Edits</th><th>%</th><th>Bytes</th><th>%</th>'
     if type == "global":
         output += '<th>Visits</th><th>%</th>'
@@ -708,7 +708,7 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
     return output
 
 def generateCategoriesTable():
-    output = u"""<table>
+    output = u"""<table class="prettytable">
     <tr><th>#</th><th>Category</th><th>Pages</th><th>%</th><th>Edits</th><th>%</th><th>Bytes</th><th>%</th><th>Visits</th><th>%</th></tr>"""
 
     categoriesSorted = [] #by edits
@@ -776,7 +776,7 @@ def generateGlobalAnalysis():
 
     <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
     <div id="divcontentevolution">
-    <table class="downloads">
+    <table class="prettytable downloads">
     <tr><th><b>Download as</b></th></tr>
     <tr><td><a href="graphs/global/global_content_evolution.png">PNG</a></td></tr>
     <tr><td><a href="csv/global/global_content_evolution.csv">CSV</a></td></tr>
@@ -789,21 +789,21 @@ def generateGlobalAnalysis():
     <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
     <div id="divactivity">
     <center>
-    <table class="downloads">
+    <table class="prettytable downloads">
     <tr><th><b>Download as</b></th></tr>
     <tr><td><a href="graphs/global/global_hour_activity.png">PNG</a></td></tr>
     <tr><td><a href="csv/global/global_hour_activity.csv">CSV</a></td></tr>
     </table>
     <img src="graphs/global/global_hour_activity.png" alt="Hour activity" /><br/>
 
-    <table class="downloads">
+    <table class="prettytable downloads">
     <tr><th><b>Download as</b></th></tr>
     <tr><td><a href="graphs/global/global_dayofweek_activity.png">PNG</a></td></tr>
     <tr><td><a href="csv/global/global_dayofweek_activity.csv">CSV</a></td></tr>
     </table>
     <img src="graphs/global/global_dayofweek_activity.png" alt="Day of week activity" /><br/>
 
-    <table class="downloads">
+    <table class="prettytable downloads">
     <tr><th><b>Download as</b></th></tr>
     <tr><td><a href="graphs/global/global_month_activity.png">PNG</a></td></tr>
     <tr><td><a href="csv/global/global_month_activity.csv">CSV</a></td></tr>
@@ -869,7 +869,7 @@ def generateUsersAnalysis():
         <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
 
         <div id="divcontentevolution">
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/users/user_%s_content_evolution.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/users/user_%s_content_evolution.csv">CSV</a></td></tr>
@@ -883,21 +883,21 @@ def generateUsersAnalysis():
 
         <div id="divactivity">
         <center>
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/users/user_%s_hour_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/users/user_%s_hour_activity.csv">CSV</a></td></tr>
         </table>
         <img src="../../graphs/users/user_%s_hour_activity.png" alt="Hour activity" /><br/>
 
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/users/user_%s_dayofweek_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/users/user_%s_dayofweek_activity.csv">CSV</a></td></tr>
         </table>
         <img src="../../graphs/users/user_%s_dayofweek_activity.png" alt="Day of week activity" /><br/>
 
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/users/user_%s_month_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/users/user_%s_month_activity.csv">CSV</a></td></tr>
@@ -945,7 +945,7 @@ def generatePagesAnalysis():
 
         <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
         <div id="divcontentevolution">
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/pages/page_%s_content_evolution.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/pages/page_%s_content_evolution.csv">CSV</a></td></tr>
@@ -958,21 +958,21 @@ def generatePagesAnalysis():
         <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
         <div id="divactivity">
         <center>
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/pages/page_%s_hour_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/pages/page_%s_hour_activity.csv">CSV</a></td></tr>
         </table>
         <img src="../../graphs/pages/page_%s_hour_activity.png" alt="Hour activity" /><br/>
 
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/pages/page_%s_dayofweek_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/pages/page_%s_dayofweek_activity.csv">CSV</a></td></tr>
         </table>
         <img src="../../graphs/pages/page_%s_dayofweek_activity.png" alt="Day of week activity" /><br/>
 
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/pages/page_%s_month_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/pages/page_%s_month_activity.csv">CSV</a></td></tr>
@@ -1015,7 +1015,7 @@ def generateCategoriesAnalysis():
 
         <h2 id="contentevolution"><span class="showhide">[ <a href="javascript:showHide('divcontentevolution')">Show/Hide</a> ]</span>Content evolution</h2>
         <div id="divcontentevolution">
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/categories/category_%d_content_evolution.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/categories/category_%d_content_evolution.csv">CSV</a></td></tr>
@@ -1028,21 +1028,21 @@ def generateCategoriesAnalysis():
         <h2 id="activity"><span class="showhide">[ <a href="javascript:showHide('divactivity')">Show/Hide</a> ]</span>Activity</h2>
         <div id="divactivity">
         <center>
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/categories/category_%d_hour_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/categories/category_%d_hour_activity.csv">CSV</a></td></tr>
         </table>
         <img src="../../graphs/categories/category_%d_hour_activity.png" alt="Hour activity" /><br/>
 
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/categories/category_%d_dayofweek_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/categories/category_%d_dayofweek_activity.csv">CSV</a></td></tr>
         </table>
         <img src="../../graphs/categories/category_%d_dayofweek_activity.png" alt="Day of week activity" /><br/>
 
-        <table class="downloads">
+        <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/categories/category_%d_month_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/categories/category_%d_month_activity.csv">CSV</a></td></tr>
