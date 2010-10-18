@@ -168,18 +168,51 @@ def getPages():
 def getPagesByNamespace(namespace=0):
     return [page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace]
 
-def getPagesSortedByTotalRevisions():
+def getPagesSortedByTotalBytes():
     pagesSorted = pagesSortedDic()
-    for rev_id, rev_props in smwconfig.revisions.items():
-        if pagesSorted.has_key(rev_props["rev_page"]):
-            pagesSorted[rev_props["rev_page"]] += 1
-        else:
-            pagesSorted[rev_props["rev_page"]] = 1
+    for page_id, page_props in smwconfig.pages.items():
+        pagesSorted[page_id] = page_props["page_len"]
 
     list = [[v, k] for k, v in pagesSorted.items()]
     list.sort()
     list.reverse()
+    return list
 
+def getPagesSortedByTotalBytesByCategory(category_props=None):
+    assert category_props
+    pagesSorted = pagesSortedDic()
+    for page_id, page_props in smwconfig.pages.items():
+        if page_id not in category_props["pages"]:
+            continue
+        pagesSorted[page_id] = page_props["page_len"]
+
+    list = [[v, k] for k, v in pagesSorted.items()]
+    list.sort()
+    list.reverse()
+    return list
+
+def getPagesSortedByTotalBytesByUser(user_props=None):
+    assert user_props
+    pagesSorted = pagesSortedDic()
+    for rev_page, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_user_text_"] != user_props["user_name_"]:
+            continue
+        if rev_props["len_diff"] > 0:
+            pagesSorted[rev_props["rev_page"]] += rev_props["len_diff"]
+
+    list = [[v, k] for k, v in pagesSorted.items()]
+    list.sort()
+    list.reverse()
+    return list
+
+def getPagesSortedByTotalRevisions():
+    pagesSorted = pagesSortedDic()
+    for rev_id, rev_props in smwconfig.revisions.items():
+        pagesSorted[rev_props["rev_page"]] += 1
+
+    list = [[v, k] for k, v in pagesSorted.items()]
+    list.sort()
+    list.reverse()
     return list
 
 def getPagesSortedByTotalRevisionsByCategory(category_props=None):
@@ -188,15 +221,11 @@ def getPagesSortedByTotalRevisionsByCategory(category_props=None):
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in category_props["pages"]:
             continue
-        if pagesSorted.has_key(rev_props["rev_page"]):
-            pagesSorted[rev_props["rev_page"]] += 1
-        else:
-            pagesSorted[rev_props["rev_page"]] = 1
+        pagesSorted[rev_props["rev_page"]] += 1
 
     list = [[v, k] for k, v in pagesSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getPagesSortedByTotalRevisionsByUser(user_id=None, user_text_=None):
@@ -207,15 +236,21 @@ def getPagesSortedByTotalRevisionsByUser(user_id=None, user_text_=None):
             continue
         if user_text_ and rev_props["rev_user_text_"] != user_text_:
             continue
-        if pagesSorted.has_key(rev_props["rev_page"]):
-            pagesSorted[rev_props["rev_page"]] += 1
-        else:
-            pagesSorted[rev_props["rev_page"]] = 1
+        pagesSorted[rev_props["rev_page"]] += 1
 
     list = [[v, k] for k, v in pagesSorted.items()]
     list.sort()
     list.reverse()
+    return list
 
+def getPagesSortedByTotalVisits():
+    pagesSorted = pagesSortedDic()
+    for page_id, page_props in smwconfig.pages.items():
+        pagesSorted[page_id] = page_props["page_counter"]
+
+    list = [[v, k] for k, v in pagesSorted.items()]
+    list.sort()
+    list.reverse()
     return list
 
 def getTotalPagesByNamespace(namespace=0, redirects=False):
@@ -267,15 +302,11 @@ def getUsersSortedByTotalBytes():
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["len_diff"] <= 0:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = rev_props["len_diff"]
+        usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalBytesInCategory(category_props=None):
@@ -286,15 +317,11 @@ def getUsersSortedByTotalBytesInCategory(category_props=None):
             continue
         if rev_props["len_diff"] <= 0:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = rev_props["len_diff"]
+        usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalBytesByCategoryInNamespace(category_props=None, namespace=0):
@@ -308,15 +335,11 @@ def getUsersSortedByTotalBytesByCategoryInNamespace(category_props=None, namespa
             continue
         if rev_props["len_diff"] <= 0:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = rev_props["len_diff"]
+        usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalBytesInNamespace(namespace=0):
@@ -327,15 +350,11 @@ def getUsersSortedByTotalBytesInNamespace(namespace=0):
             continue
         if rev_props["len_diff"] <= 0:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = rev_props["len_diff"]
+        usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalBytesInPage(page_id=None):
@@ -347,43 +366,31 @@ def getUsersSortedByTotalBytesInPage(page_id=None):
             continue
         if rev_props["len_diff"] <= 0:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = rev_props["len_diff"]
+        usersSorted[rev_props["rev_user_text_"]] += rev_props["len_diff"]
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalImages():
     usersSorted = usersSortedDic()
     for img_name_, img_props in smwconfig.images.items():
-        if usersSorted.has_key(img_props["img_user_text_"]):
-            usersSorted[img_props["img_user_text_"]] += 1
-        else:
-            usersSorted[img_props["img_user_text_"]] = 1
+        usersSorted[img_props["img_user_text_"]] += 1
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalRevisions():
     usersSorted = usersSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += 1
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = 1
+        usersSorted[rev_props["rev_user_text_"]] += 1
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 
@@ -393,15 +400,11 @@ def getUsersSortedByTotalRevisionsInCategory(category_props=None):
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in category_props["pages"]:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += 1
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = 1
+        usersSorted[rev_props["rev_user_text_"]] += 1
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalRevisionsByCategoryInNamespace(category_props=None, namespace=0):
@@ -413,15 +416,11 @@ def getUsersSortedByTotalRevisionsByCategoryInNamespace(category_props=None, nam
             continue
         if rev_props["rev_page"] not in category_props["pages"]:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += 1
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = 1
+        usersSorted[rev_props["rev_user_text_"]] += 1
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalRevisionsInNamespace(namespace=0):
@@ -430,15 +429,11 @@ def getUsersSortedByTotalRevisionsInNamespace(namespace=0):
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] not in pageslist:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += 1
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = 1
+        usersSorted[rev_props["rev_user_text_"]] += 1
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def getUsersSortedByTotalRevisionsInPage(page_id=None):
@@ -447,15 +442,11 @@ def getUsersSortedByTotalRevisionsInPage(page_id=None):
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_page"] != page_id:
             continue
-        if usersSorted.has_key(rev_props["rev_user_text_"]):
-            usersSorted[rev_props["rev_user_text_"]] += 1
-        else:
-            usersSorted[rev_props["rev_user_text_"]] = 1
+        usersSorted[rev_props["rev_user_text_"]] += 1
 
     list = [[v, k] for k, v in usersSorted.items()]
     list.sort()
     list.reverse()
-
     return list
 
 def pagetitle2pageid(page_title=None, page_title_=None, page_namespace=None):

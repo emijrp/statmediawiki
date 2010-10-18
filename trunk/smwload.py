@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+import random
 import re
 
 import smwdb
@@ -41,7 +42,6 @@ def fillPagelen():
         temprevtimestamp = None
         temppagelen = None
         for rev_id, rev_props in smwconfig.revisions.items():
-
             if page_id == rev_props["rev_page"]:
                 if not temprevtimestamp or temprevtimestamp < rev_props["rev_timestamp"]:
                     temprevtimestamp = rev_props["rev_timestamp"]
@@ -50,9 +50,13 @@ def fillPagelen():
 
 def fillCategoryids():
     for category_title_, category_props in smwconfig.categories.items():
+        ok=False#truco momentaneo
         for page_id, page_props in smwconfig.pages.items():
             if page_props["page_namespace"] == 14 and page_props["page_title_"] == category_title_:
                 smwconfig.categories[category_title_]["category_id"] = page_id
+                ok=True
+        if not ok:
+            smwconfig.categories[category_title_]["category_id"] = random.randint(1000000,9999999)
 
 def loadCategories():
     smwconfig.categories.clear() #reset

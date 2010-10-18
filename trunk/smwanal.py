@@ -616,7 +616,14 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
     output += '</table>'
 
     #notes
-    output += '<ul><li id="note1">Note 1: This figure can be greater than the total bytes in the wiki, as byte erased are not discounted in this ranking.</li></ul>'
+    note1in = ''
+    if type == "global":
+        note1in = 'in the wiki'
+    elif type == "pages":
+        note1in = 'in the page'
+    elif type == "categories":
+        note1in = 'in the category'
+    output += '<ul><li id="note1">Note 1: This figure can be greater than the total bytes %s, as byte erased are not discounted in this ranking.</li></ul>' % (note1in)
 
     return output
 
@@ -672,25 +679,33 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
         #revisions
         acumrevisions += numrevisions
         percent = totalrevisions > 0 and numrevisions/(totalrevisions/100.0) or 0
-        output += '<td>%d</td><td>%.1f</td>' % (numrevisions, percent)
+        maxi = float(max([k for k, v in smwget.getPagesSortedByTotalRevisions()] + [0]))
+        color = maxi and numrevisions/(maxi/smwconfig.preferences["numColors"]) or 0
+        output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f</td>' % (color, numrevisions, color, percent)
 
         #bytes
         numbytes = 0
         if type == "global":
             numbytes = page_props["page_len"]
+            maxi = float(max([k for k, v in smwget.getPagesSortedByTotalBytes()] + [0]))
         elif type == "users":
             numbytes = smwget.getTotalBytesByUserInPage(user_text_=user_props["user_name_"], page_id=page_id)
+            maxi = float(max([k for k, v in smwget.getPagesSortedByTotalBytesByUser(user_props=user_props)] + [0]))
         elif type == "categories":
             numbytes = page_props["page_len"]
+            maxi = float(max([k for k, v in smwget.getPagesSortedByTotalBytesByCategory(category_props=category_props)] + [0]))
         acumbytes += numbytes
         percent = totalbytes > 0 and numbytes/(totalbytes/100.0) or 0
-        output += '<td>%d</td><td>%.1f%%</td>' % (numbytes, percent)
+        color = maxi and numbytes/(maxi/smwconfig.preferences["numColors"]) or 0
+        output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, numbytes, color, percent)
 
         #visits
         if type == "global":
             acumvisits += page_props["page_counter"]
             percent = totalvisits > 0 and page_props["page_counter"]/(totalvisits/100.0) or 0
-            output += '<td>%d</td><td>%.1f%%</td>' % (page_props["page_counter"], percent)
+            maxi = float(max([k for k, v in smwget.getPagesSortedByTotalVisits()] + [0]))
+            color = maxi and page_props["page_counter"]/(maxi/smwconfig.preferences["numColors"]) or 0
+            output += '<td class="cellcolor%d">%d</td><td class="cellcolor%d">%.1f%%</td>' % (color, page_props["page_counter"], color, percent)
 
         #end row
         output += '</tr>\n'
