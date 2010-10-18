@@ -555,7 +555,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         elif type == "pages":
             numbytes = smwget.getTotalBytesByUserInPage(user_text_=user_text_, page_id=page_props["page_id"])
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInPage(page_id=page_props["page_id"])] + [0]))
-        elif type == "category":
+        elif type == "categories":
             numbytes = smwget.getTotalBytesByUserInCategory(user_text_=user_text_, category_props=category_props)
             maxi = float(max([k for k, v in smwget.getUsersSortedByTotalBytesInCategory(category_props=category_props)] + [0]))
         acumbytes += numbytes
