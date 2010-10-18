@@ -24,6 +24,12 @@ import smwconfig
 
 #todo: convertir todos los getSingleValue y sus queries en consultas a los diccionarios
 
+def pagesSortedDic():
+    dic = {}
+    for page_id, page_props in smwconfig.pages.items():
+        dic[page_id] = 0
+    return dic
+
 def usersSortedDic():
     dic = {}
     for user_name_, user_props in smwconfig.users.items():
@@ -167,8 +173,25 @@ def getPagesByNamespace(namespace=0):
     return [page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace]
 
 def getPagesSortedByTotalRevisions():
-    pagesSorted = {}
+    pagesSorted = pagesSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
+        if pagesSorted.has_key(rev_props["rev_page"]):
+            pagesSorted[rev_props["rev_page"]] += 1
+        else:
+            pagesSorted[rev_props["rev_page"]] = 1
+
+    list = [[v, k] for k, v in pagesSorted.items()]
+    list.sort()
+    list.reverse()
+
+    return list
+
+def getPagesSortedByTotalRevisionsByCategory(category_props=None):
+    assert category_props
+    pagesSorted = pagesSortedDic()
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_page"] not in category_props["pages"]:
+            continue
         if pagesSorted.has_key(rev_props["rev_page"]):
             pagesSorted[rev_props["rev_page"]] += 1
         else:
@@ -182,7 +205,7 @@ def getPagesSortedByTotalRevisions():
 
 def getPagesSortedByTotalRevisionsByUser(user_id=None, user_text_=None):
     assert user_id or user_text_
-    pagesSorted = {}
+    pagesSorted = pagesSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
         if user_id and rev_props["rev_user"] != user_id:
             continue
