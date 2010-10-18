@@ -30,15 +30,20 @@ revisions = {}
 users = {}
 
 #user preferences
-preferences["outputDir"] = "output"
-preferences["indexFilename"] = "index.html"
-preferences["siteName"] = ""
-preferences["siteUrl"] = ""
-preferences["subDir"] = "index.php" #MediaWiki subdir, usually "index.php" in http://osl.uca.es/wikihaskell/index.php/Main_Page
-preferences["dbName"] = ""
-preferences["tablePrefix"] = "" #Usually empty
-preferences["startDate"] = "" #auto, start point for date range
-preferences["endDate"] = "" #auto, end point for date range
+preferences["outputDir"] = 'output'
+preferences["indexFilename"] = 'index.html'
+preferences["siteName"] = ''
+preferences["siteUrl"] = ''
+preferences["subDir"] = 'index.php' #MediaWiki subdir, usually "index.php" in http://osl.uca.es/wikihaskell/index.php/Main_Page
+preferences["dbName"] = ''
+preferences["tablePrefix"] = '' #Usually empty
+#dates, we use datetime python objects, the rows in MediaWiki dbs uses this format yyyymmddhhmmss http://www.mediawiki.org/wiki/Manual:Timestamp
+preferences["startDate"] = '' #auto, start point for date range
+preferences["endDate"] = '' #auto, end point for date range
+preferences["startDateMW"] = ''
+preferences["endDateMW"] = ''
+#enddates
+
 preferences["currentPath"] = os.path.dirname(__file__)
 if not preferences["currentPath"]:
     preferences["currentPath"] = '.' #current

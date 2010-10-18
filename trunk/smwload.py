@@ -30,7 +30,7 @@ def load():
     loadCategories()
     loadImages()
     loadPages()
-    loadRevisions() #require startDate and endDate initialized
+    loadRevisions()
     loadUsers()
 
     fillPagelen()
@@ -58,7 +58,7 @@ def loadCategories():
     smwconfig.categories.clear() #reset
     conn, cursor = smwdb.createConnCursor()
     #capturamos el cl_to que es el título de la categoría, en vez de su ID, porque puede haber categorylinks hacia categorías cuya página no existe
-    cursor.execute("SELECT cl_from, cl_to FROM %scategorylinks WHERE 1" % (smwconfig.preferences["tablePrefix"]))
+    cursor.execute("SELECT cl_from, cl_to FROM %scategorylinks WHERE cl_from IN (SELECT DISTINCT rev_page FROM %srevision WHERE rev_timestamp>='%s' and rev_timestamp<='%s')" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
     result = cursor.fetchall()
     for row in result:
         cl_from = int(row[0])
@@ -76,7 +76,7 @@ def loadCategories():
             }
 
     #también miramos el nm=14, para categorías creadas pero que no contienen páginas categorizadas aun
-    cursor.execute("SELECT page_title FROM %spage WHERE page_namespace=14" % (smwconfig.preferences["tablePrefix"]))
+    cursor.execute("SELECT page_title FROM %spage WHERE page_namespace=14 AND page_id IN (SELECT DISTINCT rev_page FROM %srevision WHERE rev_timestamp>='%s' and rev_timestamp<='%s')" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
     result = cursor.fetchall()
     for row in result:
         page_title = re.sub('_', ' ', unicode(row[0], "utf-8"))
@@ -110,12 +110,16 @@ def loadDateRange():
         a = cursor.fetchall()[0][0]
         smwconfig.preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=23, minute=59, second=59)"""
 
+    #conversion to MediaWiki format
+    smwconfig.preferences["startDateMW"] = smwconfig.preferences["startDate"].strftime('%Y%m%d%H%M%S')
+    smwconfig.preferences["endDateMW"] =  enddate = smwconfig.preferences["endDate"].strftime('%Y%m%d%H%M%S')
+
     smwdb.destroyConnCursor(conn, cursor)
 
 def loadImages():
     smwconfig.images.clear() #reset
     conn, cursor = smwdb.createConnCursor()
-    cursor.execute("SELECT img_name, img_user, img_user_text, img_timestamp, img_size FROM %simage WHERE 1" % (smwconfig.preferences["tablePrefix"]))
+    cursor.execute("SELECT img_name, img_user, img_user_text, img_timestamp, img_size FROM %simage WHERE img_timestamp>='%s' AND img_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
     result = cursor.fetchall()
     for row in result:
         img_name = re.sub('_', ' ', unicode(row[0], 'utf-8'))
@@ -146,7 +150,7 @@ def loadNamespaces():
 def loadPages():
     smwconfig.pages.clear() #reset
     conn, cursor = smwdb.createConnCursor()
-    cursor.execute("select page_id, page_namespace, page_title, page_is_redirect, page_len, page_counter from %spage" % smwconfig.preferences["tablePrefix"])
+    cursor.execute("SELECT page_id, page_namespace, page_title, page_is_redirect, page_len, page_counter FROM %spage WHERE page_id IN (SELECT DISTINCT rev_page FROM %srevision WHERE rev_timestamp>='%s' and rev_timestamp<='%s')" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
     result = cursor.fetchall()
     for row in result:
         page_id = int(row[0])
@@ -172,7 +176,8 @@ def loadRevisions():
     smwconfig.revisions.clear() # reset
 
     conn, cursor = smwdb.createConnCursor()
-    cursor.execute("select rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text from %srevision, %stext where old_id=rev_text_id" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"]))
+
+    cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id AND rev_timestamp>='%s' AND rev_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
     result = cursor.fetchall()
     for row in result:
         rev_id = int(row[0])
@@ -216,8 +221,8 @@ def loadUsers():
     smwconfig.users.clear() #reset
     conn, cursor = smwdb.createConnCursor()
     queries = [
-        "SELECT DISTINCT rev_user, rev_user_text FROM %srevision WHERE 1" % (smwconfig.preferences["tablePrefix"]),
-        "SELECT user_id, user_name FROM %suser WHERE 1" % (smwconfig.preferences["tablePrefix"]),
+        "SELECT DISTINCT rev_user, rev_user_text FROM %srevision WHERE rev_timestamp>='%s' AND rev_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]),
+        "SELECT user_id, user_name FROM %suser WHERE user_registration>='%s' AND user_registration<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]),
     ]
     for query in queries:
         cursor.execute(query)
