@@ -23,7 +23,7 @@ import smwdb
 import smwconfig
 
 #todo: convertir todos los getSingleValue y sus queries en consultas a los diccionarios
-#pasar todos los page_id a page_props, los user_text_ y user_id a user_props y corregir las llamadas desde los otros módulos
+#pasar todos los page_id a page_props, los user_text_ y user_id a user_props (asserts e ifs) y corregir las llamadas desde los otros módulos
 
 def pagesSortedDic():
     dic = {}
