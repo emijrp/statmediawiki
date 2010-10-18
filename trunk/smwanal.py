@@ -176,9 +176,10 @@ def generateCloud(type=None, user_props=None, page_props=None, category_props=No
         elif type == "categories" and rev_props["rev_page"] not in category_props["pages"]: #no ponemos and page_ids, puesto que puede ser una categoría vacía
             continue
 
-        comment = rev_props["rev_comment"].lower().strip()
-        comment = re.sub(r"[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*\(\)\<\>\+\.\-\#\_\&]", r" ", comment) #no commas, csv
-        comment = re.sub(r"  +", r" ", comment)
+        comment = rev_props["rev_comment"]
+        comment = unicode(rev_props["rev_comment"].encode(smwconfig.preferences["codification"]).lower().strip(), smwconfig.preferences["codification"]) #ugly line neccesary to avoid text being bad codify by use lower()
+        comment = re.sub("[\[\]\=\,\{\}\|\:\;\"\'\?\¿\/\*\(\)\<\>\+\.\-\#\_\&]", " ", comment) #no commas, csv
+        comment = re.sub("  +", " ", comment)
         tags = comment.split(' ')
         for tag in tags:
             if len(tag)<4: #unuseful tags filter
