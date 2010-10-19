@@ -36,6 +36,7 @@ def load():
 
     fillPagelen()
     fillCategoryids()
+    fillFullpagetitles()
 
 def fillPagelen():
     for page_id, page_props in smwconfig.pages.items():
@@ -57,6 +58,11 @@ def fillCategoryids():
                 ok=True
         if not ok:
             smwconfig.categories[category_title_]["category_id"] = random.randint(1000000,9999999)
+
+def fillFullpagetitles():
+    for page_id, page_props in smwconfig.pages.items():
+        smwconfig.pages[page_id]["full_page_title"] = page_props["page_namespace"] == 0 and page_props["page_title"] or '%s:%s' % (smwconfig.namespaces[page_props["page_namespace"]], page_props["page_title"])
+        smwconfig.pages[page_id]["full_page_title_"] = re.sub(' ', '_', smwconfig.pages[page_id]["full_page_title"])
 
 def loadCategories():
     smwconfig.categories.clear() #reset
@@ -169,6 +175,8 @@ def loadPages():
             "page_namespace": page_namespace,
             "page_title": page_title,
             "page_title_": page_title_,
+            "full_page_title": None,
+            "full_page_title_": None,
             "page_is_redirect": page_is_redirect,
             "page_len": page_len,
             "page_counter": page_counter, #visits
