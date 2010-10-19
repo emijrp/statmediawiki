@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import os
 
 #version info
@@ -31,6 +32,7 @@ users = {}
 
 #user preferences
 preferences["codification"] = 'iso-8859-1' # 'iso-8859-1' makes history bytes equal in MediaWiki and StatMediaWiki (when accent appears)
+preferences['codification_'] = re.sub('-', '_', preferences["codification"]) # for Gnuplot
 preferences["outputDir"] = 'output'
 preferences["indexFilename"] = 'index.html'
 preferences["siteName"] = ''
