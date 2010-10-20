@@ -136,6 +136,7 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
 
     conn, cursor = smwdb.createConnCursor()
     for cond in conds:
+        #todo: en vez de sql-query, usar el dic revisions y datetime.datetime.dow, etc
         cursor.execute("SELECT %s(rev_timestamp) AS time, COUNT(rev_id) AS count FROM %srevision, %spage WHERE rev_page=page_id and rev_timestamp>='%s' and rev_timestamp<='%s' AND %s GROUP BY time ORDER BY time" % (timesplit, smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"], cond))
         result = cursor.fetchall()
         results[cond] = {}

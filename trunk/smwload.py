@@ -39,6 +39,7 @@ def load():
     fillFullpagetitles()
 
 def fillPagelen():
+    #get the most recent edit size of the available revisions (revisions available are in the range: startDate <= revisiondate <= endDate)
     for page_id, page_props in smwconfig.pages.items():
         temprevtimestamp = None
         temppagelen = None
@@ -116,9 +117,6 @@ def loadDateRange():
         #if no end date, get now
         now = datetime.datetime.now()
         smwconfig.preferences["endDate"] = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=now.minute, second=now.second)
-        """cursor.execute("SELECT rev_timestamp FROM %srevision ORDER BY rev_timestamp DESC LIMIT 1" % (smwconfig.preferences["tablePrefix"]))
-        a = cursor.fetchall()[0][0]
-        smwconfig.preferences["endDate"] = datetime.datetime(year=int(a[:4]), month=int(a[4:6]), day=int(a[6:8]), hour=23, minute=59, second=59)"""
 
     #conversion to MediaWiki format
     smwconfig.preferences["startDateMW"] = smwconfig.preferences["startDate"].strftime('%Y%m%d%H%M%S')
@@ -160,7 +158,7 @@ def loadNamespaces():
 def loadPages():
     smwconfig.pages.clear() #reset
     conn, cursor = smwdb.createConnCursor()
-    cursor.execute("SELECT page_id, page_namespace, page_title, page_is_redirect, page_len, page_counter FROM %spage WHERE page_id IN (SELECT DISTINCT rev_page FROM %srevision WHERE rev_timestamp>='%s' and rev_timestamp<='%s')" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
+    cursor.execute("SELECT page_id, page_namespace, page_title, page_is_redirect, page_counter FROM %spage WHERE page_id IN (SELECT DISTINCT rev_page FROM %srevision WHERE rev_timestamp>='%s' and rev_timestamp<='%s')" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
     result = cursor.fetchall()
     for row in result:
         page_id = int(row[0])
@@ -168,8 +166,7 @@ def loadPages():
         page_title = re.sub('_', ' ', unicode(row[2], smwconfig.preferences['codification']))
         page_title_ = re.sub(' ', '_', unicode(row[2], smwconfig.preferences['codification']))
         page_is_redirect = int(row[3])
-        page_len = int(row[4])
-        page_counter = int(row[5])
+        page_counter = int(row[4])
         smwconfig.pages[page_id] = {
             "page_id": page_id,
             "page_namespace": page_namespace,
@@ -178,7 +175,7 @@ def loadPages():
             "full_page_title": None,
             "full_page_title_": None,
             "page_is_redirect": page_is_redirect,
-            "page_len": page_len,
+            "page_len": None, # do not use the value in the database, it is calculated with filledPagelen()
             "page_counter": page_counter, #visits
         }
     print "Loaded %s pages" % len(smwconfig.pages.keys())
@@ -234,7 +231,9 @@ def loadUsers():
     conn, cursor = smwdb.createConnCursor()
     queries = [
         "SELECT DISTINCT rev_user, rev_user_text FROM %srevision WHERE rev_timestamp>='%s' AND rev_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]),
-        "SELECT user_id, user_name FROM %suser WHERE user_registration>='%s' AND user_registration<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]),
+        "SELECT user_id, user_name FROM %suser WHERE user_registration>='%s' AND user_registration<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]), #for user registered but which do not edit
+        "SELECT img_user, img_user_text FROM %simage WHERE img_timestamp>='%s' AND img_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]), #for users which upload but do not edit
+
     ]
     for query in queries:
         cursor.execute(query)

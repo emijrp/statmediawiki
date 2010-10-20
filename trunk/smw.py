@@ -27,10 +27,7 @@ import smwoutput
 #todo:
 """
 sortable? http://en.wikipedia.org/skins-1.5/common/wikibits.js http://yoast.com/articles/sortable-table/
-gnuplot fll curves for work-flow? http://gnuplot.sourceforge.net/demo_4.2/fillcrvs.html
-mejorar los summary
 marcar redirecciones en las tablas (con #R ? )
-arreglar nombres secciones y enlaces internos #
 """
 
 #convenciones:
