@@ -21,6 +21,35 @@ import re
 
 import smwconfig
 
+def printFilledcurvesGraph(title, file, labels, headers, rows):
+    xticsperiod = ""
+    c = 0
+    fecha = smwconfig.preferences["startDate"]
+    fechaincremento=datetime.timedelta(days=1)
+    while fecha <= smwconfig.preferences["endDate"]:
+        if fecha.day in [1, 15]:
+            xticsperiod += '"%s" %s,' % (fecha.strftime("%Y-%m-%d"), c)
+        fecha += fechaincremento
+        c += 1
+    xticsperiod = xticsperiod[:len(xticsperiod)-1]
+
+    gp = Gnuplot.Gnuplot()
+    gp('set yrange [0:100]')
+    gp('set key under nobox')
+    gp('set style data boxes')
+    gp('set style fs solid 1 noborder')
+    #gp('set xrange [13:28]')
+    gp('set xtics rotate by 90')
+    gp('set xtics (%s)' % (xticsperiod.encode(smwconfig.preferences['codification'])))
+    plots = []
+    c = 0
+    for row in rows:
+        plots.append(Gnuplot.PlotItems.Data(row, with_="filledcurve", title=headers[c].encode(smwconfig.preferences['codification']))) #steps, filledcurve, ?
+        c += 1
+    gp.plot(*plots)
+    gp.hardcopy(filename=file, terminal="png")
+    gp.close()
+
 def printLinesGraph(title, file, labels, headers, rows):
     xticsperiod = ""
     c = 0
@@ -87,6 +116,11 @@ def printBarsGraph(title, file, headers, rows):
     gp.plot(*plots)
     gp.hardcopy(filename=file,terminal="png")
     gp.close()
+
+def printGraphWorkDistribution(type, fileprefix, title, headers, rows):
+    labels = ["Date (YYYY-MM-DD)", "Percent"]
+    file = "%s/graphs/%s/%s_work_distribution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
+    printFilledcurvesGraph(title=title, file=file, labels=labels, headers=headers, rows=rows)
 
 def printGraphContentEvolution(type, fileprefix, title, headers, rows):
     labels = ["Date (YYYY-MM-DD)", "Bytes"]

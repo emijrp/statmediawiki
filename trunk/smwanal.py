@@ -42,6 +42,94 @@ def generadorColumnaFechas(startDate, delta=datetime.timedelta(days=1)):
         yield currentDate
         currentDate += delta
 
+def generateWorkDistribution(type, fileprefix, page_props=None, category_props=None):
+    assert type == "global" or (type == "pages" and page_props) or (type == "categories" and category_props)
+
+    usersSortedByEdittime = []
+    if type == "pages":
+        usersSortedByEdittime = smwget.getUsersSortedByEdittimeInPage(page_props=page_props)
+    elif type == "categories":
+        usersSortedByEdittime = smwget.getUsersSortedByEdittimeInCategory(category_props=category_props)
+
+    fecha = smwconfig.preferences["startDate"]
+    fechaincremento = datetime.timedelta(days=1)
+    usersCount = {}
+    usersCountPercent = {}
+    usersCountPercent2 = {}
+    #initialize dics
+    for firstrevisiondate, user_text_ in usersSortedByEdittime: #no importa que el dic no guarde el orden, luego en el bucle usamos la lista ordenada de nuevo
+        usersCount[user_text_] = []
+        usersCountPercent[user_text_] = []
+        usersCountPercent2[user_text_] = []
+    days = 0
+    while fecha < smwconfig.preferences["endDate"]: #fix es < o <= ? (en contentevol pasa lo mismo)
+        usersCountThisDay = {}
+        #initialize dic
+        for firstrevisiondate, user_text_ in usersSortedByEdittime:
+            if days == 0:
+                usersCountThisDay[user_text_] = 0 #first day
+            else:
+                usersCountThisDay[user_text_] = usersCount[user_text_][days-1] #acum previous days
+
+        for rev_id, rev_props in smwconfig.revisions.items():
+            if type == "pages":
+                if rev_props["rev_page"] != page_props["page_id"]:
+                    continue #nos la saltamos, no es de esta página
+            elif type == "categories":
+                if rev_props["rev_page"] not in category_props["pages"]:
+                    continue #nos la saltamos, esta revisión no es de una página de esta categoría
+
+            if rev_props["rev_timestamp"] < fecha and rev_props["rev_timestamp"] >= fecha - fechaincremento: # 00:00:00 < fecha < 23:59:59
+                rev_page = rev_props["rev_page"]
+                if type == "pages" or type == "categories":
+                    if rev_props["len_diff"] > 0:
+                        usersCountThisDay[rev_props["rev_user_text_"]] += rev_props["len_diff"]
+        #ahora, según el orden determinado por la fecha de participación,
+        for firstrevisiondate, user_text_ in usersSortedByEdittime:
+            usersCount[user_text_].append(usersCountThisDay[user_text_])
+
+        fecha += fechaincremento
+        days += 1
+
+    for i in range(days):
+        subtotal = sum([count[i] for user_text_, count in usersCount.items()])
+        [usersCountPercent[user_text_].append(subtotal and count[i]/(subtotal/100.0) or 0) for user_text_, count in usersCount.items()]
+
+    for i in range(days):
+        j = 0
+        for firstrevisiondate, user_text_ in usersSortedByEdittime:
+            usersCountPercent2[user_text_].append(sum([v[i] for k, v in usersCountPercent.items() if k in [v2 for k2, v2 in usersSortedByEdittime[:j+1]]]))
+            j += 1
+
+    rows = []
+    headers = []
+    for firstrevisiondate, user_text_ in usersSortedByEdittime:
+        #print user_text_, usersCount[user_text_]
+        #print user_text_, usersCountPercent[user_text_]
+        #print user_text_, usersCountPercent2[user_text_]
+        rows.append(usersCountPercent2[user_text_]+[0]) #adding a last point with zero value to make filledcurve return to x axis base
+        headers.append(user_text_)
+    headers.reverse()
+    rows.reverse()
+
+    title = ""
+    if type == "pages":
+        title = "Work distribution in %s" % page_props["full_page_title"]
+    elif type == "categories":
+        title = "Work distribution in category %s" % category_props["category_title"]
+
+    smwplot.printGraphWorkDistribution(type=type, fileprefix=fileprefix,
+                                   title=title, headers=headers,
+                                   rows=rows)
+
+def generatePagesWorkDistribution(page_props=None):
+    assert page_props
+    generateWorkDistribution(type="pages", fileprefix="page_%d" % page_props["page_id"], page_props=page_props)
+
+def generateCategoriesWorkDistribution(category_props=None):
+    assert category_props
+    generateWorkDistribution(type="categories", fileprefix="category_%d" % category_props["category_id"], category_props=category_props)
+
 def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props=None, page_props=None, category_props=None):
     assert type == "global" or (type == "users" and user_props) or (type == "pages" and page_props) or (type == "categories" and category_props)
     results = {}
@@ -105,11 +193,11 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
             title = "Month activity by %s" % user_props["user_name"]
     elif type == "pages":
         if timesplit == "hour":
-            title = "Hour activity in %s" % page_props["page_title"]
+            title = "Hour activity in %s" % page_props["full_page_title"]
         elif timesplit == "dayofweek":
-            title = "Day of week activity in %s" % page_props["page_title"]
+            title = "Day of week activity in %s" % page_props["full_page_title"]
         elif timesplit == "month":
-            title = "Month activity in %s" % page_props["page_title"]
+            title = "Month activity in %s" % page_props["full_page_title"]
     elif type == "categories":
         if timesplit == "hour":
             title = "Hour activity in category %s" % category_props["category_title"]
@@ -951,6 +1039,7 @@ def generatePagesAnalysis():
         print "Generating analysis to the page: %s" % (page_props["full_page_title"])
         generateContentEvolution(type="pages", page_props=page_props)
         generatePagesTimeActivity(page_props=page_props)
+        generatePagesWorkDistribution(page_props=page_props)
 
         body = """%s\n%s\n%s
 
@@ -992,6 +1081,12 @@ def generatePagesAnalysis():
         </center>
         </div>
 
+        <h2 id="workdistribution"><span class="showhide">[ <a href="javascript:showHide('divworkdistribution')">Show/Hide</a> ]</span>Work distribution</h2>
+        <div id="divworkdistribution">
+        <center>
+        <img src="../../graphs/pages/page_%s_work_distribution.png" alt="Work distribution" />
+        </center>
+
         <h2 id="topusers"><span class="showhide">[ <a href="javascript:showHide('divtopusers')">Show/Hide</a> ]</span>Top users</h2>
         <div id="divtopusers">
         <center>
@@ -1006,7 +1101,7 @@ def generatePagesAnalysis():
         </center>
         </div>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwhtml.getBacklink(), smwhtml.getSections(type='pages'), generateSummary(type="pages", page_props=page_props), page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, generateUsersTable(type="pages", page_props=page_props), generateCloud(type="pages", page_props=page_props), smwconfig.preferences["indexFilename"])
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type='pages'), generateSummary(type="pages", page_props=page_props), page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, generateUsersTable(type="pages", page_props=page_props), generateCloud(type="pages", page_props=page_props), smwconfig.preferences["indexFilename"])
 
         title = "%s: %s" % (smwconfig.preferences["siteName"], page_props["full_page_title"])
         smwhtml.printHTML(type="pages", file="page_%d.html" % page_id, title=title, body=body)
@@ -1021,6 +1116,7 @@ def generateCategoriesAnalysis():
         print "Generating analysis to the category: %s" % category_title_
         generateContentEvolution(type="categories", category_props=category_props)
         generateCategoriesTimeActivity(category_props=category_props)
+        generateCategoriesWorkDistribution(category_props=category_props)
 
         body = """%s\n%s\n%s
 
@@ -1062,6 +1158,12 @@ def generateCategoriesAnalysis():
         </center>
         </div>
 
+        <h2 id="workdistribution"><span class="showhide">[ <a href="javascript:showHide('divworkdistribution')">Show/Hide</a> ]</span>Work distribution</h2>
+        <div id="divworkdistribution">
+        <center>
+        <img src="../../graphs/categories/category_%s_work_distribution.png" alt="Work distribution" />
+        </center>
+
         <h2 id="topusers"><span class="showhide">[ <a href="javascript:showHide('divtopusers')">Show/Hide</a> ]</span>Top users</h2>
         <div id="divtopusers">
         <center>
@@ -1083,7 +1185,7 @@ def generateCategoriesAnalysis():
         </center>
         </div>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="categories"), generateSummary(type="categories", category_props=category_props), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], generateUsersTable(type="categories", category_props=category_props), generatePagesTable(type="categories", category_props=category_props), generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="categories"), generateSummary(type="categories", category_props=category_props), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], generateUsersTable(type="categories", category_props=category_props), generatePagesTable(type="categories", category_props=category_props), generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (smwconfig.preferences["siteName"], category_props["category_title"])
         smwhtml.printHTML(type="categories", file="category_%d.html" % category_props["category_id"], title=title, body=body)

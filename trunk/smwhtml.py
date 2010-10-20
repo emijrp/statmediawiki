@@ -25,6 +25,8 @@ def getSections(type=None):
     output += '<tr><th><b>Sections</b></th></tr>'
     output += '<tr><td><a href="#contentevolution">Content evolution</a></td></tr>'
     output += '<tr><td><a href="#activity">Activity</a></td></tr>'
+    if type == "pages" or type == "categories":
+        output += '<tr><td><a href="#workdistribution">Work distribution</a></td></tr>'
     if type != "users":
         output += '<tr><td><a href="#topusers">Top users</a></td></tr>'
     if type != "pages":

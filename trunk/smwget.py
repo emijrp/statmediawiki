@@ -297,6 +297,44 @@ def getImagesByUser(user_text_=None, user_id=None):
 def getTotalImagesByUser(user_text_=None, user_id=None):
     return len(getImagesByUser(user_text_=user_text_, user_id=user_id))
 
+def getUsersSortedByEdittimeInCategory(category_props=None):
+    assert category_props
+    usersSorted = {} #not all, only those which appears in this history page, do not use usersSortedDic()
+
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_page"] not in category_props["pages"]:
+            continue
+        if usersSorted.has_key(rev_props["rev_user_text_"]):
+            if usersSorted[rev_props["rev_user_text_"]] < rev_props["rev_timestamp"]:
+                usersSorted[rev_props["rev_user_text_"]] = rev_props["rev_timestamp"]
+        else:
+            usersSorted[rev_props["rev_user_text_"]] = rev_props["rev_timestamp"]
+
+    list = []
+    for user_text_, rev_timestamp in usersSorted.items():
+        list.append([rev_timestamp, user_text_])
+    list.sort()
+    return list
+
+def getUsersSortedByEdittimeInPage(page_props=None):
+    assert page_props
+    usersSorted = {} #not all, only those which appears in this history page, do not use usersSortedDic()
+
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_page"] != page_props["page_id"]:
+            continue
+        if usersSorted.has_key(rev_props["rev_user_text_"]):
+            if usersSorted[rev_props["rev_user_text_"]] < rev_props["rev_timestamp"]:
+                usersSorted[rev_props["rev_user_text_"]] = rev_props["rev_timestamp"]
+        else:
+            usersSorted[rev_props["rev_user_text_"]] = rev_props["rev_timestamp"]
+
+    list = []
+    for user_text_, rev_timestamp in usersSorted.items():
+        list.append([rev_timestamp, user_text_])
+    list.sort()
+    return list
+
 def getUsersSortedByTotalBytes():
     usersSorted = usersSortedDic()
     for rev_id, rev_props in smwconfig.revisions.items():
