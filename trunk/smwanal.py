@@ -228,7 +228,7 @@ def generatePagesTimeActivity(page_props=None):
     generateTimeActivity(timesplit="dayofweek", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
     generateTimeActivity(timesplit="month", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
 
-def generateCategoriesTimeActivity(category_props=None): #fix category_props
+def generateCategoriesTimeActivity(category_props=None):
     assert category_props
     conds2 = ["1", "rev_user=0", "rev_user!=0"] #todas, anónimas o registrados
     conds = []
