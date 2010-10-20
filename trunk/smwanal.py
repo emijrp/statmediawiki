@@ -1113,7 +1113,7 @@ def generatePagesAnalysis():
         smwhtml.printHTML(type="pages", file="page_%d.html" % page_id, title=title, body=body)
 
 def generateCategoriesAnalysis():
-    for category_title_, category_props in smwconfig.categories.items(): #fix category_props en vez de page_ids
+    for category_title_, category_props in smwconfig.categories.items():
         if category_props["category_id"] == None:
             #necesitamos un page_id para la categoría, para los nombres de los ficheros, no nos lo vamos a inventar
             #así que si no existe, no generamos análisis para esa categoría
