@@ -378,10 +378,7 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
 
     output += '<tr><td><b>Generated in:</b></td><td>%s</td></tr>\n' % (datetime.datetime.now().isoformat())
 
-    """title de site, user, page, category
-    report period
-    total pages (no aplica a pages)
-    ediciones totales, in articles
+    """
     ediciones menores, in articles
     ediciones anónimas (no aplica a users), in articles
     primera edición
@@ -393,12 +390,10 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
     última semana
     último mes
     último año
-    bytes totales, in articles
     número de usuarios (no aplica a users)
     ediciones promedio por usuario (no aplica a users)
     pareto número de ediciones hechas por el top 10% de usuarios (no aplica a users)
-    número de ficheros
-    generated in"""
+    """
 
     output += "</table>"
 
