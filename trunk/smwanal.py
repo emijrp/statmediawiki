@@ -114,9 +114,9 @@ def generateWorkDistribution(type, fileprefix, page_props=None, category_props=N
 
     title = ""
     if type == "pages":
-        title = "Work distribution in %s" % page_props["full_page_title"]
+        title = "Accumulative work distribution in %s" % page_props["full_page_title"]
     elif type == "categories":
-        title = "Work distribution in category %s" % category_props["category_title"]
+        title = "Accumulative work distribution in category %s" % category_props["category_title"]
 
     smwplot.printGraphWorkDistribution(type=type, fileprefix=fileprefix,
                                    title=title, headers=headers,
