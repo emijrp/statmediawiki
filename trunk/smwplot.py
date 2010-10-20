@@ -34,11 +34,11 @@ def printFilledcurvesGraph(title, file, labels, headers, rows):
     xticsperiod = xticsperiod[:len(xticsperiod)-1]
 
     gp = Gnuplot.Gnuplot()
+    gp('set encoding %s' % smwconfig.preferences['codification_'])
     gp('set yrange [0:100]')
     gp('set key under nobox')
     gp('set style data boxes')
     gp('set style fs solid 1 noborder')
-    #gp('set xrange [13:28]')
     gp('set xtics rotate by 90')
     gp('set xtics (%s)' % (xticsperiod.encode(smwconfig.preferences['codification'])))
     plots = []
