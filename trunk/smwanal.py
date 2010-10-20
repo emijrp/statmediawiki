@@ -400,55 +400,6 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
     número de ficheros
     generated in"""
 
-    """
-    <dl>
-    <dt>Site:</dt>
-
-    <dd><a href='%s'>%s</a></dd>
-    <dt>Report period:</dt>
-    <dd>%s &ndash; %s</dd>
-    <dt>Total pages:</dt>
-    <dd><a href="#pages">%d</a> (Articles: %d, %.1f%%)</dd>
-    <dt>Total edits:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total bytes:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total visits:</dt>
-    <dd>%d (In articles: %d, %.1f%%)</dd>
-    <dt>Total files:</dt>
-    <dd><a href="%s/%s/Special:Imagelist">%d</a></dd>
-    <dt>Users:</dt>
-    <dd><a href="#users">%d</a></dd>
-    <dt>Generated in:</dt>
-    <dd>%s</dd>
-    </dl> (smwconfig.preferences["siteUrl"], smwconfig.preferences["siteName"], smwconfig.preferences["startDate"].isoformat(), smwconfig.preferences["endDate"].isoformat(), totalpages, totalarticles, totalarticlespercent, totaledits, totaleditsinarticles, totaleditsinarticlespercent, totalbytes, totalbytesinarticles, totalbytesinarticlespercent, totalvisits, totalvisitsinarticles, totalvisitsinarticlespercent, smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], totalfiles, totalusers, datetime.datetime.now().isoformat(), generateUsersTable(), generatePagesTable(), generateCategoriesTable(), generateGlobalCloud())
-
-
-    <dl>
-        <dt>User:</dt>
-
-        <dd><a href='%s/%s/User:%s'>%s</a> (<a href="%s/%s/Special:Contributions/%s">contributions</a>)</dd>
-        <dt>Edits:</dt>
-        <dd>%d (In articles: %d, %.1f%%)</dd>
-        <dt>Bytes added:</dt>
-        <dd>%d (In articles: %d, %.1f%%)</dd>
-        <dt>Files uploaded:</dt>
-        <dd><a href="#uploads">%d</a></dd>
-        </dl>
-                #avoiding zero division
-        useredits = user_props["revisionsbynamespace"]["*"]
-        usernm0edits = user_props["revisionsbynamespace"][0]
-        usernm0editspercent = 0
-        if useredits > 0:
-            usernm0editspercent = usernm0edits/(useredits/100.0)
-        userbytes = user_props["bytesbynamespace"]["*"]
-        usernm0bytes = user_props["bytesbynamespace"][0]
-        usernm0bytespercent = 0
-        if userbytes > 0:
-            usernm0bytespercent = usernm0bytes/(userbytes/100.0)
-
-    """
-
     output += "</table>"
 
     return output
