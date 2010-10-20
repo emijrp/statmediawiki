@@ -29,6 +29,7 @@ import smwoutput
 sortable? http://en.wikipedia.org/skins-1.5/common/wikibits.js http://yoast.com/articles/sortable-table/
 marcar redirecciones en las tablas (con #R ? )
 error de codificación en títulos gráficas con acentos, revisar módulo de plots
+quitar columna de visitas? no sirve para los análisis por rango de fechas
 """
 
 #convenciones:

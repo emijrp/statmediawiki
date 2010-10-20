@@ -23,7 +23,8 @@ import smwdb
 import smwconfig
 import smwget
 
-#this is the only module that must read from the database
+# This is the only module that must read from the database
+# It reads a MediaWiki database with this layout: http://www.mediawiki.org/wiki/Manual:Database_layout
 
 def load():
     loadDateRange()
