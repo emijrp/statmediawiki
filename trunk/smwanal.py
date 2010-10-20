@@ -818,10 +818,10 @@ def generateCategoriesTable():
 
     categoriesSorted = [] #by edits
 
-    all_categorised_page_ids = set()
-    for category_title_, category_props in smwconfig.categories.items(): #fix page_ids es pages incluido dentro de category props
+    all_categorised_page_ids = set() #a set to avoid dupes
+    for category_title_, category_props in smwconfig.categories.items():
         if category_props["category_id"] != None: #si la página de la categoría existe
-            [all_categorised_page_ids.add(i) for i in category_props["pages"]] #a set to avoid dupes
+            [all_categorised_page_ids.add(i) for i in category_props["pages"]]
 
     totaledits = 0
     totalbytes = 0
