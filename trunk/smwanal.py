@@ -90,11 +90,13 @@ def generateWorkDistribution(type, fileprefix, page_props=None, category_props=N
 
         fecha += fechaincremento
         days += 1
-
+    
+    #the percent for every day for every user, respects to the total bytes acumulatted until that day
     for i in range(days):
         subtotal = sum([count[i] for user_text_, count in usersCount.items()])
         [usersCountPercent[user_text_].append(subtotal and count[i]/(subtotal/100.0) or 0) for user_text_, count in usersCount.items()]
-
+    
+    #the accumulated percent for every user using the order of the list by datetime
     for i in range(days):
         j = 0
         for firstrevisiondate, user_text_ in usersSortedByEdittime:
@@ -103,12 +105,14 @@ def generateWorkDistribution(type, fileprefix, page_props=None, category_props=N
 
     rows = []
     headers = []
+    #as accumulated is sorted by first edit datetime, we use it here too
     for firstrevisiondate, user_text_ in usersSortedByEdittime:
         #print user_text_, usersCount[user_text_]
         #print user_text_, usersCountPercent[user_text_]
         #print user_text_, usersCountPercent2[user_text_]
         rows.append(usersCountPercent2[user_text_]+[0]) #adding a last point with zero value to make filledcurve return to x axis base
         headers.append(user_text_)
+    #necessary to print the layers in the correct order (first, the 100% layer, and descending ...)
     headers.reverse()
     rows.reverse()
 
