@@ -223,8 +223,11 @@ def loadRevisions():
         elif smwconfig.revisions.has_key(rev_parent_id):
             smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"]) - len(smwconfig.revisions[rev_parent_id]["old_text"])
         else:
-            print "Revision", rev_parent_id, "not found"
-            sys.exit()
+            #si la edición anterior no existe o fue borrada, contamos como que todo el texto es nuevo
+            #todo: pasa cuando se usan rangos -startdate y -enddate?
+            smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"])
+            #print "Revision", rev_parent_id, "not found"
+            #sys.exit()
 
     smwdb.destroyConnCursor(conn, cursor)
 
