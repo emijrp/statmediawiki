@@ -18,6 +18,7 @@
 import datetime
 import random
 import re
+import sys
 
 import smwdb
 import smwconfig
