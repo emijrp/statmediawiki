@@ -132,7 +132,7 @@ def generatePagesWorkDistribution(page_props=None):
 
 def generateCategoriesWorkDistribution(category_props=None):
     assert category_props
-    generateWorkDistribution(type="categories", fileprefix="category_%d" % category_props["category_id"], category_props=category_props)
+    generateWorkDistribution(type="categories", fileprefix="category_%s" % category_props["category_id"], category_props=category_props)
 
 def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props=None, page_props=None, category_props=None):
     assert type == "global" or (type == "users" and user_props) or (type == "pages" and page_props) or (type == "categories" and category_props)
@@ -239,9 +239,9 @@ def generateCategoriesTimeActivity(category_props=None):
     for cond in conds2:
         conds.append("%s and rev_page in (select cl_from from categorylinks where cl_to='%s')" % (cond, category_props["category_title_"].encode(smwconfig.preferences['codification']))) #fix cuidado con nombres de categorías con '
     headers = ["Edits in category %s (all users)" % category_props["category_title"], "Edits in category %s (only anonymous users)" % category_props["category_title"], "Edits in category %s (only registered users)" % category_props["category_title"]]
-    generateTimeActivity(timesplit="hour", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
-    generateTimeActivity(timesplit="dayofweek", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
-    generateTimeActivity(timesplit="month", type="categories", fileprefix="category_%d" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
+    generateTimeActivity(timesplit="hour", type="categories", fileprefix="category_%s" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
+    generateTimeActivity(timesplit="dayofweek", type="categories", fileprefix="category_%s" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
+    generateTimeActivity(timesplit="month", type="categories", fileprefix="category_%s" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
 
 def generateUsersTimeActivity(user_props=None):
     assert user_props
