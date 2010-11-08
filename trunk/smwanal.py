@@ -820,7 +820,7 @@ def generateCategoriesTable():
             numvisitspercent = numvisits/(totalvisits/100.0)
 
         output += '<tr>'
-        output += '<td>%d</td><td><a href="html/categories/category_%d.html">%s</a></td>' % (c, category_props["category_id"], category_props["category_title"])
+        output += '<td>%d</td><td><a href="html/categories/category_%s.html">%s</a></td>' % (c, category_props["category_id"], category_props["category_title"])
         output += '<td>%d</td><td>%.1f%%</td>' % (numpages, totalpages and numpages/(totalpages/100.0) or 0)
         output += '<td>%d</td><td>%.1f%%</td>' % (numedits, totaledits and numedits/(totaledits/100.0) or 0)
         output += '<td>%d</td><td>%.1f%%</td>' % (numbytes, totalbytes and numbytes/(totalbytes/100.0) or 0)
