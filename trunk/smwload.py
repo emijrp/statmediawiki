@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+import md5
 import random
 import re
 import sys
@@ -54,13 +55,13 @@ def fillPagelen():
 
 def fillCategoryids():
     for category_title_, category_props in smwconfig.categories.items():
-        ok=False#truco momentaneo
+        ok = False #truco momentaneo
         for page_id, page_props in smwconfig.pages.items():
             if page_props["page_namespace"] == 14 and page_props["page_title_"] == category_title_:
                 smwconfig.categories[category_title_]["category_id"] = page_id
-                ok=True
+                ok = True
         if not ok:
-            smwconfig.categories[category_title_]["category_id"] = random.randint(1000000,9999999)
+            smwconfig.categories[category_title_]["category_id"] = md5.new(category_title_.encode('utf-8')).hexdigest()
 
 def fillFullpagetitles():
     for page_id, page_props in smwconfig.pages.items():
