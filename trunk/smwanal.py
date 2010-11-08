@@ -1091,11 +1091,11 @@ def generateCategoriesAnalysis():
         <div id="divcontentevolution">
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
-        <tr><td><a href="../../graphs/categories/category_%d_content_evolution.png">PNG</a></td></tr>
-        <tr><td><a href="../../csv/categories/category_%d_content_evolution.csv">CSV</a></td></tr>
+        <tr><td><a href="../../graphs/categories/category_%s_content_evolution.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%s_content_evolution.csv">CSV</a></td></tr>
         </table>
         <center>
-        <img src="../../graphs/categories/category_%d_content_evolution.png" alt="Content evolution" />
+        <img src="../../graphs/categories/category_%s_content_evolution.png" alt="Content evolution" />
         </center>
         </div>
 
@@ -1104,24 +1104,24 @@ def generateCategoriesAnalysis():
         <center>
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
-        <tr><td><a href="../../graphs/categories/category_%d_hour_activity.png">PNG</a></td></tr>
-        <tr><td><a href="../../csv/categories/category_%d_hour_activity.csv">CSV</a></td></tr>
+        <tr><td><a href="../../graphs/categories/category_%s_hour_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%s_hour_activity.csv">CSV</a></td></tr>
         </table>
-        <img src="../../graphs/categories/category_%d_hour_activity.png" alt="Hour activity" /><br/>
+        <img src="../../graphs/categories/category_%s_hour_activity.png" alt="Hour activity" /><br/>
 
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
-        <tr><td><a href="../../graphs/categories/category_%d_dayofweek_activity.png">PNG</a></td></tr>
-        <tr><td><a href="../../csv/categories/category_%d_dayofweek_activity.csv">CSV</a></td></tr>
+        <tr><td><a href="../../graphs/categories/category_%s_dayofweek_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%s_dayofweek_activity.csv">CSV</a></td></tr>
         </table>
-        <img src="../../graphs/categories/category_%d_dayofweek_activity.png" alt="Day of week activity" /><br/>
+        <img src="../../graphs/categories/category_%s_dayofweek_activity.png" alt="Day of week activity" /><br/>
 
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
-        <tr><td><a href="../../graphs/categories/category_%d_month_activity.png">PNG</a></td></tr>
-        <tr><td><a href="../../csv/categories/category_%d_month_activity.csv">CSV</a></td></tr>
+        <tr><td><a href="../../graphs/categories/category_%s_month_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%s_month_activity.csv">CSV</a></td></tr>
         </table>
-        <img src="../../graphs/categories/category_%d_month_activity.png" alt="Month activity" />
+        <img src="../../graphs/categories/category_%s_month_activity.png" alt="Month activity" />
         </center>
         </div>
 
@@ -1155,5 +1155,5 @@ def generateCategoriesAnalysis():
         """ % (smwhtml.getBacklink(), smwhtml.getSections(type="categories"), generateSummary(type="categories", category_props=category_props), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], generateUsersTable(type="categories", category_props=category_props), generatePagesTable(type="categories", category_props=category_props), generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (smwconfig.preferences["siteName"], category_props["category_title"])
-        smwhtml.printHTML(type="categories", file="category_%d.html" % category_props["category_id"], title=title, body=body)
+        smwhtml.printHTML(type="categories", file="category_%s.html" % category_props["category_id"], title=title, body=body)
 
