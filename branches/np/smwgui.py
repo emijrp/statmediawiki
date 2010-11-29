@@ -241,12 +241,14 @@ class App:
         #begin samples
         samplesmenu = Menu(analysismenu)
         analysismenu.add_cascade(label="Samples", menu=samplesmenu)
-        sampleswikiprojectmenu = Menu(samplesmenu)
-        samplesmenu.add_cascade(label="Wikiproject", menu=sampleswikiprojectmenu)
         samplescategorymenu = Menu(samplesmenu)
         samplesmenu.add_cascade(label="Category", menu=samplescategorymenu)
+        samplesdaterangemenu = Menu(samplesmenu)
+        samplesmenu.add_cascade(label="Date range", menu=samplescategorymenu)
         samplesrandommenu = Menu(samplesmenu)
         samplesmenu.add_cascade(label="Random sample", menu=samplesrandommenu)
+        sampleswikiprojectmenu = Menu(samplesmenu)
+        samplesmenu.add_cascade(label="Wikiproject", menu=sampleswikiprojectmenu)
         
         #end samples
         

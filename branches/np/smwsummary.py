@@ -41,7 +41,7 @@ def totalUsers(cursor=None):
     return 0
 
 def summary(cursor):
-    #sugerencias: páginas por nm (y separando redirects de no redirects),
+    #sugerencias: páginas por nm (y separando redirects de no redirects), log events? deletes, page moves
 
     revisions = totalEdits(cursor=cursor)
     pages = totalPages(cursor=cursor)
