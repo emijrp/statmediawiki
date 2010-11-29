@@ -50,6 +50,10 @@ import pylab
 # conectarse a irc y poder hacer estadisticas en vivo?
 #
 # embeber mejor las gráficas en Tk? http://matplotlib.sourceforge.net/examples/user_interfaces/embedding_in_tk.py así cuando se cierra SMW, se cerrarán las gráficas; sería hacer una clase como listbox, a la que se le pasa la figura f (las funciones que generan las gráficas deberían devolver la f, ahora no devuelven nada)
+#
+# otras ideas:
+#   permitir exportar las columnas que nos interesen como CSV u otros formatos, exportar un rango de fechas de revisiones http://en.wikipedia.org/w/index.php?title=User_talk:Emijrp/Wikipedia_Archive&oldid=399534070#How_can_i_get_all_the_revisions_of_a_language_for_a_duration_.3F
+#   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
 
 NAME = 'StatMediaWiki NP'
 VERSION = '0.0.5' #StatMediaWiki version
@@ -233,7 +237,19 @@ class App:
         pagebypagemenu.add_command(label="GeoIP location", command=lambda: self.analysis('page-geoiplocation'))
 
         #end page-by-page
-
+        
+        #begin samples
+        samplesmenu = Menu(analysismenu)
+        analysismenu.add_cascade(label="Samples", menu=samplesmenu)
+        sampleswikiprojectmenu = Menu(samplesmenu)
+        samplesmenu.add_cascade(label="Wikiproject", menu=sampleswikiprojectmenu)
+        samplescategorymenu = Menu(samplesmenu)
+        samplesmenu.add_cascade(label="Category", menu=samplescategorymenu)
+        samplesrandommenu = Menu(samplesmenu)
+        samplesmenu.add_cascade(label="Random sample", menu=samplesrandommenu)
+        
+        #end samples
+        
         #begin others
         othermenu = Menu(menu)
         menu.add_cascade(label="Other", menu=othermenu)
