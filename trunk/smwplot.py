@@ -110,7 +110,7 @@ def printBarsGraph(title, file, headers, rows):
     gp('set xlabel "%s"' % convert2[headers[0]].encode(smwconfig.preferences['codification']))
     gp('set mytics 2')
     gp('set ylabel "Edits"')
-    if len(row[0]) >= 25: #para las gráficas de semanas, pero no para las de horas que se ven bien sin rotar
+    if len(rows[0]) >= 25: #para las gráficas de semanas, pero no para las de horas que se ven bien sin rotar
         gp('set xtics rotate by 90')
     gp('set xtics (%s)' % xtics.encode(smwconfig.preferences['codification']))
     c = 1
