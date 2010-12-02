@@ -889,7 +889,7 @@ def generateGlobalAnalysis():
     <tr><td><a href="graphs/global/global_weekofyear_activity.png">PNG</a></td></tr>
     <tr><td><a href="csv/global/global_weekofyear_activity.csv">CSV</a></td></tr>
     </table>
-    <img src="graphs/global/global_weekofyear_activity.png" alt="Week activity" />
+    <img src="graphs/global/global_weekofyear_activity.png" alt="Week activity" /><br/>
 
     <table class="prettytable downloads">
     <tr><th><b>Download as</b></th></tr>
@@ -990,7 +990,7 @@ def generateUsersAnalysis():
         <tr><td><a href="../../graphs/users/user_%s_weekofyear_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/users/user_%s_weekofyear_activity.csv">CSV</a></td></tr>
         </table>
-        <img src="../../graphs/users/user_%s_weekofyear_activity.png" alt="Week activity" />
+        <img src="../../graphs/users/user_%s_weekofyear_activity.png" alt="Week activity" /><br/>
 
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
@@ -1073,7 +1073,7 @@ def generatePagesAnalysis():
         <tr><td><a href="../../graphs/pages/page_%s_weekofyear_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/pages/page_%s_weekofyear_activity.csv">CSV</a></td></tr>
         </table>
-        <img src="../../graphs/pages/page_%s_weekofyear_activity.png" alt="Week activity" />
+        <img src="../../graphs/pages/page_%s_weekofyear_activity.png" alt="Week activity" /><br/>
 
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
@@ -1157,7 +1157,7 @@ def generateCategoriesAnalysis():
         <tr><td><a href="../../graphs/categories/category_%s_weekofyear_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/categories/category_%s_weekofyear_activity.csv">CSV</a></td></tr>
         </table>
-        <img src="../../graphs/categories/category_%s_weekofyear_activity.png" alt="Week activity" />
+        <img src="../../graphs/categories/category_%s_weekofyear_activity.png" alt="Week activity" /><br/>
 
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
