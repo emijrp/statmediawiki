@@ -146,7 +146,7 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
         result = cursor.fetchall()
         results[cond] = {}
         for timestamp, edits in result:
-            if timesplit in ["dayofweek", "month"]: #no necesario para week, lo dejamos que empiece en 1
+            if timesplit in ["dayofweek", "weekofyear", "month"]:
                 timestamp = timestamp - 1
             results[cond][str(timestamp)] = str(edits)
     smwdb.destroyConnCursor(conn, cursor)
@@ -159,7 +159,7 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
     elif timesplit == "dayofweek":
         range_ = range(7)
     elif timesplit == "weekofyear":
-        range_ = range(1, 55)
+        range_ = range(53)
     elif timesplit == "month":
         range_ = range(12)
 
