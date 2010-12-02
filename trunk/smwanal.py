@@ -138,6 +138,7 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
     assert type == "global" or (type == "users" and user_props) or (type == "pages" and page_props) or (type == "categories" and category_props)
     results = {}
 
+    #weekofyear http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_weekofyear
     conn, cursor = smwdb.createConnCursor()
     for cond in conds:
         #todo: en vez de sql-query, usar el dic revisions y datetime.datetime.dow, etc
@@ -145,7 +146,7 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
         result = cursor.fetchall()
         results[cond] = {}
         for timestamp, edits in result:
-            if timesplit in ["dayofweek", "month"]:
+            if timesplit in ["dayofweek", "month"]: #no necesario para week, lo dejamos que empiece en 1
                 timestamp = timestamp - 1
             results[cond][str(timestamp)] = str(edits)
     smwdb.destroyConnCursor(conn, cursor)
@@ -157,6 +158,8 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
         range_ = range(24)
     elif timesplit == "dayofweek":
         range_ = range(7)
+    elif timesplit == "weekofyear":
+        range_ = range(1, 54)
     elif timesplit == "month":
         range_ = range(12)
 
@@ -187,6 +190,8 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
             title = 'Hour activity in %s' % smwconfig.preferences["siteName"]
         elif timesplit == "dayofweek":
             title = 'Day of week activity in %s' % smwconfig.preferences["siteName"]
+        elif timesplit == "weekofyear":
+            title = 'Week activity in %s' % smwconfig.preferences["siteName"]
         elif timesplit == "month":
             title = 'Month activity in %s' % smwconfig.preferences["siteName"]
     elif type == "users":
@@ -194,6 +199,8 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
             title = "Hour activity by %s" % user_props["user_name"]
         elif timesplit == "dayofweek":
             title = "Day of week activity by %s" % user_props["user_name"]
+        elif timesplit == "weekofyear":
+            title = "Week activity by %s" % user_props["user_name"]
         elif timesplit == "month":
             title = "Month activity by %s" % user_props["user_name"]
     elif type == "pages":
@@ -201,6 +208,8 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
             title = "Hour activity in %s" % page_props["full_page_title"]
         elif timesplit == "dayofweek":
             title = "Day of week activity in %s" % page_props["full_page_title"]
+        elif timesplit == "weekofyear":
+            title = "Week activity in %s" % page_props["full_page_title"]
         elif timesplit == "month":
             title = "Month activity in %s" % page_props["full_page_title"]
     elif type == "categories":
@@ -208,6 +217,8 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
             title = "Hour activity in category %s" % category_props["category_title"]
         elif timesplit == "dayofweek":
             title = "Day of week activity in category %s" % category_props["category_title"]
+        elif timesplit == "weekofyear":
+            title = "Week activity in category %s" % category_props["category_title"]
         elif timesplit == "month":
             title = "Month activity in category %s" % category_props["category_title"]
 
@@ -222,6 +233,7 @@ def generateGlobalTimeActivity():
     headers = ["Edits (all pages)", "Edits (only articles)", "Edits (only articles talks)"]
     generateTimeActivity(timesplit="hour", type="global", fileprefix="global", conds=conds, headers=headers)
     generateTimeActivity(timesplit="dayofweek", type="global", fileprefix="global", conds=conds, headers=headers)
+    generateTimeActivity(timesplit="weekofyear", type="global", fileprefix="global", conds=conds, headers=headers)
     generateTimeActivity(timesplit="month", type="global", fileprefix="global", conds=conds, headers=headers)
 
 def generatePagesTimeActivity(page_props=None):
@@ -230,6 +242,7 @@ def generatePagesTimeActivity(page_props=None):
     headers = ["Edits in %s (all users)" % page_props["full_page_title"], "Edits in %s (only anonymous users)" % page_props["full_page_title"], "Edits in %s (only registered users)" % page_props["full_page_title"]]
     generateTimeActivity(timesplit="hour", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
     generateTimeActivity(timesplit="dayofweek", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
+    generateTimeActivity(timesplit="weekofyear", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
     generateTimeActivity(timesplit="month", type="pages", fileprefix="page_%d" % page_props["page_id"], conds=conds, headers=headers, page_props=page_props)
 
 def generateCategoriesTimeActivity(category_props=None):
@@ -241,6 +254,7 @@ def generateCategoriesTimeActivity(category_props=None):
     headers = ["Edits in category %s (all users)" % category_props["category_title"], "Edits in category %s (only anonymous users)" % category_props["category_title"], "Edits in category %s (only registered users)" % category_props["category_title"]]
     generateTimeActivity(timesplit="hour", type="categories", fileprefix="category_%s" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
     generateTimeActivity(timesplit="dayofweek", type="categories", fileprefix="category_%s" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
+    generateTimeActivity(timesplit="weekofyear", type="categories", fileprefix="category_%s" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
     generateTimeActivity(timesplit="month", type="categories", fileprefix="category_%s" % category_props["category_id"], conds=conds, headers=headers, category_props=category_props)
 
 def generateUsersTimeActivity(user_props=None):
@@ -252,6 +266,7 @@ def generateUsersTimeActivity(user_props=None):
         filesubfix = user_props["user_name_"]
     generateTimeActivity(timesplit="hour", type="users", fileprefix="user_%s" % filesubfix, conds=conds, headers=headers, user_props=user_props)
     generateTimeActivity(timesplit="dayofweek", type="users", fileprefix="user_%s" % filesubfix, conds=conds, headers=headers, user_props=user_props)
+    generateTimeActivity(timesplit="weekofyear", type="users", fileprefix="user_%s" % filesubfix, conds=conds, headers=headers, user_props=user_props)
     generateTimeActivity(timesplit="month", type="users", fileprefix="user_%s" % filesubfix, conds=conds, headers=headers, user_props=user_props)
 
 def generateCloud(type=None, user_props=None, page_props=None, category_props=None):
@@ -871,6 +886,15 @@ def generateGlobalAnalysis():
 
     <table class="prettytable downloads">
     <tr><th><b>Download as</b></th></tr>
+    <tr><td><a href="graphs/global/global_weekofyear_activity.png">PNG</a></td></tr>
+    <tr><td><a href="csv/global/global_weekofyear_activity.csv">CSV</a></td></tr>
+    </table>
+    <img src="graphs/global/global_weekofyear_activity.png" alt="Month activity" />
+    </center>
+    </div>
+
+    <table class="prettytable downloads">
+    <tr><th><b>Download as</b></th></tr>
     <tr><td><a href="graphs/global/global_month_activity.png">PNG</a></td></tr>
     <tr><td><a href="csv/global/global_month_activity.csv">CSV</a></td></tr>
     </table>
@@ -972,6 +996,15 @@ def generateUsersAnalysis():
         </center>
         </div>
 
+        <table class="prettytable downloads">
+        <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/users/user_%s_weekofyear_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/users/user_%s_weekofyear_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/users/user_%s_weekofyear_activity.png" alt="Month activity" />
+        </center>
+        </div>
+
         <h2 id="toppages"><span class="showhide">[ <a href="javascript:showHide('divmostedited')">Show/Hide</a> ]</span>Most edited pages</h2>
         <div id="divmostedited">
         <center>
@@ -995,7 +1028,7 @@ def generateUsersAnalysis():
         </div>
 
         %s
-        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="users"), generateSummary(type="users", user_props=user_props), filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, generatePagesTable(type="users", user_props=user_props), smwget.getTotalImagesByUser(user_text_=user_name_), gallery, generateCloud(type="users", user_props=user_props), smwhtml.getBacklink())
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="users"), generateSummary(type="users", user_props=user_props), filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, filesubfix, generatePagesTable(type="users", user_props=user_props), smwget.getTotalImagesByUser(user_text_=user_name_), gallery, generateCloud(type="users", user_props=user_props), smwhtml.getBacklink())
 
         title = "%s: User:%s" % (smwconfig.preferences["siteName"], user_props["user_name"])
         if not smwconfig.preferences["anonymous"]:
@@ -1041,6 +1074,15 @@ def generatePagesAnalysis():
 
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/pages/page_%s_weekofyear_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/pages/page_%s_weekofyear_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/pages/page_%s_weekofyear_activity.png" alt="Week activity" />
+        </center>
+        </div>
+
+        <table class="prettytable downloads">
+        <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/pages/page_%s_month_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/pages/page_%s_month_activity.csv">CSV</a></td></tr>
         </table>
@@ -1068,7 +1110,7 @@ def generatePagesAnalysis():
         </center>
         </div>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwhtml.getBacklink(), smwhtml.getSections(type='pages'), generateSummary(type="pages", page_props=page_props), page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, generateUsersTable(type="pages", page_props=page_props), generateCloud(type="pages", page_props=page_props), smwconfig.preferences["indexFilename"])
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type='pages'), generateSummary(type="pages", page_props=page_props), page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, page_id, generateUsersTable(type="pages", page_props=page_props), generateCloud(type="pages", page_props=page_props), smwconfig.preferences["indexFilename"])
 
         title = "%s: %s" % (smwconfig.preferences["siteName"], page_props["full_page_title"])
         smwhtml.printHTML(type="pages", file="page_%d.html" % page_id, title=title, body=body)
@@ -1118,6 +1160,15 @@ def generateCategoriesAnalysis():
 
         <table class="prettytable downloads">
         <tr><th><b>Download as</b></th></tr>
+        <tr><td><a href="../../graphs/categories/category_%s_weekofyear_activity.png">PNG</a></td></tr>
+        <tr><td><a href="../../csv/categories/category_%s_weekofyear_activity.csv">CSV</a></td></tr>
+        </table>
+        <img src="../../graphs/categories/category_%s_weekofyear_activity.png" alt="Week activity" />
+        </center>
+        </div>
+
+        <table class="prettytable downloads">
+        <tr><th><b>Download as</b></th></tr>
         <tr><td><a href="../../graphs/categories/category_%s_month_activity.png">PNG</a></td></tr>
         <tr><td><a href="../../csv/categories/category_%s_month_activity.csv">CSV</a></td></tr>
         </table>
@@ -1152,7 +1203,7 @@ def generateCategoriesAnalysis():
         </center>
         </div>
         &lt;&lt; <a href="../../%s">Back</a>
-        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="categories"), generateSummary(type="categories", category_props=category_props), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], generateUsersTable(type="categories", category_props=category_props), generatePagesTable(type="categories", category_props=category_props), generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
+        """ % (smwhtml.getBacklink(), smwhtml.getSections(type="categories"), generateSummary(type="categories", category_props=category_props), category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], category_props["category_id"], generateUsersTable(type="categories", category_props=category_props), generatePagesTable(type="categories", category_props=category_props), generateCloud(type="categories", category_props=category_props), smwconfig.preferences["indexFilename"]) #crear topuserstable para las categorias y fusionarla con generatePagesTopUsersTable(page_id=page_id) del las páginas y el global (así ya todas muestran los incrementos en bytes y porcentajes, además de la ediciones), lo mismo para el top de páginas más editadas
 
         title = "%s: Pages in category %s" % (smwconfig.preferences["siteName"], category_props["category_title"])
         smwhtml.printHTML(type="categories", file="category_%s.html" % category_props["category_id"], title=title, body=body)
