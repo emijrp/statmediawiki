@@ -159,7 +159,7 @@ def generateTimeActivity(timesplit, type, fileprefix, conds, headers, user_props
     elif timesplit == "dayofweek":
         range_ = range(7)
     elif timesplit == "weekofyear":
-        range_ = range(1, 54)
+        range_ = range(1, 55)
     elif timesplit == "month":
         range_ = range(12)
 

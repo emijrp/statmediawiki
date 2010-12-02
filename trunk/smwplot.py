@@ -90,7 +90,7 @@ def printBarsGraph(title, file, headers, rows):
     convert["hour"] = {"0":"00", "1":"01", "2":"02", "3":"03", "4":"04", "5":"05", "6":"06", "7":"07", "8":"08", "9":"09", "10":"10", "11":"11", "12":"12", "13":"13", "14":"14", "15":"15", "16":"16", "17":"17", "18":"18", "19":"19", "20":"20", "21":"21", "22":"22", "23":"23"}
     convert["dayofweek"] = {"0":"Sun", "1":"Mon", "2":"Tue", "3":"Wed", "4":"Thu", "5":"Fri", "6":"Sat"}
     convert["weekofyear"] = {}
-    for i in range(1,54):
+    for i in range(1,55):
         convert["weekofyear"][str(i)] = str(i)
     convert["month"] = {"0":"Jan", "1":"Feb", "2":"Mar", "3":"Apr", "4":"May", "5":"Jun", "6":"Jul", "7":"Aug", "8":"Sep", "9":"Oct", "10":"Nov", "11":"Dec"}
     convert2 = {"hour":"Hour", "dayofweek":"Day of week", "weekofyear": "Week", "month":"Month"}
