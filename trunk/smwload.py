@@ -198,9 +198,17 @@ def loadRevisions():
         rev_user_text = unicode(re.sub('_', ' ', row[3]), smwconfig.preferences['codification'])
         rev_user_text_ = unicode(re.sub(' ', '_', row[3]), smwconfig.preferences['codification'])
         rev_timestamp = row[4]
-        rev_comment = unicode(row[5].tostring(), smwconfig.preferences['codification'])
+        try: #python 2.4.2 vs 2.6?
+            row[5] = row[5].tostring()
+        except:
+            pass
+        rev_comment = unicode(row[5], smwconfig.preferences['codification'])
         rev_parent_id = int(row[6])
-        old_text = unicode(row[7].tostring(), smwconfig.preferences['codification'])
+        try:
+            row[7] = row[7].tostring()
+        except:
+            pass
+        old_text = unicode(row[7], smwconfig.preferences['codification'])
         smwconfig.revisions[rev_id] = {
             "rev_id": rev_id, #no es un error
             "rev_page": rev_page,
