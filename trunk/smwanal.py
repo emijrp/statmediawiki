@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2010 StatMediaWiki
+# Copyright (C) 2010, 2011 StatMediaWiki
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -937,7 +937,7 @@ def generateGlobalAnalysis():
 
 def generateUsersAnalysis():
     for user_name_, user_props in smwconfig.users.items():
-        print "Generating analysis to user: %s" % user_props["user_name"]
+        print "Generating analysis to user: %s" % (user_props["user_name"].encode('utf-8'))
         generateContentEvolution(type="users", user_props=user_props)
         if smwconfig.preferences["anonymous"]:
             continue
@@ -1032,7 +1032,7 @@ def generateUsersAnalysis():
 
 def generatePagesAnalysis():
     for page_id, page_props in smwconfig.pages.items():
-        print "Generating analysis to the page: %s" % (page_props["full_page_title"])
+        print "Generating analysis to the page: %s" % (page_props["full_page_title"].encode('utf-8'))
         generateContentEvolution(type="pages", page_props=page_props)
         generatePagesTimeActivity(page_props=page_props)
         generatePagesWorkDistribution(page_props=page_props)
@@ -1116,7 +1116,7 @@ def generateCategoriesAnalysis():
             #así que si no existe, no generamos análisis para esa categoría
             print "Some pages are categorised into %s but there is no page for that category" % (category_title_)
             continue
-        print "Generating analysis to the category: %s" % category_title_
+        print "Generating analysis to the category: %s" % (category_title_.encode('utf-8'))
         generateContentEvolution(type="categories", category_props=category_props)
         generateCategoriesTimeActivity(category_props=category_props)
         generateCategoriesWorkDistribution(category_props=category_props)
