@@ -21,7 +21,7 @@ import re
 
 import smwconfig
 
-def printFilledcurvesGraph(title, file, labels, headers, rows):
+def printFilledcurvesGraph(title, filename, labels, headers, rows):
     xticsperiod = ""
     c = 0
     fecha = smwconfig.preferences["startDate"]
@@ -48,10 +48,10 @@ def printFilledcurvesGraph(title, file, labels, headers, rows):
         plots.append(Gnuplot.PlotItems.Data(row, with_="filledcurve", title=headers[c].encode(smwconfig.preferences['codification']))) #steps, filledcurve, ?
         c += 1
     gp.plot(*plots)
-    gp.hardcopy(filename=file, terminal="png")
+    gp.hardcopy(filename=filename, terminal="png")
     gp.close()
 
-def printLinesGraph(title, file, labels, headers, rows):
+def printLinesGraph(title, filename, labels, headers, rows):
     xticsperiod = ""
     c = 0
     fecha = smwconfig.preferences["startDate"]
@@ -82,7 +82,7 @@ def printLinesGraph(title, file, labels, headers, rows):
         plots.append(Gnuplot.PlotItems.Data(row, with_="lines", title=headers[c+1].encode(smwconfig.preferences['codification'])))
         c += 1
     gp.plot(*plots)
-    gp.hardcopy(filename=file, terminal="png")
+    gp.hardcopy(filename=filename, terminal="png")
     gp.close()
 
 def printBarsGraph(title, filename, headers, rows):
