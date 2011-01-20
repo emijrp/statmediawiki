@@ -34,21 +34,24 @@ def printFilledcurvesGraph(title, filename, labels, headers, rows):
     xticsperiod = xticsperiod[:len(xticsperiod)-1]
 
     gp = Gnuplot.Gnuplot()
-    gp('set encoding %s' % smwconfig.preferences['codification_'])
-    gp('set yrange [0:100]')
-    gp('set key under nobox')
-    gp('set title "%s"' % title.encode(smwconfig.preferences['codification']))
-    gp('set xlabel "%s"' % labels[0].encode(smwconfig.preferences['codification']))
-    gp('set ylabel "%s"' % labels[1].encode(smwconfig.preferences['codification']))
-    gp('set xtics rotate by 90')
-    gp('set xtics (%s)' % (xticsperiod.encode(smwconfig.preferences['codification'])))
+    #gp(' set term png')
+    gp(' set encoding %s' % smwconfig.preferences['codification_'])
+    gp(' set yrange [0:100]')
+    gp(' set key under nobox')
+    gp(' set title "%s"' % title.encode(smwconfig.preferences['codification']))
+    gp(' set xlabel "%s"' % labels[0].encode(smwconfig.preferences['codification']))
+    gp(' set ylabel "%s"' % labels[1].encode(smwconfig.preferences['codification']))
+    gp(' set xtics rotate by 90')
+    gp(' set xtics (%s)' % (xticsperiod.encode(smwconfig.preferences['codification'])))
     plots = []
     c = 0
     for row in rows:
         plots.append(Gnuplot.PlotItems.Data(row, with_="filledcurve", title=headers[c].encode(smwconfig.preferences['codification']))) #steps, filledcurve, ?
         c += 1
+    gp(' set term png')
+    gp(' set output "%s"' % (filename))
     gp.plot(*plots)
-    gp.hardcopy(filename=filename, terminal="png")
+    #gp.hardcopy(filename=filename, terminal="png")
     gp.close()
 
 def printLinesGraph(title, filename, labels, headers, rows):
@@ -64,25 +67,27 @@ def printLinesGraph(title, filename, labels, headers, rows):
     xticsperiod = xticsperiod[:len(xticsperiod)-1]
 
     gp = Gnuplot.Gnuplot()
-    #gp('set term png')
-    gp('set encoding %s' % smwconfig.preferences['codification_'])
-    gp('set data style lines')
-    gp('set grid ytics mytics')
-    gp("set key left top")
-    #gp('set line_width 8')
-    gp('set title "%s"' % title.encode(smwconfig.preferences['codification']))
-    gp('set xlabel "%s"' % labels[0].encode(smwconfig.preferences['codification']))
-    gp('set ylabel "%s"' % labels[1].encode(smwconfig.preferences['codification']))
-    gp('set mytics 2')
-    gp('set xtics rotate by 90')
-    gp('set xtics (%s)' % xticsperiod.encode(smwconfig.preferences['codification']))
+    #gp(' set term png')
+    gp(' set encoding %s' % smwconfig.preferences['codification_'])
+    gp(' set data style lines')
+    gp(' set grid ytics mytics')
+    gp(' set key left top')
+    #gp(' set line_width 8')
+    gp(' set title "%s"' % title.encode(smwconfig.preferences['codification']))
+    gp(' set xlabel "%s"' % labels[0].encode(smwconfig.preferences['codification']))
+    gp(' set ylabel "%s"' % labels[1].encode(smwconfig.preferences['codification']))
+    gp(' set mytics 2')
+    gp(' set xtics rotate by 90')
+    gp(' set xtics (%s)' % xticsperiod.encode(smwconfig.preferences['codification']))
     plots = []
     c = 0
     for row in rows:
         plots.append(Gnuplot.PlotItems.Data(row, with_="lines", title=headers[c+1].encode(smwconfig.preferences['codification'])))
         c += 1
+    gp(' set term png')
+    gp(' set output "%s"' % (filename))
     gp.plot(*plots)
-    gp.hardcopy(filename=filename, terminal="png")
+    #gp.hardcopy(filename=filename, terminal="png")
     gp.close()
 
 def printBarsGraph(title, filename, headers, rows):
@@ -101,15 +106,14 @@ def printBarsGraph(title, filename, headers, rows):
     xtics = xtics[:-2]
     #print xtics
     gp = Gnuplot.Gnuplot()
-    #gp('set term png')
-    gp('set encoding %s' % smwconfig.preferences['codification_'])
-    gp("set style data boxes")
-    gp("set key left top")
-    gp("set grid ytics mytics")
-    gp('set title "%s"' % title.encode(smwconfig.preferences['codification']))
-    gp('set xlabel "%s"' % convert2[headers[0]].encode(smwconfig.preferences['codification']))
-    gp('set mytics 2')
-    gp('set ylabel "Edits"')
+    gp(' set encoding %s' % smwconfig.preferences['codification_'])
+    gp(' set style data boxes')
+    gp(' set key left top')
+    gp(' set grid ytics mytics')
+    gp(' set title "%s"' % title.encode(smwconfig.preferences['codification']))
+    gp(' set xlabel "%s"' % convert2[headers[0]].encode(smwconfig.preferences['codification']))
+    gp(' set mytics 2')
+    gp(' set ylabel "Edits"')
     if len(rows[0]) >= 25: #para las gráficas de semanas, pero no para las de horas que se ven bien sin rotar
         gp('set xtics rotate by 90')
     gp('set xtics (%s)' % xtics.encode(smwconfig.preferences['codification']))
@@ -118,8 +122,10 @@ def printBarsGraph(title, filename, headers, rows):
     for row in rows[1:]:
         plots.append(Gnuplot.PlotItems.Data(row, with_="boxes", title=headers[c].encode(smwconfig.preferences['codification'])))
         c += 1
+    gp(' set term png')
+    gp(' set output "%s"' % (filename))
     gp.plot(*plots)
-    gp.hardcopy(filename=filename,terminal="png")
+    #gp.hardcopy(filename=filename,terminal="png")
     gp.close()
 
 def printGraphWorkDistribution(type, fileprefix, title, headers, rows):
