@@ -43,11 +43,12 @@
 
 <p>Durante su funcionamiento, StatMediaWiki necesita acceso de lectura a la base de datos de la instalación MediaWiki. Para ello, debemos crear un fichero de configuración en nuestro directorio <tt>home</tt>, llamado <tt>.my.cnf</tt>. El formato de este fichero debe ser:</p>
 
-<ul>
-<li><tt>user = usuario_con_acceso_a_la_bbdd</tt></li>
-<li><tt>password = password_del_usuario</tt></li>
-<li><tt>host = host_de_la_bbdd</tt></li>
-</ul>
+<pre>
+[client]
+user = usuario_con_acceso_a_la_bbdd
+password = password_del_usuario
+host = host_de_la_bbdd
+</pre>
 
 <p>Las opciones disponibles son las siguientes:</p>
 <ul>

@@ -43,11 +43,12 @@
 
 <p>The system needs read-access to the MediaWiki installation database. Connection settings are stored in <tt>~/.my.cnf</tt> (in the HOME directory):</p>
 
-<ul>
-<li><tt>user = user_able_to_read_the_db</tt></li>
-<li><tt>password = user_password</tt></li>
-<li><tt>host = bbdd_host</tt></li>
-</ul>
+<pre>
+[client]
+user = user_able_to_read_the_db
+password = user_password
+host = bbdd_host
+</pre>
 
 <p>StatMediaWiki supports the following options:</p>
 <ul>
