@@ -55,6 +55,14 @@ def downloadWikiaDump(wiki, filename):
     else:
         print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
 
+def downloadWikiTeamDump(wiki, filename):
+    #verificar md5
+    z7filename = '%s-history.xml.7z' % (wiki)
+    url = 'http://wikiteam.googlecode.com/files/%s' % (z7filename)
+    f = urllib.urlretrieve(url, filename, reporthook=downloadProgress)
+
+    #fix chequear md5
+
 def downloadCitizendiumDump(wiki, filename):
     #añadir posibilidad de descargar otros a parte del last
     #verificar md5
@@ -70,9 +78,8 @@ def downloadWikimediaList():
     raw = f.read()
     f.close()
 
-    m = re.findall(ur'<a href="([^\/]+?)/\d{8}">', raw)
-    if m:
-        [projects.append(i) for i in m]
+    m = re.compile(ur'<a href="(?P<wikiname>[^\/]+?)/\d{8}">').finditer(raw)
+    [projects.append(i.group('wikiname')) for i in m]
 
     projects.sort()
 
@@ -80,7 +87,19 @@ def downloadWikimediaList():
 
 def downloadWikiaList():
     projects = ['answers', 'dc', 'efemerides', 'eq2', 'inciclopedia', 'familypedia', 'icehockey', 'lyrics', 'marveldatabase', 'memory-beta', 'memoryalpha', 'psychology', 'recipes', 'swfanon', 'starwars', 'uncyclopedia', 'vintagepatterns', 'wow']
-
     projects.sort()
 
+    return projects
+
+def downloadWikiTeamList():
+    projects = []
+    
+    f = urllib.urlopen('http://code.google.com/p/wikiteam/downloads/list')
+    raw = f.read()
+    f.close()
+    
+    m = re.compile(ur'<a href="http://wikiteam\.googlecode\.com/files/(?P<wikiname>[^=]+\-\d+)\-history\.xml\.7z" onclick=').finditer(raw)
+    [projects.append(i.group('wikiname')) for i in m]
+    projects.sort()
+    
     return projects

@@ -163,6 +163,7 @@ class App:
         #downloadermenu.add_cascade(label="Wikimedia", menu=downloaderwikimediamenu)
         downloadermenu.add_command(label="Wikimedia", command=lambda: self.downloader('wikimedia'))
         downloadermenu.add_command(label="Wikia", command=lambda: self.downloader('wikia'))
+        downloadermenu.add_command(label="WikiTeam", command=lambda: self.downloader('wikiteam'))
         downloadermenu.add_command(label="Citizendium", command=lambda: self.downloader('citizendium'))
         #end downloader
 
@@ -332,6 +333,15 @@ class App:
                 self.wiki = d.result
                 dumpfilename = '%s-pages_full.xml.gz' % (self.wiki)
                 dumpfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=dumpfilename, defaultextension='.xml.gz')
+        elif self.site == 'wikiteam':
+            self.setStatus("Loading list of WikiTeam wikis")
+            list = smwdownloader.downloadWikiTeamList()
+            self.setStatus("Loaded list of WikiTeam wikis")
+            d = DialogListbox(self.master, title='Select a WikiTeam project', list=list)
+            if d.result:
+                self.wiki = d.result
+                dumpfilename = '%s-history.xml.7z' % (self.wiki)
+                dumpfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile=dumpfilename, defaultextension='.xml.7z')
         elif self.site == 'citizendium':
             self.wiki = 'cz'
             #http://locke.citizendium.org/download/cz.dump.current.xml.gz
@@ -345,6 +355,8 @@ class App:
                 smwdownloader.downloadWikimediaDump(self.wiki, dumpfilename)
             elif self.site == 'wikia':
                 smwdownloader.downloadWikiaDump(self.wiki, dumpfilename)
+            elif self.site == 'wikiteam':
+                smwdownloader.downloadWikiTeamDump(self.wiki, dumpfilename)
             elif self.site == 'citizendium':
                 smwdownloader.downloadCitizendiumDump(self.wiki, dumpfilename)
             self.setStatus("Downloaded data for %s @ %s OK!" % (self.wiki, self.site))
