@@ -47,7 +47,7 @@ def downloadWikiaDump(wiki, filename):
     f = urllib.urlopen('http://%s.wikia.com/wiki/Special:Statistics' % (wiki))
     raw = f.read()
     f.close()
-    m = re.findall(ur'(http://wiki-stats.wikia.com/./../[^\/]+?/pages_full.xml.gz)', raw)
+    m = re.findall(ur'(http://[^/]+.wikia.com/./../[^\/]+?/pages_full.xml.gz)', raw)
     if m:
         url = m[0]
     if url:
