@@ -133,11 +133,11 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
 
     #tablas auxiliares
     generateAuxTables(conn=conn, cursor=cursor)
-    # We can also close the cursor if we are done with it
+    
     cursor.close()
     conn.close()
 
 if __name__ == "__main__":
     filename = sys.argv[1]
     path = ''
-    parseWikimediaXML(path, filename)
+    parseMediaWikiXMLDump(path, filename)

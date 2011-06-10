@@ -166,14 +166,7 @@ class App:
         #begin preprocessor
         preprocessormenu = Menu(menu)
         menu.add_cascade(label="Preprocessor", menu=preprocessormenu)
-        preprocessormenu.add_command(label="My wiki", command=lambda: self.parser('mywiki'))
-        preprocessorwikimediamenu = Menu(preprocessormenu)
-        preprocessormenu.add_cascade(label="Wikimedia", menu=preprocessorwikimediamenu)
-        preprocessorwikimediamenu.add_command(label="XML Dump", command=lambda: self.parser('wikimedia'))
-        #preprocessorwikimediamenu.add_command(label="IRC feed", command=self.callback)
-        preprocessorwikimediamenu.add_command(label="Single page", command=self.callback)
-        preprocessormenu.add_command(label="Wikia", command=lambda: self.parser('wikia'))
-        preprocessormenu.add_command(label="Citizendium", command=lambda: self.parser('citizendium'))
+        preprocessormenu.add_command(label="XML dump", command=lambda: self.parser())
         #end preprocessor
 
         #begin analyser
@@ -346,38 +339,24 @@ class App:
                 smwdownloader.downloadCitizendiumDump(self.wiki, dumpfilename)
             self.setStatus("Downloaded data for %s @ %s OK!" % (self.wiki, self.site))
 
-    def parser(self, site):
+    def parser(self):
         import smwparser
 
-        self.site = site
         initialdir = 'dumps'
         initialdir2 = 'dumps/sqlitedbs'
         dumpfilename = ''
         self.dbfilename = ''
-        if self.site == 'mywiki':
-            dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('XML', '*.xml')])
-            initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml')[0])
-            self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
-        elif self.site == 'wikimedia':
-            dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('7zip', '*.7z')])
-            initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.7z')[0])
-            self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
-        elif self.site == 'wikia':
-            dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('Gzip', '*.gz')])
-            initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.gz')[0])
-            self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
-        elif self.site == 'citizendium':
-            dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('Gzip', '*.gz')])
-            initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.gz')[0])
-            self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
+
+        dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('XML', '*.xml'), ('7zip', '*.7z'), ('Gzip', '*.gz')])
+        initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml')[0])
+        self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
 
         if dumpfilename and self.dbfilename:
             dumpfilename2 = dumpfilename.split('/')[-1]
-            self.setStatus("Parsing %s @ %s" % (dumpfilename2, self.site))
-            if self.site in ['mywiki', 'wikimedia', 'wikia', 'citizendium']:
-                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=self.dbfilename)
+            self.setStatus("Parsing %s" % (dumpfilename2))
+            smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=self.dbfilename)
             #tkMessageBox.showinfo("OK", "Parsing complete")
-            self.setStatus("Parsed %s @ %s OK!" % (dumpfilename2, self.site))
+            self.setStatus("Parsed %s OK!" % (dumpfilename2))
         else:
             self.setStatus("ERROR: NO DUMP FILENAME OR NO DB FILENAME")
 
