@@ -34,6 +34,11 @@ def downloadProgress(block_count, block_size, total_size):
     #sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
     #sys.stdout.flush()
 
+def downloadMyWikiDump(wiki, filename):
+    import dumpgenerator
+    
+    dumpgenerator.main(params=['--api=%s' % (wiki), '--xml', '--path=%s' % (filename)])
+
 def downloadWikimediaDump(wiki, filename):
     #añadir posibilidad de descargar otros a parte del last
     #verificar md5

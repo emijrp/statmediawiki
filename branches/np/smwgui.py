@@ -56,7 +56,7 @@ import pylab
 #   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
 
 NAME = 'StatMediaWiki NP'
-VERSION = '0.0.5' #StatMediaWiki version
+VERSION = '0.0.6' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 PATH = os.path.dirname(__file__)
 if PATH: os.chdir(PATH)
@@ -156,11 +156,7 @@ class App:
         downloadermenu = Menu(menu)
         menu.add_cascade(label="Downloader", menu=downloadermenu)
         downloadermywikimenu = Menu(downloadermenu)
-        downloadermenu.add_cascade(label="My wiki", menu=downloadermywikimenu)
-        downloadermywikimenu.add_command(label="Database connection", command=self.callback)
-        downloadermywikimenu.add_command(label="XML Dump", command=self.callback)
-        #downloaderwikimediamenu = Menu(downloadermenu)
-        #downloadermenu.add_cascade(label="Wikimedia", menu=downloaderwikimediamenu)
+        downloadermenu.add_command(label="My wiki", command=lambda: self.downloader('mywiki'))
         downloadermenu.add_command(label="Wikimedia", command=lambda: self.downloader('wikimedia'))
         downloadermenu.add_command(label="Wikia", command=lambda: self.downloader('wikia'))
         downloadermenu.add_command(label="WikiTeam", command=lambda: self.downloader('wikiteam'))
@@ -170,11 +166,11 @@ class App:
         #begin preprocessor
         preprocessormenu = Menu(menu)
         menu.add_cascade(label="Preprocessor", menu=preprocessormenu)
-        preprocessormenu.add_command(label="My wiki", command=self.mywiki)
+        preprocessormenu.add_command(label="My wiki", command=lambda: self.parser('mywiki'))
         preprocessorwikimediamenu = Menu(preprocessormenu)
         preprocessormenu.add_cascade(label="Wikimedia", menu=preprocessorwikimediamenu)
         preprocessorwikimediamenu.add_command(label="XML Dump", command=lambda: self.parser('wikimedia'))
-        preprocessorwikimediamenu.add_command(label="IRC feed", command=self.callback)
+        #preprocessorwikimediamenu.add_command(label="IRC feed", command=self.callback)
         preprocessorwikimediamenu.add_command(label="Single page", command=self.callback)
         preprocessormenu.add_command(label="Wikia", command=lambda: self.parser('wikia'))
         preprocessormenu.add_command(label="Citizendium", command=lambda: self.parser('citizendium'))
@@ -195,6 +191,7 @@ class App:
         globalactivitymenu.add_separator()
         globalactivitymenu.add_command(label="Yearly", command=lambda: self.analysis('global-activity-yearly'))
         globalactivitymenu.add_command(label="Monthly", command=lambda: self.analysis('global-activity-monthly'))
+        #fix: weekly (~50 weeks)
         globalactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('global-activity-dow'))
         globalactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('global-activity-hourly'))
         #end activity
@@ -287,27 +284,6 @@ class App:
         self.dbfilename = tkFileDialog.askopenfilename(initialdir=initialdir)
         self.setStatus("Loaded %s" % (self.dbfilename.split('/')[-1]))
 
-    def mywiki(self):
-        import smwparser
-        import MySQLdb
-
-        mywikiconn = None
-        mywikicursor = None
-
-        host = tkSimpleDialog.askstring("Which host?", "Put a host", initialvalue="localhost")
-        user = tkSimpleDialog.askstring("Which database user?", "Put a user", initialvalue="myuser")
-        passwd = tkSimpleDialog.askstring("Which database user?", "Put the password for user '%s'" % user, initialvalue="mypass")
-        db = tkSimpleDialog.askstring("Which database?", "What is the database name where your wiki is installed?", initialvalue="mydbname")
-        mywikiconn = MySQLdb.connect(host=host,user=user, passwd=passwd,db=db)
-        mywikicursor = mywikiconn.cursor()
-
-        path = 'dumps/sqlitedbs'
-        filename = 'mywiki.db'
-        smwparser.parseMediaWikiMySQLConnect(mywikicursor, path, filename)
-
-        mywikicursor.close()
-        mywikiconn.close()
-
     def downloader(self, site):
         import smwdownloader
 
@@ -315,7 +291,14 @@ class App:
         self.wiki = ''
         initialdir = 'dumps'
         dumpfilename = ''
-        if self.site == 'wikimedia':
+        if self.site == 'mywiki':
+            initialvalue = "http://mywiki.com/w/api.php"
+            apiurl = tkSimpleDialog.askstring("What is the API url?", "Put an url", initialvalue=initialvalue)
+            if apiurl != initialvalue:
+                self.wiki = apiurl
+                #dumpfilename = '%s-latest-pages-meta-history.xml.7z' % (self.wiki)
+                dumpfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir, initialfile='', defaultextension='')
+        elif self.site == 'wikimedia':
             self.setStatus("Loading list of Wikimedia wikis")
             list = smwdownloader.downloadWikimediaList()
             self.setStatus("Loaded list of Wikimedia wikis")
@@ -351,7 +334,9 @@ class App:
 
         if self.wiki and dumpfilename:
             self.setStatus("Downloading data for %s @ %s" % (self.wiki, self.site))
-            if self.site == 'wikimedia':
+            if self.site == 'mywiki':
+                smwdownloader.downloadMyWikiDump(self.wiki, dumpfilename)
+            elif self.site == 'wikimedia':
                 smwdownloader.downloadWikimediaDump(self.wiki, dumpfilename)
             elif self.site == 'wikia':
                 smwdownloader.downloadWikiaDump(self.wiki, dumpfilename)
@@ -369,7 +354,11 @@ class App:
         initialdir2 = 'dumps/sqlitedbs'
         dumpfilename = ''
         self.dbfilename = ''
-        if self.site == 'wikimedia':
+        if self.site == 'mywiki':
+            dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('XML', '*.xml')])
+            initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml')[0])
+            self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
+        elif self.site == 'wikimedia':
             dumpfilename = tkFileDialog.askopenfilename(initialdir=initialdir, initialfile='', filetypes=[('7zip', '*.7z')])
             initialfile = '%s.db' % (dumpfilename.split('/')[-1].split('.xml.7z')[0])
             self.dbfilename = tkFileDialog.asksaveasfilename(initialdir=initialdir2, initialfile=initialfile, filetypes=[('SQLite3', '*.db')])
@@ -385,11 +374,7 @@ class App:
         if dumpfilename and self.dbfilename:
             dumpfilename2 = dumpfilename.split('/')[-1]
             self.setStatus("Parsing %s @ %s" % (dumpfilename2, self.site))
-            if self.site == 'wikimedia':
-                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=self.dbfilename)
-            elif self.site == 'wikia':
-                smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=self.dbfilename)
-            elif self.site == 'citizendium':
+            if self.site in ['mywiki', 'wikimedia', 'wikia', 'citizendium']:
                 smwparser.parseMediaWikiXMLDump(dumpfilename=dumpfilename, dbfilename=self.dbfilename)
             #tkMessageBox.showinfo("OK", "Parsing complete")
             self.setStatus("Parsed %s @ %s OK!" % (dumpfilename2, self.site))

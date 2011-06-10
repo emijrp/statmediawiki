@@ -85,12 +85,14 @@ def generateAuxTables(conn=None, cursor=None):
     generateUserTable(conn=conn, cursor=cursor)
 
 def parseMediaWikiXMLDump(dumpfilename, dbfilename):
-    #fix: verificar que dumpfilename solo tiene un fichero, el .xml, en otro caso, abortar
-    s = subprocess.Popen('7z l %s' % dumpfilename, shell=True, stdout=subprocess.PIPE, bufsize=65535).stdout
-    if not re.search(ur'(?m)1 files, 0 folders\n$', s.read()):
-        print 'ERROR: the file %s contains more files than a .xml' % dumpfilename
-        return 
-        #os.rename(filename, '%s.corrupted' % filename)
+    if dumpfilename.endswith('.7z'):
+        s = subprocess.Popen('7z l %s' % dumpfilename, shell=True, stdout=subprocess.PIPE, bufsize=65535).stdout
+        sout = s.read()
+        if not re.search(ur'(?im)Can not open file as archive', sout) and \
+           not re.search(ur'(?im)1 files, 0 folders\n$', sout):
+            print 'ERROR: the file %s contains more files than a .xml' % dumpfilename
+            return 
+            #os.rename(filename, '%s.corrupted' % filename)
     
     if os.path.exists(dbfilename): #si existe lo borramos, pues el usuario ha marcado sobreescribir, sino no entraría aquí
         os.remove(dbfilename)

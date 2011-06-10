@@ -43,7 +43,7 @@ def activity(cursor=None, range='', entity='', title='', subtitle='', color='', 
     elif range == 'user':
         result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE rev_username=? GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
     elif range == 'page':
-        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE title=? GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
+        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE rev_page_id IN (SELECT page_id FROM page WHERE page_title=?) GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
     
     x, y = [], []
     for timesplit, count in result:
@@ -79,7 +79,6 @@ def activityhourly(cursor=None, range='', entity='', title=''):
     activity(cursor=cursor, range=range, entity=entity, title=title, subtitle='Activity by hour', color='#1177bb', xlabel='Hour', timesplit='%H')
 
 def activityall(cursor=None, range='', entity='', title=''):
-    #FIX: no funciona, solo se muestra la primera y las otras conforme se va cerrando ventanas, meter las 4 en una?
     activityyearly(cursor=cursor, range=range, entity=entity, title=title)
     activitymonthly(cursor=cursor, range=range, entity=entity, title=title)
     activitydow(cursor=cursor, range=range, entity=entity, title=title)

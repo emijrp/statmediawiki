@@ -18,33 +18,25 @@
 import sqlite3
 
 def listofusers(cursor):
-    result = cursor.execute("select user_name from user where 1")
-    users = []
-    for row in result:
-        users.append(row[0])
+    result = cursor.execute("SELECT user_name FROM user WHERE 1")
+    users = [row[0] for row in result]
     users.sort()
     return users
 
 def listofusersandedits(cursor):
-    result = cursor.execute("select user_name, user_editcount from user where 1")
-    users = []
-    for user_name, user_editcount in result:
-        users.append([user_name, user_editcount])
+    result = cursor.execute("SELECT user_name, user_editcount FROM user WHERE 1")
+    users = [[user_name, user_editcount] for user_name, user_editcount in result]
     users.sort()
     return users
 
 def listofpages(cursor):
-    result = cursor.execute("select page_title from page where 1")
-    pages = []
-    for row in result:
-        pages.append(row[0])
+    result = cursor.execute("SELECT page_title FROM page WHERE 1")
+    pages = [row[0] for row in result]
     pages.sort()
     return pages
 
 def listofpagesandedits(cursor):
-    result = cursor.execute("select page_title, page_editcount from page where 1")
-    pages = []
-    for page_title, page_editcount in result:
-        pages.append([page_title, page_editcount])
+    result = cursor.execute("SELECT page_title, page_editcount FROM page WHERE 1")
+    pages = [[page_title, page_editcount] for page_title, page_editcount in result]
     pages.sort()
     return pages
