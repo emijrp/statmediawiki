@@ -94,9 +94,9 @@ def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', co
     subfig = fig.add_subplot(2,1,1)
     result = []
     if range == 'global':
-        result = cursor.execute("SELECT rev_username FROM revision WHERE rev_is_ipedit=?", (1, ))
+        result = cursor.execute("SELECT rev_user_text FROM revision WHERE rev_is_ipedit=?", (1, ))
     elif range == 'page':
-        result = cursor.execute("SELECT rev_username FROM revision WHERE rev_is_ipedit=? AND rev_page_title=?", (1, entity))
+        result = cursor.execute("SELECT rev_user_text FROM revision WHERE rev_is_ipedit=? AND rev_page_title=?", (1, entity))
     
     x, y = [], []
     geo = GeoLocation()

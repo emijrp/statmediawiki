@@ -46,14 +46,19 @@ re.compile(ur"#\s*(REDIRECT|locale)\s*\[\[[^\|\]]+?(\|[^\|\]]*?)?\]\]")
 """
 
 def createDB(conn=None, cursor=None):
+    #en comentarios cosas que se pueden añadir
+    #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''')
-    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page_id integer, rev_username text, rev_is_ipedit integer, rev_timestamp timestamp, rev_md5 text)''')
+    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text)''')
+    #rev_size, rev_comment, rev_comment_md5, rev_inlinks, rev_outlinks, rev_iws, rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_sections (no matter their level)
     cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
+    #page_namespace, page_size (last rev size), page_views
     cursor.execute('''create table user (user_name text, user_editcount integer)''')
+    #user_id (viene en el dump? 0 para ips), user_is_anonymous (ips)
     conn.commit()
 
 def generatePageTable(conn, cursor):
-    result = cursor.execute("SELECT rev_page_id AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount FROM revision WHERE 1 GROUP BY page_id")
+    result = cursor.execute("SELECT rev_page AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount FROM revision WHERE 1 GROUP BY page_id")
     c = 0
     pages = []
     for page_id, page_title, page_editcount in result:
@@ -67,7 +72,7 @@ def generatePageTable(conn, cursor):
     print "GENERATED PAGE TABLE: %d" % (c)
 
 def generateUserTable(conn, cursor):
-    result = cursor.execute("SELECT rev_username AS user_name, COUNT(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")
+    result = cursor.execute("SELECT rev_user_text AS user_name, COUNT(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")
     c=0
     users = []
     for user_name, user_editcount in result:

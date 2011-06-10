@@ -27,7 +27,7 @@ def graph(cursor=None, range='', entity=''):
     print "GENERANDO GRAFO"
     a = None
     if range == 'page':
-        a = cursor.execute("select username, revisionid, md5, timestamp from revision where title=? order by timestamp", (entity,))
+        a = cursor.execute("select rev_user_text, rev_id, rev_text_md5, rev_timestamp from revision where rev_page in (select page_id from page where page_title=?) order by rev_timestamp", (entity,))
     
     if not a:
         return
