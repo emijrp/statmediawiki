@@ -63,12 +63,18 @@ def lifespan(firstedit='', lastedit=''):
 def summary(cursor):
     #sugerencias: páginas por nm (y separando redirects de no redirects), log events? deletes, page moves
     
+    pages = totalPages(cursor=cursor)
+    edits = totalEdits(cursor=cursor)
+    users = totalUsers(cursor=cursor)
     firstedit, fuser = firstEdit(cursor=cursor)
     lastedit, luser = lastEdit(cursor=cursor)
     
-    output  = 'Users      = %s\n' % (totalUsers(cursor=cursor))
-    output += 'Pages      = %s\n' % (totalPages(cursor=cursor))
-    output += 'Revisions  = %s\n' % (totalEdits(cursor=cursor))
+    output = '%s\nGlobal summary\n%s\n\n' % ('-'*50, '-'*50)
+    output += 'Pages      = %s\n' % (pages)
+    output += 'Revisions  = %s\n' % (edits)
+    output += 'Revs/pag   = %.2f\n' % (float(edits)/pages)
+    output += 'Users      = %s\n' % (users)
+    output += 'Revs/user  = %.2f\n' % (float(edits)/users)
     output += 'First edit = %s (User:%s)\n' % (firstedit, fuser)
     output += 'Last edit  = %s (User:%s)\n' % (lastedit, luser)
     output += 'Lifespan   = %s days\n' % (lifespan(firstedit=firstedit, lastedit=lastedit))
