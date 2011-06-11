@@ -23,7 +23,7 @@ import tkMessageBox
 
 #TODO: que meta los numeros en un diccionario?
 
-#ideas para el resumen: total links, media ediciones/pag, total size (last page edits), total visits, total files, wiki life in days, first user, last user, user with most edits, 
+#ideas para el resumen: total links, media ediciones/pag, total size (last page edits), total visits, total files, user with most edits, 
 
 def totalEdits(cursor=None):
     result = cursor.execute("SELECT COUNT(rev_id) AS count FROM revision WHERE 1")
@@ -44,16 +44,16 @@ def totalUsers(cursor=None):
     return 0
 
 def firstEdit(cursor=None):
-    result = cursor.execute("SELECT rev_timestamp FROM revision WHERE 1 ORDER BY rev_timestamp ASC LIMIT 1")
+    result = cursor.execute("SELECT rev_timestamp, rev_user_text FROM revision WHERE 1 ORDER BY rev_timestamp ASC LIMIT 1")
     for row in result:
-        return row[0]
-    return 0
+        return row[0], row[1]
+    return '', ''
 
 def lastEdit(cursor=None):
-    result = cursor.execute("SELECT rev_timestamp FROM revision WHERE 1 ORDER BY rev_timestamp DESC LIMIT 1")
+    result = cursor.execute("SELECT rev_timestamp, rev_user_text FROM revision WHERE 1 ORDER BY rev_timestamp DESC LIMIT 1")
     for row in result:
-        return row[0]
-    return 0
+        return row[0], row[1]
+    return '', ''
 
 def lifespan(firstedit='', lastedit=''):
     if firstedit and lastedit:
@@ -63,14 +63,14 @@ def lifespan(firstedit='', lastedit=''):
 def summary(cursor):
     #sugerencias: páginas por nm (y separando redirects de no redirects), log events? deletes, page moves
     
-    firstedit = firstEdit(cursor=cursor)
-    lastedit = lastEdit(cursor=cursor)
+    firstedit, fuser = firstEdit(cursor=cursor)
+    lastedit, luser = lastEdit(cursor=cursor)
     
     output  = 'Users      = %s\n' % (totalUsers(cursor=cursor))
     output += 'Pages      = %s\n' % (totalPages(cursor=cursor))
     output += 'Revisions  = %s\n' % (totalEdits(cursor=cursor))
-    output += 'First edit = %s\n' % (firstedit)
-    output += 'Last edit  = %s\n' % (lastedit)
+    output += 'First edit = %s (User:%s)\n' % (firstedit, fuser)
+    output += 'Last edit  = %s (User:%s)\n' % (lastedit, luser)
     output += 'Lifespan   = %s days\n' % (lifespan(firstedit=firstedit, lastedit=lastedit))
     
     print output
@@ -78,7 +78,7 @@ def summary(cursor):
 
     frame = Tk()
     frame.title('Summary')
-    frame.geometry('250x300+300+100')
+    frame.geometry('400x400+300+100')
 
     scrollbar = Scrollbar(frame)
     scrollbar.pack(side=RIGHT, fill=Y)
