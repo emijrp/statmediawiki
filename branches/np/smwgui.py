@@ -362,7 +362,7 @@ class App:
 
     def analysis(self, analysis):
         if not self.dbfilename:
-            message = "You must load a preprocessed dump"
+            message = "You must load a preprocessed dump first"
             self.setStatus(message)
             tkMessageBox.showerror("Error", message)
             return
