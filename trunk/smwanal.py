@@ -579,7 +579,10 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
 
         #start row
         output += '<tr><td>%d</td>' % (c)
-        output += '<td><a href="%s/users/user_%s.html">%s</a></td>' % (type == "global" and 'html' or '..', filesubfix, smwconfig.users[user_text_]["user_name"]) #lee de .users por si es análisis anon
+        if smwconfig.preferences["anonymous"]:
+            output += '<td>%s</td>' % (smwconfig.users[user_text_]["user_name"]) #lee de .users por si es análisis anon
+        else:
+            output += '<td><a href="%s/users/user_%s.html">%s</a></td>' % (type == "global" and 'html' or '..', filesubfix, smwconfig.users[user_text_]["user_name"])
 
         #revisions
         maxi = 0
@@ -937,10 +940,10 @@ def generateGlobalAnalysis():
 
 def generateUsersAnalysis():
     for user_name_, user_props in smwconfig.users.items():
+        if smwconfig.preferences["anonymous"]: #fix, no generar nada, o generar solo algunas partes, decidir otro día
+            continue
         print "Generating analysis to user: %s" % (user_props["user_name"].encode('utf-8'))
         generateContentEvolution(type="users", user_props=user_props)
-        if smwconfig.preferences["anonymous"]:
-            continue
         generateUsersTimeActivity(user_props=user_props)
 
         gallery = ''
