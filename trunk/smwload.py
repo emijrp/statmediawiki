@@ -256,11 +256,11 @@ def loadUsers():
             user_id = int(row[0])
             user_name = re.sub('_', ' ', unicode(row[1], smwconfig.preferences['codification']))
             user_name_ = re.sub(' ', '_', unicode(row[1], smwconfig.preferences['codification']))
-            if not smwconfig.users.has_key(user_id):
+            if not smwconfig.users.has_key(user_name_):
                 smwconfig.users[user_name_] = {
                     "user_id": user_id,
                     "user_name": user_name,
-                    "user_name_": user_name_,
+                    "user_name_": user_name_, #not an error
                 }
     print "Loaded %s users" % len(smwconfig.users.keys())
     smwdb.destroyConnCursor(conn, cursor)

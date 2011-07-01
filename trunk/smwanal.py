@@ -579,7 +579,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
 
         #start row
         output += '<tr><td>%d</td>' % (c)
-        output += '<td><a href="%s/users/user_%s.html">%s</a></td>' % (type == "global" and 'html' or '..', filesubfix, smwconfig.users[user_text_]["user_name"])
+        output += '<td><a href="%s/users/user_%s.html">%s</a></td>' % (type == "global" and 'html' or '..', filesubfix, smwconfig.users[user_text_]["user_name"]) #lee de .users por si es análisis anon
 
         #revisions
         maxi = 0
