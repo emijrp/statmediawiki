@@ -59,13 +59,14 @@ host = bbdd_host
 <li><tt>--subdir:</tt> path that has to be added to the URL to get to the wiki (by default /index.php)</li>
 <li><tt>--dbname:</tt> name of the database of the wiki</li>
 <li><tt>--tableprefix:</tt> prefix of the tables in the database (only required if you indicated one when installing MediaWiki)</li>
+<li><tt>--anonymous:</tt> it replaces usernames by hashes (salty md5)</li>
 </ul>
 
 <p>StatMediaWiki has two operation modes: standard and anonymous</p>
 
 <ul>
 <li>Standard analysis: the lines in the content evolution charts may fall (they do not have to be strictly increasing). That can be caused because the content of a certain page decreases (for example, because some paragraphs are joined and simplified). However, user contribution never falls, as it counts user contributions: when the user writes in the wiki, he contributes, no matter if later on the text is erased or modified.</li>
-<li>Anonymous analysis: there is no HTML chart for any specific user, so the <tt>graphs/users</tt> and <tt>html/users</tt> directories are empty. Nicknames are anonymized in the ranking of the whole site, and have no links. In the analysis of each page, the user ranking is left empty: otherwise, it would be trivial to mine the identities of the users from it.</li>
+<li>Anonymous analysis (<tt>--anonymous</tt>): there is no HTML chart for any specific user, so the <tt>graphs/users</tt> and <tt>html/users</tt> directories are empty. Nicknames are anonymized in the ranking of the whole site, and have no links. In the analysis of each page, the user ranking is left empty: otherwise, it would be trivial to mine the identities of the users from it.</li>
 </ul>
 
 <p>This is a sample invokation to StatMediaWiki:</p>

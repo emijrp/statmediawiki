@@ -59,12 +59,13 @@ host = host_de_la_bbdd
 <li><tt>--subdir:</tt> ruta adicional tras la URL del wiki (por defecto /index.php)</li>
 <li><tt>--dbname:</tt> nombre de la base de datos que contiene el wiki</li>
 <li><tt>--tableprefix:</tt> prefijo de las tablas de la base de datos, si se escogió uno durante la instalación de MediaWiki</li>
+<li><tt>--anonymous:</tt> reemplaza los nombres de usuario por hashes (md5 con un poco de ruido)</li>
 </ul>
 
 <p>StatMediaWiki tiene dos modos de análisis: estándar y anónimo.</p>
 <ul>
 <li>Análisis estándar: las gráficas de evolución de contenido globales y por páginas pueden tener retrocesos (la línea cae) si en esa fecha la cantidad de contenido del wiki o de la página en concreto disminuyó (por ejemplo, alguien mejora y simplifica la redacción de un artículo, entonces la línea cae, hay menos bytes). Pero las gráficas de los usuarios nunca caen: lo que en un momento aportó, no se le resta, aunque un usuario posterior se lo borre.</li>
-<li>Análisis anónimo: en el análisis anónimo no se genera ninguna gráfica ni fichero HTML para usuarios (los directorios <tt>graphs/users/</tt> y <tt>html/users/</tt> quedan vacíos). Los usuarios de la tabla global está anonimizados y no enlazan a nada. Y en los análisis para las páginas del wiki la sección de los usuarios que más han aportado a esa página queda vacío.</li>
+<li>Análisis anónimo (<tt>--anonymous</tt>): en el análisis anónimo no se genera ninguna gráfica ni fichero HTML para usuarios (los directorios <tt>graphs/users/</tt> y <tt>html/users/</tt> quedan vacíos). Los usuarios de la tabla global está anonimizados y no enlazan a nada. Y en los análisis para las páginas del wiki la sección de los usuarios que más han aportado a esa página queda vacío.</li>
 </ul>
 
 <p>Por ejemplo, una llamada a StatMediaWiki podría ser la siguiente:</p>
