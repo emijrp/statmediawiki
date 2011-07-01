@@ -1038,7 +1038,8 @@ def generatePagesAnalysis():
         print "Generating analysis to the page: %s" % (page_props["full_page_title"].encode('utf-8'))
         generateContentEvolution(type="pages", page_props=page_props)
         generatePagesTimeActivity(page_props=page_props)
-        generatePagesWorkDistribution(page_props=page_props)
+        if not smwconfig.preferences["anonymous"]:
+            generatePagesWorkDistribution(page_props=page_props)
 
         body = """%s\n%s\n%s
 
