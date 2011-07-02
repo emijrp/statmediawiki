@@ -21,13 +21,11 @@ import datetime
 import sqlite3
 import tkMessageBox
 
-#import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 
 #fix
 #mirar como usa las fechas aquí http://matplotlib.sourceforge.net/examples/api/date_demo.html
 #nube de puntos http://matplotlib.sourceforge.net/examples/api/unicode_minus.html
+#dateranges http://matplotlib.sourceforge.net/examples/pylab_examples/date_demo_rrule.html
 
 def revertsEvolution(cursor=None):
     """result = cursor.execute("SELECT rev_timestamp FROM revision WHERE 1 ORDER BY rev_timestamp ASC LIMIT 1")
@@ -51,7 +49,7 @@ def revertsEvolution(cursor=None):
                 c = 0
                 for temprev in page:
                     if temprev[3] in [temprev2[3] for temprev2 in page[:c]]: #is a revert of a previous rev in this page
-                        temprevdate = temprev[2][:10]
+                        temprevdate = datetime.date(year=int(temprev[2][0:4]), month=int(temprev[2][5:7]), day=int(temprev[2][8:10]))
                         if reverts.has_key(temprevdate):
                             reverts[temprevdate] += 1
                         else:
@@ -61,21 +59,44 @@ def revertsEvolution(cursor=None):
                 page = [revision] #reset
         else:
             page.append(revision)
-        
-    reverts_list = [[revertday, revertsnum] for revertday, revertsnum in reverts.items()]
+    
+    reverts_list = [[x, y] for x, y in reverts.items()]
     reverts_list.sort()
     
-    startdate = datetime.datetime(year=int(reverts_list[0][0][:4]), month=int(reverts_list[0][0][5:7]), day=int(reverts_list[0][0][8:10]))
-    enddate = datetime.datetime(year=int(reverts_list[-1:][0][0][:4]), month=int(reverts_list[-1:][0][0][5:7]), day=int(reverts_list[-1:][0][0][8:10]))
-    
-    while startdate != enddate:
-        tempdate = startdate.strftime('%Y-%m-%d')
-        print startdate, reverts.has_key(tempdate) and reverts[tempdate] or 0
-        startdate += datetime.timedelta(days=1)
+    startdate = reverts_list[0][0]
+    enddate = reverts_list[-1:][0][0]
+    delta = datetime.timedelta(days=1)
+    reverts_list = [] #reset, adding all days between startdate and enddate
+    d = startdate
+    while d < enddate:
+        if reverts.has_key(d):
+            reverts_list.append([d, reverts[d]])
+        else:
+            reverts_list.append([d, 0])
+        d += delta
 
-    matplotlib.rcParams['axes.unicode_minus'] = False
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(range(len(reverts_list)), [y for x, y in reverts_list], '.')
+
+    from pylab import *
+    from matplotlib.dates import DAILY, DateFormatter, rrulewrapper, RRuleLocator, drange
+
+    rule = rrulewrapper(DAILY, byeaster=1, interval=1)
+    loc = RRuleLocator(rule)
+    formatter = DateFormatter('%Y-%m-%d')
+    dates = drange(startdate, enddate, delta)
+
+    ax = subplot(111)
+    print '#'*100
+    print len(dates)
+    print dates
+    print '#'*100
+    print len(array([y for x, y in reverts_list]))
+    print array([y for x, y in reverts_list])
+    print '#'*100
+    plot_date(dates, array([y for x, y in reverts_list]), '.')
+    ax.xaxis.set_major_locator(loc)
+    ax.xaxis.set_major_formatter(formatter)
     ax.set_title('Reverts evolution')
-    plt.show()
+    labels = ax.get_xticklabels()
+    setp(labels, rotation=30, fontsize=10)
+
+    show()
