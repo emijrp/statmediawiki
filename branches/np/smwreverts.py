@@ -85,6 +85,8 @@ def revertsEvolution(cursor=None):
     dates = drange(startdate, enddate, delta)
 
     ax = subplot(111)
+    ax.set_ylabel('Reverts')
+    ax.set_xlabel('Date (YYYY-MM-DD)')
     print '#'*100
     print len(dates)
     print dates
@@ -96,6 +98,7 @@ def revertsEvolution(cursor=None):
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(formatter)
     ax.set_title('Reverts evolution')
+    ax.grid(True)
     labels = ax.get_xticklabels()
     setp(labels, rotation=30, fontsize=10)
 
