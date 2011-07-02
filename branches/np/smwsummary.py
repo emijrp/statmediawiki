@@ -66,6 +66,13 @@ def editSummaryUsage(cursor=None):
         return row[0]
     return 0
 
+def totalLinks(cursor=None):
+    #fix recorrer la última revisión de cada página
+    result = cursor.execute("SELECT SUM(rev_links), SUM(rev_external_links) FROM revision WHERE 1")
+    for row in result:
+        return row[0], row[1]
+    return 0, 0
+
 def summary(cursor):
     #sugerencias: páginas por nm (y separando redirects de no redirects), log events? deletes, page moves
     
@@ -75,6 +82,7 @@ def summary(cursor):
     firstedit, fuser = firstEdit(cursor=cursor)
     lastedit, luser = lastEdit(cursor=cursor)
     summaries = editSummaryUsage(cursor=cursor)
+    links, external_links = totalLinks(cursor=cursor)
     
     output = '%s\nGlobal summary\n%s\n\n' % ('-'*50, '-'*50)
     output += 'Pages      = %s\n' % (pages)
@@ -85,6 +93,7 @@ def summary(cursor):
     output += 'First edit = %s (User:%s)\n' % (firstedit, fuser)
     output += 'Last edit  = %s (User:%s)\n' % (lastedit, luser)
     output += 'Lifespan   = %s days\n' % (lifespan(firstedit=firstedit, lastedit=lastedit))
+    output += 'Links      = %d (internal), %d (external)\n' % (links, external_links)
     
     output += '\n\n%s\nOther\n%s\n\n' % ('-'*50, '-'*50)
     output += 'Edit summary usage  = %d (%.2f%%)\n' % (summaries, summaries/(edits/100.0))

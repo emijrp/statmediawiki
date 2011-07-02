@@ -137,7 +137,7 @@ class App:
         self.button2.grid(row=1, column=1)
         self.button3 = Button(self.master, text="Button #3", command=self.callback, width=12)
         self.button3.grid(row=0, column=2)
-        self.button4 = Button(self.master, text="Button #4", command=self.callback, width=12)
+        self.button4 = Button(self.master, text="Exit", command=askclose, width=12)
         self.button4.grid(row=1, column=2)
         #statusbar
         self.status = Label(self.master, text="Welcome! %s is ready for work" % (NAME), bd=1, justify=LEFT, relief=SUNKEN)

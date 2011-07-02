@@ -36,12 +36,10 @@ import tkMessageBox
 """
 
 regexps para el parser
-re.compile(ur"\b\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\]\b") # enlaces (esto incluye los iws, descontarlos después?)
-re.compile(ur"\b(http|ftp)s?://") #externos
 #imágenes y ficheros
 #categorías
 #iws
-re.compile(ur"#\s*(REDIRECT|locale)\s*\[\[[^\|\]]+?(\|[^\|\]]*?)?\]\]")
+re.compile(ur"#\s*(REDIRECT|local name)\s*\[\[[^\|\]]+?(\|[^\|\]]*?)?\]\]")
 
 """
 
@@ -49,8 +47,8 @@ def createDB(conn=None, cursor=None):
     #en comentarios cosas que se pueden añadir
     #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
-    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text)''')
-    #rev_inlinks, rev_outlinks, rev_iws, rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_sections (no matter their level)
+    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_links integer, rev_external_links integer)''')
+    #rev_iws, rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_sections (no matter their level)
     cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer)''') 
     #page_namespace, page_size (last rev size), page_views
     cursor.execute('''create table user (user_name text, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
@@ -121,15 +119,19 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         rev_user_text = x.username
         rev_is_ipedit = x.ipedit and 1 or 0 #fix, las ediciones de MediaWiki default cuentan como IP?
         rev_timestamp = datetime.datetime(year=int(x.timestamp[0:4]), month=int(x.timestamp[5:7]), day=int(x.timestamp[8:10]), hour=int(x.timestamp[11:13]), minute=int(x.timestamp[14:16]), second=int(x.timestamp[17:19]))
-        rev_text_md5 = hashlib.md5(x.text.encode('utf-8')).hexdigest()
-        rev_size = len(x.text.encode('utf-8'))
+        x_text_encoded = x.text.encode('utf-8')
+        rev_text_md5 = hashlib.md5(x_text_encoded).hexdigest()
+        rev_size = len(x_text_encoded)
         rev_comment = x.comment or ''
+        rev_links = len(re.findall(ur'\b(\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\])\b', x_text_encoded)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
+        rev_external_links = len(re.findall(ur'\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://', x_text_encoded)) #external links http://en.wikipedia.org/wiki/User:Emijrp/External_Links_Ranking
         
-        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment)
+        
+        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_links, rev_external_links)
         
         xmlbug = (rev_id, rev_title, rev_page, rev_user_text)
         if not None in xmlbug and not '' in xmlbug:
-            cursor.execute('INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?)', t)
+            cursor.execute('INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?)', t)
             i+=1
         else:
             print t
