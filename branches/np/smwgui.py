@@ -29,6 +29,7 @@ import pylab
 
 # TODO:
 # almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
+## pero al final tienes que carga la sesión/workplace que te interese, estamos en las mismas
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
 # capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
 # hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?) http://download.wikimedia.org/backup-index.html http://community.wikia.com/wiki/Hub:Big_wikis http://community.wikia.com/index.php?title=Special:Newwikis&dir=prev&limit=500&showall=0 http://www.mediawiki.org/wiki/Sites_using_MediaWiki
@@ -59,8 +60,9 @@ import pylab
 #   permitir exportar las columnas que nos interesen como CSV u otros formatos, exportar un rango de fechas de revisiones http://en.wikipedia.org/w/index.php?title=User_talk:Emijrp/Wikipedia_Archive&oldid=399534070#How_can_i_get_all_the_revisions_of_a_language_for_a_duration_.3F
 #   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
 
-NAME = 'StatMediaWiki NP'
-VERSION = '0.0.7' #StatMediaWiki version
+NAME = 'StatMediaWiki NP' # StatMediaWiki name
+VERSION = '0.0.7' # StatMediaWiki version
+HOMEPAGE = 'http://statmediawiki.forja.rediris.es' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
 if PATH: os.chdir(PATH)
@@ -265,7 +267,7 @@ class App:
         menu.add_cascade(label="Help", menu=helpmenu)
         helpmenu.add_command(label="About", command=self.callback)
         helpmenu.add_command(label="Help index", command=self.callback)
-        helpmenu.add_command(label="StatMediaWiki homepage", command=lambda: webbrowser.open_new_tab(homepage))
+        helpmenu.add_command(label="StatMediaWiki homepage", command=lambda: webbrowser.open_new_tab(HOMEPAGE))
 
     def callback(self):
         self.setStatus("Feature doesn't developed yet. Coming soon.")
