@@ -60,6 +60,12 @@ def lifespan(firstedit='', lastedit=''):
         return (datetime.datetime.strptime(lastedit, '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime(firstedit, '%Y-%m-%d %H:%M:%S')).days
     return 'Unknown'
 
+def editSummaryUsage(cursor=None):
+    result = cursor.execute("SELECT COUNT(rev_comment) FROM revision WHERE rev_comment <> ''")
+    for row in result:
+        return row[0]
+    return 0
+
 def summary(cursor):
     #sugerencias: páginas por nm (y separando redirects de no redirects), log events? deletes, page moves
     
@@ -68,6 +74,7 @@ def summary(cursor):
     users = totalUsers(cursor=cursor)
     firstedit, fuser = firstEdit(cursor=cursor)
     lastedit, luser = lastEdit(cursor=cursor)
+    summaries = editSummaryUsage(cursor=cursor)
     
     output = '%s\nGlobal summary\n%s\n\n' % ('-'*50, '-'*50)
     output += 'Pages      = %s\n' % (pages)
@@ -78,6 +85,9 @@ def summary(cursor):
     output += 'First edit = %s (User:%s)\n' % (firstedit, fuser)
     output += 'Last edit  = %s (User:%s)\n' % (lastedit, luser)
     output += 'Lifespan   = %s days\n' % (lifespan(firstedit=firstedit, lastedit=lastedit))
+    
+    output += '\n\n%s\nOther\n%s\n\n' % ('-'*50, '-'*50)
+    output += 'Edit summary usage  = %d (%.2f%%)\n' % (summaries, summaries/(edits/100.0))
     
     print output
     #tkMessageBox.showinfo(title="Summary", message=output)

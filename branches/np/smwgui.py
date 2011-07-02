@@ -43,6 +43,7 @@ import pylab
 # Ideas para análisis de wikis:
 # * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
 # * ip geolocation: http://software77.net/geo-ip/?license
+# * análisis que permita buscar ciertas palabras en los comentarios de las ediciones
 #
 # Ideas para otros análisis que no usan dumps pero relacionados con wikis o wikipedia:
 # * el feed de donaciones
@@ -56,7 +57,7 @@ import pylab
 #   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
 
 NAME = 'StatMediaWiki NP'
-VERSION = '0.0.6' #StatMediaWiki version
+VERSION = '0.0.7' #StatMediaWiki version
 LINUX = platform.system() == 'Linux'
 PATH = os.path.dirname(__file__)
 if PATH: os.chdir(PATH)

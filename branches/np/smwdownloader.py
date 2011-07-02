@@ -110,9 +110,10 @@ def downloadWikiTeamList():
     
     f = urllib.urlopen('http://code.google.com/p/wikiteam/downloads/list')
     raw = f.read()
+    #print raw
     f.close()
     
-    m = re.compile(ur'<a href="http://wikiteam\.googlecode\.com/files/(?P<wikiname>[^=]+\-\d+)\-history\.xml\.7z" onclick=').finditer(raw)
+    m = re.compile(ur'<a href="[^/]*//wikiteam\.googlecode\.com/files/(?P<wikiname>[^=]+\-\d+)\-history\.xml\.7z" onclick=').finditer(raw)
     [projects.append(i.group('wikiname')) for i in m]
     projects.sort()
     
