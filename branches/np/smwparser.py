@@ -111,6 +111,10 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     i=0
     t1=time.time()
     tt=time.time()
+    
+    r_links = re.compile(ur'(?i)\b(\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\])\b')
+    r_external_links = re.compile(ur'(?i)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
+    
     xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
     for x in xml.parse(): #parsing the whole dump
         rev_id = int(x.revisionid)
@@ -123,9 +127,8 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         rev_text_md5 = hashlib.md5(x_text_encoded).hexdigest()
         rev_size = len(x_text_encoded)
         rev_comment = x.comment or ''
-        rev_links = len(re.findall(ur'\b(\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\])\b', x_text_encoded)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
-        rev_external_links = len(re.findall(ur'\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://', x_text_encoded)) #external links http://en.wikipedia.org/wiki/User:Emijrp/External_Links_Ranking
-        
+        rev_links = len(re.findall(r_links, x_text_encoded)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
+        rev_external_links = len(re.findall(r_external_links, x_text_encoded)) #external links http://en.wikipedia.org/wiki/User:Emijrp/External_Links_Ranking
         
         t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_links, rev_external_links)
         
