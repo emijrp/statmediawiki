@@ -94,7 +94,7 @@ def revertsEvolution(cursor=None):
     print len(array([y for x, y in reverts_list]))
     print array([y for x, y in reverts_list])
     print '#'*100
-    plot_date(dates, array([y for x, y in reverts_list]), '.')
+    plot_date(dates, array([y for x, y in reverts_list]), 'o')
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(formatter)
     ax.set_title('Reverts evolution')

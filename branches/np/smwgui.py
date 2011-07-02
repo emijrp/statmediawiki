@@ -61,6 +61,11 @@ import pylab
 #   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
 #
 # que es más seguro hacer las cursor.execute, con ? o con %s ?
+# 
+# flipadas:
+# ampliar la información de un punto haciendo clic en él: http://matplotlib.sourceforge.net/examples/event_handling/data_browser.py
+# videos con matplotlib http://matplotlib.sourceforge.net/examples/animation/movie_demo.py
+# más ejemplos de matplotlib http://matplotlib.sourceforge.net/examples/index.html
 
 NAME = 'StatMediaWiki NP' # StatMediaWiki name
 VERSION = '0.0.7' # StatMediaWiki version
