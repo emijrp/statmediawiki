@@ -112,8 +112,8 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     t1=time.time()
     tt=time.time()
     
-    r_links = re.compile(ur'(?i)\b(\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\])\b')
-    r_external_links = re.compile(ur'(?i)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
+    r_links = re.compile(ur'(?im)(\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\])')
+    r_external_links = re.compile(ur'(?im)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
     
     xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
     for x in xml.parse(): #parsing the whole dump
