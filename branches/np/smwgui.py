@@ -59,6 +59,8 @@ import pylab
 #   mirar http://stats.wikimedia.org/reportcard/RC_2011_04_columns.html http://stats.wikimedia.org/reportcard/
 #   permitir exportar las columnas que nos interesen como CSV u otros formatos, exportar un rango de fechas de revisiones http://en.wikipedia.org/w/index.php?title=User_talk:Emijrp/Wikipedia_Archive&oldid=399534070#How_can_i_get_all_the_revisions_of_a_language_for_a_duration_.3F
 #   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
+#
+# que es más seguro hacer las cursor.execute, con ? o con %s ?
 
 NAME = 'StatMediaWiki NP' # StatMediaWiki name
 VERSION = '0.0.7' # StatMediaWiki version
@@ -126,7 +128,6 @@ class App:
         self.site = ''
         self.wiki = ''
         self.dbfilename = '' # current analysis
-        self.homepage = 'http://statmediawiki.forja.rediris.es'
 
         # interface elements
         #description
@@ -199,8 +200,6 @@ class App:
         #globalmenu.add_command(label="Graph", command=lambda: self.analysis('global-graph'))
         #end global
 
-        #end analyser
-
         #begin user-by-user
         userbyusermenu = Menu(analysismenu)
         analysismenu.add_cascade(label="User-by-user", menu=userbyusermenu)
@@ -248,6 +247,10 @@ class App:
         samplesmenu.add_cascade(label="Wikiproject", menu=sampleswikiprojectmenu)
         
         #end samples
+        
+        analysismenu.add_command(label="Reverts evolution", command=lambda: self.analysis('reverts'))
+        
+        #end analyser
         
         #begin others
         othermenu = Menu(menu)
@@ -460,7 +463,10 @@ class App:
                     import smwgeolocation
                     smwgeolocation.GeoLocationGraph(cursor=cursor, range='page', entity=page, title=self.wiki)
                     pylab.show()
-
+        elif analysis.startswith('reverts'):
+            import smwreverts
+            smwreverts.revertsEvolution(cursor=cursor)
+        
         cursor.close()
         conn.close()
 
