@@ -50,10 +50,10 @@ def createDB(conn=None, cursor=None):
     #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
     cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text)''')
-    #rev_comment, rev_comment_md5, rev_inlinks, rev_outlinks, rev_iws, rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_sections (no matter their level)
-    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
+    #rev_inlinks, rev_outlinks, rev_iws, rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_sections (no matter their level)
+    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer)''') 
     #page_namespace, page_size (last rev size), page_views
-    cursor.execute('''create table user (user_name text, user_editcount integer)''')
+    cursor.execute('''create table user (user_name text, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
     #user_id (viene en el dump? 0 para ips), user_is_anonymous (ips)
     conn.commit()
 

@@ -40,6 +40,8 @@ import pylab
 # i18n http://www.learningpython.com/2006/12/03/translating-your-pythonpygtk-application/
 # documentation
 
+#diferenciar entre activity (edits) y newpages
+
 # Ideas para análisis de wikis:
 # * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
 # * ip geolocation: http://software77.net/geo-ip/?license
@@ -53,12 +55,13 @@ import pylab
 # embeber mejor las gráficas en Tk? http://matplotlib.sourceforge.net/examples/user_interfaces/embedding_in_tk.py así cuando se cierra SMW, se cerrarán las gráficas; sería hacer una clase como listbox, a la que se le pasa la figura f (las funciones que generan las gráficas deberían devolver la f, ahora no devuelven nada)
 #
 # otras ideas:
+#   mirar http://stats.wikimedia.org/reportcard/RC_2011_04_columns.html http://stats.wikimedia.org/reportcard/
 #   permitir exportar las columnas que nos interesen como CSV u otros formatos, exportar un rango de fechas de revisiones http://en.wikipedia.org/w/index.php?title=User_talk:Emijrp/Wikipedia_Archive&oldid=399534070#How_can_i_get_all_the_revisions_of_a_language_for_a_duration_.3F
 #   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
 
 NAME = 'StatMediaWiki NP'
 VERSION = '0.0.7' #StatMediaWiki version
-LINUX = platform.system() == 'Linux'
+LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
 if PATH: os.chdir(PATH)
 
