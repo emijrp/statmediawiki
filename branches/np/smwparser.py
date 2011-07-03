@@ -51,12 +51,13 @@ def createDB(conn=None, cursor=None):
     #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics)
     cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp)''') 
     #page_namespace, page_size (last rev size), page_views
-    cursor.execute('''create table user (user_name text, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
+    cursor.execute('''create table user (user_name text, user_is_ip integer, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
     #user_id (viene en el dump? 0 para ips), user_is_anonymous (ips)
     conn.commit()
 
 def generatePageTable(conn, cursor):
     #fix add namespace detector
+    #fix add rev_id actual para cada pagina
     
     page_creation_timestamps = {}
     result = cursor.execute("SELECT rev_page, rev_id, rev_timestamp FROM revision WHERE 1 ORDER BY rev_page ASC, rev_timestamp ASC")
@@ -89,18 +90,16 @@ def generatePageTable(conn, cursor):
     print "GENERATED PAGE TABLE: %d" % (len(pages))
 
 def generateUserTable(conn, cursor):
-    result = cursor.execute("SELECT rev_user_text AS user_name, COUNT(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")
-    c=0
+    result = cursor.execute("SELECT rev_user_text AS user_name, rev_is_ipedit AS user_is_ip, COUNT(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")
     users = []
-    for user_name, user_editcount in result:
-        c+=1
-        users.append([user_name, user_editcount])
+    for user_name, user_is_ip, user_editcount in result:
+        users.append([user_name, user_is_ip, user_editcount])
 
-    for user_name, user_editcount in users:
-        cursor.execute('INSERT INTO user VALUES (?,?)', (user_name, user_editcount))
+    for user_name, user_is_ip, user_editcount in users:
+        cursor.execute('INSERT INTO user VALUES (?,?,?)', (user_name, user_is_ip, user_editcount))
     conn.commit()
 
-    print "GENERATED USER TABLE: %d" % (c)
+    print "GENERATED USER TABLE: %d" % (len(users))
 
 def generateAuxTables(conn=None, cursor=None):
     generatePageTable(conn=conn, cursor=cursor)
