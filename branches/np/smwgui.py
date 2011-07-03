@@ -27,6 +27,9 @@ import tkSimpleDialog
 import tkFileDialog
 import pylab
 
+# Dependences:
+# python, python-tk, python-matplotlib
+
 # TODO:
 # almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
 ## pero al final tienes que carga la sesión/workplace que te interese, estamos en las mismas
@@ -60,16 +63,17 @@ import pylab
 #   mirar http://stats.wikimedia.org/reportcard/RC_2011_04_columns.html http://stats.wikimedia.org/reportcard/
 #   permitir exportar las columnas que nos interesen como CSV u otros formatos, exportar un rango de fechas de revisiones http://en.wikipedia.org/w/index.php?title=User_talk:Emijrp/Wikipedia_Archive&oldid=399534070#How_can_i_get_all_the_revisions_of_a_language_for_a_duration_.3F
 #   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
-#
+#   external links analysis: http://linkypedia.inkdroid.org/websites/9/users/
 # que es más seguro hacer las cursor.execute, con ? o con %s ?
 # 
 # flipadas:
 # ampliar la información de un punto haciendo clic en él: http://matplotlib.sourceforge.net/examples/event_handling/data_browser.py
 # videos con matplotlib http://matplotlib.sourceforge.net/examples/animation/movie_demo.py
 # más ejemplos de matplotlib http://matplotlib.sourceforge.net/examples/index.html
-#
+# mapas con R muy buenos http://flowingdata.com/2011/05/11/how-to-map-connections-with-great-circles/ http://www.webcitation.org/5zuFPrssa
 #
 # exporter: ventana que marcando los items (registros de la bbdd) que te interesa, los exporta desde la bbdd hacia un CSV
+# dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki NP' # StatMediaWiki name
 VERSION = '0.0.8' # StatMediaWiki version
