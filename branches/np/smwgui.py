@@ -47,6 +47,7 @@ import pylab
 # * reverts rate: ratio de reversiones (como de eficiente es la comunidad)
 # * ip geolocation: http://software77.net/geo-ip/?license
 # * análisis que permita buscar ciertas palabras en los comentarios de las ediciones
+# * mensajes entre usuarios (ediciones de usuarios en user talk:)
 #
 # Ideas para otros análisis que no usan dumps pero relacionados con wikis o wikipedia:
 # * el feed de donaciones

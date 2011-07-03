@@ -56,6 +56,8 @@ def createDB(conn=None, cursor=None):
     conn.commit()
 
 def generatePageTable(conn, cursor):
+    #fix add namespace detector
+    
     page_creation_timestamps = {}
     result = cursor.execute("SELECT rev_page, rev_id, rev_timestamp FROM revision WHERE 1 ORDER BY rev_page ASC, rev_timestamp ASC")
     page = ''
