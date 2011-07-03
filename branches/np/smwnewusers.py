@@ -21,26 +21,33 @@ import datetime
 import sqlite3
 import tkMessageBox
 
-def newpagesEvolution(cursor=None):
-    result = cursor.execute("SELECT STRFTIME('%Y-%m-%d', page_creation_timestamp) AS date, COUNT(*) AS count FROM page WHERE 1 GROUP BY date ORDER BY date ASC")
-    newpages = {}
+def newusersEvolution(cursor=None):
+    result = cursor.execute("SELECT STRFTIME('%Y-%m-%d', rev_timestamp) AS date, rev_user_text FROM revision WHERE 1 ORDER BY date ASC")
+    newusers = {}
     for row in result:
-        d = datetime.date(year=int(row[0][0:4]), month=int(row[0][5:7]), day=int(row[0][8:10]))
-        newpages[d] = row[1]
+        if not newusers.has_key(row[1]):
+            newusers[row[1]] = datetime.date(year=int(row[0][0:4]), month=int(row[0][5:7]), day=int(row[0][8:10]))
     
-    newpages_list = [[x, y] for x, y in newpages.items()]
-    newpages_list.sort()
+    newusers2 = {}
+    for newuser, date in newusers.items():
+        if newusers2.has_key(date):
+            newusers2[date] += 1
+        else:
+            newusers2[date] = 1
     
-    startdate = newpages_list[0][0]
-    enddate = newpages_list[-1:][0][0]
+    newusers_list = [[x, y] for x, y in newusers2.items()]
+    newusers_list.sort()
+    
+    startdate = newusers_list[0][0]
+    enddate = newusers_list[-1:][0][0]
     delta = datetime.timedelta(days=1)
-    newpages_list = [] #reset, adding all days between startdate and enddate
+    newusers_list = [] #reset, adding all days between startdate and enddate
     d = startdate
     while d < enddate:
-        if newpages.has_key(d):
-            newpages_list.append([d, newpages[d]])
+        if newusers2.has_key(d):
+            newusers_list.append([d, newusers2[d]])
         else:
-            newpages_list.append([d, 0])
+            newusers_list.append([d, 0])
         d += delta
     
     from pylab import *
@@ -52,22 +59,23 @@ def newpagesEvolution(cursor=None):
     dates = drange(startdate, enddate, delta)
 
     ax = subplot(111)
-    ax.set_ylabel('Newpages')
+    ax.set_ylabel('Newusers')
     ax.set_xlabel('Date (YYYY-MM-DD)')
     print '#'*100
     print len(dates)
     print dates
     print '#'*100
-    print len(array([y for x, y in newpages_list]))
-    print array([y for x, y in newpages_list])
+    print len(array([y for x, y in newusers_list]))
+    print array([y for x, y in newusers_list])
     print '#'*100
-    plot_date(dates, array([y for x, y in newpages_list]), 'o')
+    plot_date(dates, array([y for x, y in newusers_list]), 'o', color='green')
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(formatter)
-    ax.set_title('Newpages evolution')
+    ax.set_title('Newusers evolution')
     ax.grid(True)
     ax.set_yscale('log')
     labels = ax.get_xticklabels()
     setp(labels, rotation=30, fontsize=10)
 
     show()
+    

@@ -96,11 +96,12 @@ def revertsEvolution(cursor=None):
     print len(array([y for x, y in reverts_list]))
     print array([y for x, y in reverts_list])
     print '#'*100
-    plot_date(dates, array([y for x, y in reverts_list]), 'o')
+    plot_date(dates, array([y for x, y in reverts_list]), 'o', color='red')
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(formatter)
     ax.set_title('Reverts evolution')
     ax.grid(True)
+    ax.set_yscale('log')
     labels = ax.get_xticklabels()
     setp(labels, rotation=30, fontsize=10)
 

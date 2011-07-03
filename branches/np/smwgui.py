@@ -71,7 +71,7 @@ import pylab
 # exporter: ventana que marcando los items (registros de la bbdd) que te interesa, los exporta desde la bbdd hacia un CSV
 
 NAME = 'StatMediaWiki NP' # StatMediaWiki name
-VERSION = '0.0.7' # StatMediaWiki version
+VERSION = '0.0.8' # StatMediaWiki version
 HOMEPAGE = 'http://statmediawiki.forja.rediris.es' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
@@ -258,6 +258,7 @@ class App:
         
         analysismenu.add_command(label="Reverts evolution", command=lambda: self.analysis('reverts'))
         analysismenu.add_command(label="Newpages evolution", command=lambda: self.analysis('newpages'))
+        analysismenu.add_command(label="Newusers evolution", command=lambda: self.analysis('newusers'))
         
         #end analyser
         
@@ -478,6 +479,9 @@ class App:
         elif analysis.startswith('newpages'):
             import smwnewpages
             smwnewpages.newpagesEvolution(cursor=cursor)
+        elif analysis.startswith('newusers'):
+            import smwnewusers
+            smwnewusers.newusersEvolution(cursor=cursor)
         
         cursor.close()
         conn.close()
