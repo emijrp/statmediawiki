@@ -295,6 +295,7 @@ class App:
             initialdir = '%s/%s' % (PATH, initialdir)
         self.dbfilename = tkFileDialog.askopenfilename(initialdir=initialdir)
         self.setStatus("Loaded %s" % (self.dbfilename.split('/')[-1]))
+        self.wiki = self.dbfilename.split('/')[-1]
 
     def downloader(self, site):
         import smwdownloader

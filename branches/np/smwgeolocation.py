@@ -127,7 +127,7 @@ def GeoLocationGraph(cursor=None, range='', entity='', title='', subtitle='', co
     subfig.set_xlabel('Country')
     subfig.set_xticks(numpy.arange(len(xlim)))
     subfig.set_xticklabels([str(i) for i in xlim])
-    subfig.set_ylabel('Edits')
+    subfig.set_ylabel('Geolocated edits by unregistered users')
     
     maxheight = max([rect.get_height() for rect in rects])
     for rect in rects:

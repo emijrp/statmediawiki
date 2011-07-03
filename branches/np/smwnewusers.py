@@ -21,6 +21,8 @@ import datetime
 import sqlite3
 import tkMessageBox
 
+#fix cuenta los anónimos también, evitar esto? ofrecer dos gráficas?
+
 def newusersEvolution(cursor=None):
     result = cursor.execute("SELECT STRFTIME('%Y-%m-%d', rev_timestamp) AS date, rev_user_text FROM revision WHERE 1 ORDER BY date ASC")
     newusers = {}
