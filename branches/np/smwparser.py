@@ -136,6 +136,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     r_sections = re.compile(ur'(?im)^((={1,6})[^=]+\2[^=])')
     
     xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
+    errors = 0
     for x in xml.parse(): #parsing the whole dump
         rev_id = int(x.revisionid)
         rev_title = x.title
@@ -160,15 +161,16 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
             cursor.execute('INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
             i+=1
         else:
-            print t
+            #print t
+            errors += 1
 
         c += 1
         if c % limit == 0:
-            print limit/(time.time()-t1), 'ed/s'
+            print '%d edits/sec' % (limit/(time.time()-t1))
             conn.commit()
             t1=time.time()
     conn.commit() #para cuando son menos de limit o el resto
-    print 'Total revisions', c, 'Inserted', i, 'Total time', time.time()-tt, 'seg', (time.time()-tt)/60.0, 'min'
+    print 'Total revisions [%d], correctly inserted [%d], errors [%d], time [%d secs, %2f minutes]' % (c, i, errors, time.time()-tt, (time.time()-tt)/60.0)
 
     #tablas auxiliares
     generateAuxTables(conn=conn, cursor=cursor)
