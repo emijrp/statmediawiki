@@ -48,26 +48,43 @@ def createDB(conn=None, cursor=None):
     #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
     cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer)''')
-    #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_sections (no matter their level)
-    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer)''') 
+    #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics)
+    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp)''') 
     #page_namespace, page_size (last rev size), page_views
     cursor.execute('''create table user (user_name text, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
     #user_id (viene en el dump? 0 para ips), user_is_anonymous (ips)
     conn.commit()
 
 def generatePageTable(conn, cursor):
+    page_creation_timestamps = {}
+    result = cursor.execute("SELECT rev_page, rev_id, rev_timestamp FROM revision WHERE 1 ORDER BY rev_page ASC, rev_timestamp ASC")
+    page = ''
+    timestamps = []
+    for rev_page, rev_id, rev_timestamp in result:
+        if page:
+            if page != rev_page:
+                timestamps.sort() # ya debería estar ordenado
+                page_creation_timestamps[page] = timestamps[0]
+                page = rev_page
+                timestamps = [rev_timestamp]
+            else:
+                timestamps.append(rev_timestamp)
+        else:
+            page = rev_page
+            timestamps = [rev_timestamp]
+    timestamps.sort() # ya debería estar ordenado
+    page_creation_timestamps[page] = timestamps[0]
+    
     result = cursor.execute("SELECT rev_page AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount FROM revision WHERE 1 GROUP BY page_id")
-    c = 0
     pages = []
     for page_id, page_title, page_editcount in result:
-        c += 1
-        pages.append([page_id, page_title, page_editcount])
+        pages.append([page_id, page_title, page_editcount, page_creation_timestamps[page_id]])
 
-    for page_id, page_title, page_editcount in pages:
-        cursor.execute('INSERT INTO page VALUES (?,?,?)', (page_id, page_title, page_editcount))
+    for page_id, page_title, page_editcount, page_creation_timestamp in pages:
+        cursor.execute('INSERT INTO page VALUES (?,?,?,?)', (page_id, page_title, page_editcount, page_creation_timestamp))
     conn.commit()
 
-    print "GENERATED PAGE TABLE: %d" % (c)
+    print "GENERATED PAGE TABLE: %d" % (len(pages))
 
 def generateUserTable(conn, cursor):
     result = cursor.execute("SELECT rev_user_text AS user_name, COUNT(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")

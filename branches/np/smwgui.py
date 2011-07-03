@@ -257,6 +257,7 @@ class App:
         #end samples
         
         analysismenu.add_command(label="Reverts evolution", command=lambda: self.analysis('reverts'))
+        analysismenu.add_command(label="Newpages evolution", command=lambda: self.analysis('newpages'))
         
         #end analyser
         
@@ -474,6 +475,9 @@ class App:
         elif analysis.startswith('reverts'):
             import smwreverts
             smwreverts.revertsEvolution(cursor=cursor)
+        elif analysis.startswith('newpages'):
+            import smwnewpages
+            smwnewpages.newpagesEvolution(cursor=cursor)
         
         cursor.close()
         conn.close()

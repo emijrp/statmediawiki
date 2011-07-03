@@ -60,6 +60,8 @@ def revertsEvolution(cursor=None):
         else:
             page.append(revision)
     
+    #fix, no analiza la última página, habría que repetir el código del for temprev in page, llevar mejor a una función core y llamar?
+    
     reverts_list = [[x, y] for x, y in reverts.items()]
     reverts_list.sort()
     
