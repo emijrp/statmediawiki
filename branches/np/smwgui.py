@@ -66,6 +66,9 @@ import pylab
 # ampliar la información de un punto haciendo clic en él: http://matplotlib.sourceforge.net/examples/event_handling/data_browser.py
 # videos con matplotlib http://matplotlib.sourceforge.net/examples/animation/movie_demo.py
 # más ejemplos de matplotlib http://matplotlib.sourceforge.net/examples/index.html
+#
+#
+# exporter: ventana que marcando los items (registros de la bbdd) que te interesa, los exporta desde la bbdd hacia un CSV
 
 NAME = 'StatMediaWiki NP' # StatMediaWiki name
 VERSION = '0.0.7' # StatMediaWiki version

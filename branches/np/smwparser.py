@@ -47,8 +47,8 @@ def createDB(conn=None, cursor=None):
     #en comentarios cosas que se pueden añadir
     #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
-    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_links integer, rev_external_links integer)''')
-    #rev_iws, rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_sections (no matter their level)
+    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer)''')
+    #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_sections (no matter their level)
     cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer)''') 
     #page_namespace, page_size (last rev size), page_views
     cursor.execute('''create table user (user_name text, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
@@ -114,6 +114,9 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     
     r_links = re.compile(ur'(?im)(\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\])')
     r_external_links = re.compile(ur'(?im)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
+    # http://en.wikipedia.org/wiki/Special:SiteMatrix
+    r_interwikis = re.compile(ur'(?im)(\[\[([a-z]{2,3}|simple|classical)(\-([a-z]{2,3}){1,2}|tara)?\:[^\[\]]+?\]\])')
+    r_sections = re.compile(ur'(?im)^((={1,6})[^=]+\2[^=])')
     
     xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
     for x in xml.parse(): #parsing the whole dump
@@ -129,12 +132,15 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         rev_comment = x.comment or ''
         rev_links = len(re.findall(r_links, x_text_encoded)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
         rev_external_links = len(re.findall(r_external_links, x_text_encoded)) #external links http://en.wikipedia.org/wiki/User:Emijrp/External_Links_Ranking
+        rev_interwikis = len(re.findall(r_interwikis, x_text_encoded))
+        rev_links -= rev_interwikis # removing interwikis from [[links]]
+        rev_sections = len(re.findall(r_sections, x_text_encoded))
         
-        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_links, rev_external_links)
+        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_links, rev_external_links, rev_interwikis, rev_sections)
         
         xmlbug = (rev_id, rev_title, rev_page, rev_user_text)
         if not None in xmlbug and not '' in xmlbug:
-            cursor.execute('INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?)', t)
+            cursor.execute('INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
             i+=1
         else:
             print t
