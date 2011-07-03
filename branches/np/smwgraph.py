@@ -25,6 +25,7 @@ def graphUserMessages(cursor=None):
     #fix como evitar que alguien que edita varias veces seguidas (corrigiendo typos) en poco tiempo contabilice como varios mensajes? mejor un mensaje = editado en 1 día?
     #descartar mensajes enviados por IPs ?
     #descartar ediciones en la página de uno mismo?
+    #fix colorear los usuarios que reciben más mensajes (son más importantes en la comunidad)
     result = cursor.execute("SELECT rev_user_text, rev_title FROM revision WHERE 1") #fix generalizar usando namespace 3
     messages = {}
     for row in result:
