@@ -166,7 +166,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
 
         c += 1
         if c % limit == 0:
-            print '%d edits/sec' % (limit/(time.time()-t1))
+            print 'Analysed %d [%d edits/sec]' % (c, limit/(time.time()-t1))
             conn.commit()
             t1=time.time()
     conn.commit() #para cuando son menos de limit o el resto
