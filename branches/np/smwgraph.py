@@ -26,6 +26,8 @@ def graphUserMessages(cursor=None):
     #descartar mensajes enviados por IPs ?
     #descartar ediciones en la página de uno mismo?
     #fix colorear los usuarios que reciben más mensajes (son más importantes en la comunidad)
+    #fix poner a filename el prefijo con el nombre del project, para no sobreescribir grafos de otros
+    
     result = cursor.execute("SELECT rev_user_text, rev_title FROM revision WHERE 1") #fix generalizar usando namespace 3
     messages = {}
     for row in result:
