@@ -21,8 +21,59 @@ import re
 import numpy
 import pylab
 
-def graph(cursor=None, range='', entity=''):
-    f=open('output/file.dot', 'w')
+def graphUserMessages(cursor=None):
+    #fix como evitar que alguien que edita varias veces seguidas (corrigiendo typos) en poco tiempo contabilice como varios mensajes? mejor un mensaje = editado en 1 día?
+    #descartar mensajes enviados por IPs ?
+    #descartar ediciones en la página de uno mismo?
+    result = cursor.execute("SELECT rev_user_text, rev_title FROM revision WHERE 1") #fix generalizar usando namespace 3
+    messages = {}
+    for row in result:
+        sender = row[0]
+        target = row[1]
+        if not re.search(ur'(?im)^(Usuario Discusión|Usuario Conversación|User talk):.+$', target):
+            continue
+        target = ':'.join(target.split(':')[1:]) #removing namespace prefix
+        target = target.split('/')[0] #removing /Archivo 2009, etc
+        
+        #discarding stuff
+        if sender == target:
+            continue
+        if re.search(ur'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', sender) or re.search(ur'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', target):
+            continue
+        
+        if messages.has_key(sender):
+            if messages[sender].has_key(target):
+                messages[sender][target] += 1
+            else:
+                messages[sender][target] = 1
+        else:
+            messages[sender] = {target: 1}
+    
+    print messages.items()
+    
+    output = ''
+    for sender, targets in messages.items():
+        for target, times in targets.items():
+            if times >= 2: #fix limite demasiado bajo? dejar los X nodos más habladores?
+                output += '"%s" -> "%s" [label="%s"];\n' % (sender, target, times)
+    
+    output = 'digraph G {\n size="150,150" \n%s\n}' % (output)
+    
+    filename = 'usermessagesgraph'
+    f=open('output/%s.dot' % filename, 'w')
+    
+    print "GENERANDO GRAFO"
+    
+    f.write(output.encode('utf-8'))
+    
+    f.close()
+    
+    os.system('dot output/%s.dot -o output/%s.png -Tpng' % (filename, filename))
+    print "GRAFO GUARDADO EN OUTPUT/"
+
+def graphPageHistory(cursor=None, range='', entity=''):
+    filename = 'pagehistorygraph'
+    f=open('output/%s.dot' % filename, 'w')
     
     print "GENERANDO GRAFO"
     a = None
@@ -69,7 +120,7 @@ def graph(cursor=None, range='', entity=''):
     
     f.close()
     
-    os.system('dot output/file.dot -o output/file.png -Tpng')
+    os.system('dot output/%s.dot -o output/%s.png -Tpng' % (filename, filename))
     print "GRAFO GUARDADO EN OUTPUT/"
 
 def graphUserEdits():

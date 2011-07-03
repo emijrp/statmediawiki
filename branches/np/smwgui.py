@@ -210,7 +210,6 @@ class App:
         #end activity
         globalmenu.add_command(label="GeoIP location", command=lambda: self.analysis('global-geoiplocation'))
         globalmenu.add_command(label="Pareto", command=lambda: self.analysis('global-pareto'))
-        #globalmenu.add_command(label="Graph", command=lambda: self.analysis('global-graph'))
         #end global
 
         #begin user-by-user
@@ -264,6 +263,7 @@ class App:
         analysismenu.add_command(label="Reverts evolution", command=lambda: self.analysis('reverts'))
         analysismenu.add_command(label="Newpages evolution", command=lambda: self.analysis('newpages'))
         analysismenu.add_command(label="Newusers evolution", command=lambda: self.analysis('newusers'))
+        analysismenu.add_command(label="User messages graph", command=lambda: self.analysis('graph-user-messages'))
         
         #end analyser
         
@@ -421,9 +421,6 @@ class App:
                 import smwpareto
                 smwpareto.pareto(cursor=cursor, title=self.wiki)
                 pylab.show()
-            elif analysis == 'global-graph':
-                import smwgraph
-                smwgraph.graph(cursor=cursor)
         #user
         elif analysis.startswith('user'):
             import smwlist
@@ -474,7 +471,7 @@ class App:
                     pylab.show()
                 elif analysis == 'page-edithistorygraph':
                     import smwgraph
-                    smwgraph.graph(cursor=cursor, range='page', entity=page)
+                    smwgraph.graphPageHistory(cursor=cursor, range='page', entity=page)
                 elif analysis == 'page-geoiplocation':
                     import smwgeolocation
                     smwgeolocation.GeoLocationGraph(cursor=cursor, range='page', entity=page, title=self.wiki)
@@ -488,6 +485,9 @@ class App:
         elif analysis.startswith('newusers'):
             import smwnewusers
             smwnewusers.newusersEvolution(cursor=cursor)
+        elif analysis.startswith('graph-user-messages'):
+            import smwgraph
+            smwgraph.graphUserMessages(cursor=cursor)
         
         cursor.close()
         conn.close()
