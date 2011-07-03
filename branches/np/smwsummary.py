@@ -117,7 +117,7 @@ def summary(cursor):
     output += 'Users      = %d (registered users)\n' % (registered_users)
     output += '           = %d (unregistered users)\n' % (unregistered_users)
     output += 'Revs/user  = %.2f (by registered users)\n' % (float(edits_by_reg)/registered_users)
-    output += '           = %.2f (by unregistered users)\n' % (float(edits_by_unreg)/unregistered_users)
+    output += '           = %.2f (by unregistered users)\n' % (edits_by_unreg and float(edits_by_unreg)/unregistered_users or 0)
     output += 'First edit = %s (User:%s)\n' % (firstedit, fuser)
     output += 'Last edit  = %s (User:%s)\n' % (lastedit, luser)
     output += 'Lifespan   = %d days\n' % (lifespan(firstedit=firstedit, lastedit=lastedit))
@@ -128,7 +128,7 @@ def summary(cursor):
     
     output += '\n\n%s\nOther\n%s\n\n' % ('-'*60, '-'*60)
     output += 'Edit summary usage  = %d (%.2f%%) by registered users\n' % (summaries_by_reg, summaries_by_reg/(edits_by_reg/100.0))
-    output += '                    = %d (%.2f%%) by unregistered users\n' % (summaries_by_unreg, summaries_by_unreg/(edits_by_unreg/100.0))
+    output += '                    = %d (%.2f%%) by unregistered users\n' % (summaries_by_unreg, summaries_by_unreg and summaries_by_unreg/(edits_by_unreg/100.0) or 0)
     output += '                    = %d (%.2f%%) by both\n' % (summaries_by_reg+summaries_by_unreg, (summaries_by_reg+summaries_by_unreg)/((edits_by_reg+edits_by_unreg)/100.0))
     
     print output
