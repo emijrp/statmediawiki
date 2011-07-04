@@ -27,7 +27,7 @@ import tkMessageBox
 #nube de puntos http://matplotlib.sourceforge.net/examples/api/unicode_minus.html
 #dateranges http://matplotlib.sourceforge.net/examples/pylab_examples/date_demo_rrule.html
 
-def revertsEvolution(cursor=None):
+def revertsEvolution(cursor=None, title=''):
     """result = cursor.execute("SELECT rev_timestamp FROM revision WHERE 1 ORDER BY rev_timestamp ASC LIMIT 1")
     for row in result:
         return row[0], row[1]"""
@@ -78,31 +78,29 @@ def revertsEvolution(cursor=None):
         d += delta
 
 
-    from pylab import *
-    from matplotlib.dates import DAILY, DateFormatter, rrulewrapper, RRuleLocator, drange
+    import pylab
+    from matplotlib.dates import DateFormatter, rrulewrapper, RRuleLocator, drange
 
-    rule = rrulewrapper(DAILY, byeaster=1, interval=1)
-    loc = RRuleLocator(rule)
+    loc = pylab.MonthLocator(bymonth=(1,6))
     formatter = DateFormatter('%Y-%m-%d')
     dates = drange(startdate, enddate, delta)
 
-    ax = subplot(111)
+    fig = pylab.figure()
+    ax = fig.add_subplot(1,1,1)
     ax.set_ylabel('Reverts')
     ax.set_xlabel('Date (YYYY-MM-DD)')
     print '#'*100
     print len(dates)
     print dates
     print '#'*100
-    print len(array([y for x, y in reverts_list]))
-    print array([y for x, y in reverts_list])
+    print len(pylab.array([y for x, y in reverts_list]))
+    print pylab.array([y for x, y in reverts_list])
     print '#'*100
-    plot_date(dates, array([y for x, y in reverts_list]), 'o', color='red')
+    pylab.plot_date(dates, pylab.array([y for x, y in reverts_list]), 'o', color='red')
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(formatter)
-    ax.set_title('Reverts evolution')
+    ax.set_title(title)
     ax.grid(True)
     ax.set_yscale('log')
     labels = ax.get_xticklabels()
-    setp(labels, rotation=30, fontsize=10)
-
-    show()
+    pylab.setp(labels, rotation=30, fontsize=10)

@@ -21,7 +21,7 @@ import datetime
 import sqlite3
 import tkMessageBox
 
-def newpagesEvolution(cursor=None):
+def newpagesEvolution(cursor=None, title=''):
     result = cursor.execute("SELECT STRFTIME('%Y-%m-%d', page_creation_timestamp) AS date, COUNT(*) AS count FROM page WHERE 1 GROUP BY date ORDER BY date ASC")
     newpages = {}
     for row in result:
@@ -43,31 +43,29 @@ def newpagesEvolution(cursor=None):
             newpages_list.append([d, 0])
         d += delta
     
-    from pylab import *
-    from matplotlib.dates import DAILY, DateFormatter, rrulewrapper, RRuleLocator, drange
+    import pylab
+    from matplotlib.dates import DateFormatter, rrulewrapper, RRuleLocator, drange
 
-    rule = rrulewrapper(DAILY, byeaster=1, interval=1)
-    loc = RRuleLocator(rule)
+    loc = pylab.MonthLocator(bymonth=(1,6))
     formatter = DateFormatter('%Y-%m-%d')
     dates = drange(startdate, enddate, delta)
 
-    ax = subplot(111)
+    fig = pylab.figure()
+    ax = fig.add_subplot(1,1,1)
     ax.set_ylabel('Newpages')
     ax.set_xlabel('Date (YYYY-MM-DD)')
     print '#'*100
     print len(dates)
     print dates
     print '#'*100
-    print len(array([y for x, y in newpages_list]))
-    print array([y for x, y in newpages_list])
+    print len(pylab.array([y for x, y in newpages_list]))
+    print pylab.array([y for x, y in newpages_list])
     print '#'*100
-    plot_date(dates, array([y for x, y in newpages_list]), 'o')
+    pylab.plot_date(dates, pylab.array([y for x, y in newpages_list]), 'o')
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(formatter)
-    ax.set_title('Newpages evolution')
+    ax.set_title(title)
     ax.grid(True)
     ax.set_yscale('log')
     labels = ax.get_xticklabels()
-    setp(labels, rotation=30, fontsize=10)
-
-    show()
+    pylab.setp(labels, rotation=30, fontsize=10)

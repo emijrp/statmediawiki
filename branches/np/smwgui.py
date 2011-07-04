@@ -76,7 +76,7 @@ import pylab
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki NP' # StatMediaWiki name
-VERSION = '0.0.8' # StatMediaWiki version
+VERSION = '0.0.9' # StatMediaWiki version
 HOMEPAGE = 'http://statmediawiki.forja.rediris.es' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
@@ -442,13 +442,6 @@ class App:
                     elif analysis == 'user-activity-hourly':
                         smwactivity.activityhourly(cursor=cursor, range='user', entity=user, title='User:%s @ %s' % (user, self.wiki))
                     pylab.show()
-            elif analysis == 'user-graph':
-                import smwgraph
-                smwgraph.graphUserEdits(cursor=cursor, range='user', entity=user)
-        #elif analysis == 'user-graphs-editedpages':
-        #    import smwgraphs
-        #    smwgraphs.editedpages(cursor)
-        #page
         elif analysis.startswith('page'):
             import smwlist
             list = smwlist.listofpages(cursor=cursor)
@@ -478,16 +471,20 @@ class App:
                     pylab.show()
         elif analysis.startswith('reverts'):
             import smwreverts
-            smwreverts.revertsEvolution(cursor=cursor)
+            smwreverts.revertsEvolution(cursor=cursor, title='Reverts evolution @ %s' % (self.wiki))
+            pylab.show()
         elif analysis.startswith('newpages'):
             import smwnewpages
-            smwnewpages.newpagesEvolution(cursor=cursor)
+            smwnewpages.newpagesEvolution(cursor=cursor, title='Newpages evolution @ %s' % (self.wiki))
+            pylab.show()
         elif analysis.startswith('newusers'):
             import smwnewusers
-            smwnewusers.newusersEvolution(cursor=cursor)
+            smwnewusers.newusersEvolution(cursor=cursor, title='Newusers evolution @ %s' % (self.wiki))
+            pylab.show()
         elif analysis.startswith('graph-user-messages'):
             import smwgraph
             smwgraph.graphUserMessages(cursor=cursor)
+            pylab.show()
         
         cursor.close()
         conn.close()

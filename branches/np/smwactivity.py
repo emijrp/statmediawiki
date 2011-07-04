@@ -34,9 +34,9 @@ def activity(cursor=None, range='', entity='', title='', subtitle='', color='', 
     t1=time.time()
     
     fig = pylab.figure()
-    pylab.suptitle(title)
     
     subfig = fig.add_subplot(1,1,1)
+    subfig.set_title(title)
     result = []
     if range == 'global':
         result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE 1 GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, ))
