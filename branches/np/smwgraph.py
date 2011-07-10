@@ -111,27 +111,29 @@ def graphUserEditsNetwork(cursor=None):
         if row[0] not in users:
             users.append(row[0])
     
-    #last case
-    output = ''
-    for k, v in users_dic.items():
-        for k2, v2 in v.items():
-            if v2 >= 3:
-                print k, k2, v2
-                output += '"%s" -> "%s" [label="%s", arrowhead="none"];\n' % (k, k2, v2)
+    #fix add last case (last page)
     
-    output = 'digraph G {\n size="150,150" \n%s\n}' % (output)
-    
-    filename = 'usereditsnetwork'
-    f=open('output/%s.dot' % filename, 'w')
-    
-    print "GENERANDO GRAFO"
-    
-    f.write(output.encode('utf-8'))
-    
-    f.close()
-    
-    os.system('dot output/%s.dot -o output/%s.png -Tpng' % (filename, filename))
-    print "GRAFO GUARDADO EN OUTPUT/"
+    for degrees in range(1,6):
+        output = ''
+        for k, v in users_dic.items():
+            for k2, v2 in v.items():
+                if v2 >= degrees:
+                    print k, k2, v2
+                    output += '"%s" -> "%s" [label="%s", arrowhead="none"];\n' % (k, k2, v2)
+        
+        output = 'digraph G {\n size="150,150" \n%s\n}' % (output)
+        
+        filename = 'usereditsnetwork-%d' % (degrees)
+        f=open('output/%s.dot' % filename, 'w')
+        
+        print "GENERANDO GRAFO"
+        
+        f.write(output.encode('utf-8'))
+        
+        f.close()
+        
+        os.system('dot output/%s.dot -o output/%s.png -Tpng' % (filename, filename))
+        print "GRAFO GUARDADO EN OUTPUT/"
 
 def graphPageHistory(cursor=None, range='', entity=''):
     """ page history flow chart"""
