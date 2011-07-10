@@ -76,7 +76,7 @@ import pylab
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki NP' # StatMediaWiki name
-VERSION = '0.0.9' # StatMediaWiki version
+VERSION = '0.1.0' # StatMediaWiki version
 HOMEPAGE = 'http://statmediawiki.forja.rediris.es' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
@@ -177,7 +177,21 @@ class App:
         menu.add_cascade(label="Downloader", menu=downloadermenu)
         downloadermywikimenu = Menu(downloadermenu)
         downloadermenu.add_command(label="My wiki", command=lambda: self.downloader('mywiki'))
-        downloadermenu.add_command(label="Wikimedia", command=lambda: self.downloader('wikimedia'))
+        wikimediamenu = Menu(downloadermenu)
+        downloadermenu.add_cascade(label="Wikimedia", menu=wikimediamenu)
+        wikimediamenu.add_command(label="Full XML dump", command=lambda: self.downloader('wikimedia'))
+        #http://en.wikipedia.org/w/api.php?action=sitematrix
+        wikimediamenu.add_command(label="Pages subset", command=lambda: self.callback)
+        wikimediamenu.add_command(label="Users subset", command=lambda: self.callback)
+        #users in a cat,
+        #get usercontribs and later...
+        #retrieve batch revs (prop=revisions)
+        #http://en.wikipedia.org/w/api.php?action=query&prop=revisions&revids=5555|6666|7777|8988|9999|10000|553|4345345|32534|98394|98349|9384|398489|300940|93843|0929|0303&rvprop=ids|timestamp|user|comment|content|size
+        #hay un problema: no hay información sobre la revprev y la revnext, para calcular incrementos en bytes respecto a la rev anterior
+        #además, al cargar solo un subconjunto de usuarios (un subcojunto de las rev totales del wiki), los historiales de las páginas no serían reales
+        #y habría grandes lagunas a la hora de calcular cosas habría uqe tener cuidado de no confundir
+        #si consigo sacar el len(rev_prev) y meter el incremento (positivo o negativo) como rev_diff_len, entonces ok
+        
         downloadermenu.add_command(label="Wikia", command=lambda: self.downloader('wikia'))
         downloadermenu.add_command(label="WikiTeam", command=lambda: self.downloader('wikiteam'))
         downloadermenu.add_command(label="Citizendium", command=lambda: self.downloader('citizendium'))
