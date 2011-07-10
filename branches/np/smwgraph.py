@@ -22,6 +22,7 @@ import numpy
 import pylab
 
 def graphUserMessages(cursor=None):
+    """ user who talk each other """
     #fix como evitar que alguien que edita varias veces seguidas (corrigiendo typos) en poco tiempo contabilice como varios mensajes? mejor un mensaje = editado en 1 día?
     #descartar mensajes enviados por IPs ?
     #descartar ediciones en la página de uno mismo?
@@ -75,6 +76,7 @@ def graphUserMessages(cursor=None):
     print "GRAFO GUARDADO EN OUTPUT/"
 
 def graphUserEditsNetwork(cursor=None):
+    """ users who have edited the same articles """
     result = cursor.execute("SELECT DISTINCT rev_user_text, rev_page FROM revision WHERE 1 ORDER BY rev_page ASC")
     
     users = []
@@ -132,6 +134,8 @@ def graphUserEditsNetwork(cursor=None):
     print "GRAFO GUARDADO EN OUTPUT/"
 
 def graphPageHistory(cursor=None, range='', entity=''):
+    """ page history flow chart"""
+    
     filename = 'pagehistorygraph'
     f=open('output/%s.dot' % filename, 'w')
     
