@@ -74,6 +74,63 @@ def graphUserMessages(cursor=None):
     os.system('dot output/%s.dot -o output/%s.png -Tpng' % (filename, filename))
     print "GRAFO GUARDADO EN OUTPUT/"
 
+def graphUserEditsNetwork(cursor=None):
+    result = cursor.execute("SELECT DISTINCT rev_user_text, rev_page FROM revision WHERE 1 ORDER BY rev_page ASC")
+    
+    users = []
+    users_dic = {}
+    page = ''
+    for row in result:
+        if page:
+            if row[1] != page:
+                user1 = users[0]
+                for user2 in users[1:]:
+                    if users_dic.has_key(user1):
+                        if users_dic[user1].has_key(user2):
+                            users_dic[user1][user2] += 1
+                            continue
+                    nothing = True
+                    for k, v in users_dic.items():
+                        if k == user1 and v.has_key(user2):
+                            users_dic[user1][user2] += 1
+                            nothing = False
+                        elif k == user2 and v.has_key(user1):
+                            users_dic[user2][user1] += 1
+                            nothing = False
+                    if nothing:
+                        if users_dic.has_key(user1):
+                            users_dic[user1][user2] = 1
+                        else:
+                            users_dic[user1] = {user2: 1}
+                page = row[1]
+                users = [row[0]] #reset users list, or process will explode
+        else:
+            page = row[1]
+        if row[0] not in users:
+            users.append(row[0])
+    
+    #last case
+    output = ''
+    for k, v in users_dic.items():
+        for k2, v2 in v.items():
+            if v2 >= 3:
+                print k, k2, v2
+                output += '"%s" -> "%s" [label="%s", arrowhead="none"];\n' % (k, k2, v2)
+    
+    output = 'digraph G {\n size="150,150" \n%s\n}' % (output)
+    
+    filename = 'usereditsnetwork'
+    f=open('output/%s.dot' % filename, 'w')
+    
+    print "GENERANDO GRAFO"
+    
+    f.write(output.encode('utf-8'))
+    
+    f.close()
+    
+    os.system('dot output/%s.dot -o output/%s.png -Tpng' % (filename, filename))
+    print "GRAFO GUARDADO EN OUTPUT/"
+
 def graphPageHistory(cursor=None, range='', entity=''):
     filename = 'pagehistorygraph'
     f=open('output/%s.dot' % filename, 'w')

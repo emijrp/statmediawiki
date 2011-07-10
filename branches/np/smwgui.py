@@ -278,6 +278,7 @@ class App:
         analysismenu.add_command(label="Newpages evolution", command=lambda: self.analysis('newpages'))
         analysismenu.add_command(label="Newusers evolution", command=lambda: self.analysis('newusers'))
         analysismenu.add_command(label="User messages graph", command=lambda: self.analysis('graph-user-messages'))
+        analysismenu.add_command(label="User edits network", command=lambda: self.analysis('graph-user-edits-network'))
         
         #end analyser
         
@@ -498,7 +499,9 @@ class App:
         elif analysis.startswith('graph-user-messages'):
             import smwgraph
             smwgraph.graphUserMessages(cursor=cursor)
-            pylab.show()
+        elif analysis.startswith('graph-user-edits-network'):
+            import smwgraph
+            smwgraph.graphUserEditsNetwork(cursor=cursor)
         
         cursor.close()
         conn.close()
