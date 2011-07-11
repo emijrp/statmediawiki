@@ -106,6 +106,7 @@ def graphUserEditsNetwork(cursor=None):
                             users_dic[user1] = {user2: 1}
                 page = row[1]
                 users = [row[0]] #reset users list, or process will explode
+                continue
         else:
             page = row[1]
         if row[0] not in users:
