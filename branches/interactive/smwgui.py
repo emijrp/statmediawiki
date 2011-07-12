@@ -75,7 +75,7 @@ import pylab
 # exporter: ventana que marcando los items (registros de la bbdd) que te interesa, los exporta desde la bbdd hacia un CSV
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
-NAME = 'StatMediaWiki NP' # StatMediaWiki name
+NAME = 'StatMediaWiki Interactive' # StatMediaWiki name
 VERSION = '0.1.1' # StatMediaWiki version
 HOMEPAGE = 'http://statmediawiki.forja.rediris.es' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
