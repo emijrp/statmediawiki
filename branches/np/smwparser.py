@@ -60,15 +60,13 @@ def generatePageTable(conn, cursor):
     #fix add rev_id actual para cada pagina
     #fix use MAX(rev_timestamp) to detect last page touch?
     result = cursor.execute("SELECT rev_page AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount, MIN(rev_timestamp) AS page_creation_timestamp FROM revision WHERE 1 GROUP BY page_id")
-    pages = []
+    c = 0
     for page_id, page_title, page_editcount, page_creation_timestamp in result:
-        pages.append([page_id, page_title, page_editcount, page_creation_timestamp])
-
-    for page_id, page_title, page_editcount, page_creation_timestamp in pages:
         cursor.execute('INSERT INTO page VALUES (?,?,?,?)', (page_id, page_title, page_editcount, page_creation_timestamp))
+        c += 1
     conn.commit()
 
-    print "GENERATED PAGE TABLE: %d" % (len(pages))
+    print "GENERATED PAGE TABLE: %d" % (c)
 
 def generateUserTable(conn, cursor):
     result = cursor.execute("SELECT rev_user_text AS user_name, rev_is_ipedit AS user_is_ip, COUNT(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")

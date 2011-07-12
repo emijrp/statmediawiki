@@ -76,7 +76,7 @@ import pylab
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki NP' # StatMediaWiki name
-VERSION = '0.1.0' # StatMediaWiki version
+VERSION = '0.1.1' # StatMediaWiki version
 HOMEPAGE = 'http://statmediawiki.forja.rediris.es' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
