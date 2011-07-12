@@ -58,30 +58,10 @@ def createDB(conn=None, cursor=None):
 def generatePageTable(conn, cursor):
     #fix add namespace detector
     #fix add rev_id actual para cada pagina
-    
-    page_creation_timestamps = {}
-    result = cursor.execute("SELECT rev_page, rev_id, rev_timestamp FROM revision WHERE 1 ORDER BY rev_page ASC, rev_timestamp ASC")
-    page = ''
-    timestamps = []
-    for rev_page, rev_id, rev_timestamp in result:
-        if page:
-            if page != rev_page:
-                timestamps.sort() # ya debería estar ordenado
-                page_creation_timestamps[page] = timestamps[0]
-                page = rev_page
-                timestamps = [rev_timestamp]
-            else:
-                timestamps.append(rev_timestamp)
-        else:
-            page = rev_page
-            timestamps = [rev_timestamp]
-    timestamps.sort() # ya debería estar ordenado
-    page_creation_timestamps[page] = timestamps[0]
-    
-    result = cursor.execute("SELECT rev_page AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount FROM revision WHERE 1 GROUP BY page_id")
+    result = cursor.execute("SELECT rev_page AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount, MIN(rev_timestamp) AS page_creation_timestamp FROM revision WHERE 1 GROUP BY page_id")
     pages = []
-    for page_id, page_title, page_editcount in result:
-        pages.append([page_id, page_title, page_editcount, page_creation_timestamps[page_id]])
+    for page_id, page_title, page_editcount, page_creation_timestamp in result:
+        pages.append([page_id, page_title, page_editcount, page_creation_timestamp])
 
     for page_id, page_title, page_editcount, page_creation_timestamp in pages:
         cursor.execute('INSERT INTO page VALUES (?,?,?,?)', (page_id, page_title, page_editcount, page_creation_timestamp))

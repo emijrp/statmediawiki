@@ -114,7 +114,7 @@ def graphUserEditsNetwork(cursor=None):
     
     #fix add last case (last page)
     
-    for degrees in range(1,6):
+    for degrees in range(2,6): #rango de páginas comunes, 1 es demasiado bajo no?
         output = ''
         for k, v in users_dic.items():
             for k2, v2 in v.items():
