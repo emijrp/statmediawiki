@@ -58,6 +58,7 @@ def createDB(conn=None, cursor=None):
 def generatePageTable(conn, cursor):
     #fix add namespace detector
     #fix add rev_id actual para cada pagina
+    #fix use MAX(rev_timestamp) to detect last page touch?
     result = cursor.execute("SELECT rev_page AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount, MIN(rev_timestamp) AS page_creation_timestamp FROM revision WHERE 1 GROUP BY page_id")
     pages = []
     for page_id, page_title, page_editcount, page_creation_timestamp in result:
