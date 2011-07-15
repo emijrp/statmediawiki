@@ -74,7 +74,7 @@ def downloadWikiTeamDump(wiki, filename):
     
     #remove other than .xml files inside 7z
     print 'Removing not needed files inside the 7z'
-    os.system("7z d %s *.txt *.html" % (filename))
+    os.system("7z d %s *.txt *.html" % (filename)) #index, special:version, license texts, title & image lists, etc
     s = subprocess.Popen('7z l %s' % filename, shell=True, stdout=subprocess.PIPE, bufsize=65535).stdout
     if not re.search(ur'(?m)1 files, 0 folders\n$', s.read()):
         print 'ERROR: the file contains more files than a .xml, renaming to .corrupted'
