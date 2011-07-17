@@ -242,7 +242,7 @@ def loadRevisions():
     
     revisions2 = {}
     for rev_id, rev_props in smwconfig.revisions.items():
-        if rev_props["rev_timestamp"] >= smwconfig.preferences["startDateMW"] and rev_props["rev_timestamp"] <= smwconfig.preferences["endDateMW"]:
+        if rev_props["rev_timestamp"] >= smwconfig.preferences["startDate"] and rev_props["rev_timestamp"] <= smwconfig.preferences["endDate"]:
             revisions2[rev_id] = rev_props
     smwconfig.revisions.clear()
     smwconfig.revisions = revisions2 # overwriting, removing out-of-range revisions
