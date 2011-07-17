@@ -190,6 +190,8 @@ def loadRevisions():
     conn, cursor = smwdb.createConnCursor()
 
     #cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id AND rev_timestamp>='%s' AND rev_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
+    
+    #cargamos todas las revisiones, independientemente de fechas, para poder calcular los len_diff correctamente, al final de la función borramos las revisiones que están fuera del rango
     cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"]))
     result = cursor.fetchall()
     for row in result:
@@ -224,22 +226,21 @@ def loadRevisions():
         }
     print "Loaded %s revisions" % len(smwconfig.revisions.keys())
 
-    #len_diff, incremento de tamaño respecto a la versión anterior (si es negativo es decremento)
+    #len_diff, incremento de tamaño respecto a la versión anterior (si es negativo es decremento; aunque cuando es negativo ponemos 0 para no penalizar al usuario)
     for rev_id, rev_props in smwconfig.revisions.items():
-        #que pasa con los rev_parent_id que apuntan a revisiones borradas?
+        #que pasa con los rev_parent_id que apuntan a revisiones borradas? entran en la tercera rama del if
         rev_parent_id = rev_props["rev_parent_id"]
-        if rev_parent_id == 0: #es la primera revisión de esta página
+        if rev_parent_id == 0: #esta es la primera revisión de esta página
             smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"])
-        elif smwconfig.revisions.has_key(rev_parent_id):
+        elif smwconfig.revisions.has_key(rev_parent_id): #la revisión padre debe existir
             len_diff = len(rev_props["old_text"]) - len(smwconfig.revisions[rev_parent_id]["old_text"])
             smwconfig.revisions[rev_id]["len_diff"] = len_diff > 0 and len_diff or 0 # only increments, decrements excluded
-        else:
-            #si la edición anterior no existe o fue borrada, contamos como que todo el texto es nuevo
-            #todo: pasa cuando se usan rangos -startdate y -enddate? sí, se arregla cargando todas las revisiones en la query anterior, calculando len_diffs y luego borrando las revisiones que se salen del rango
+        else: #si la edición anterior no existe o fue borrada, contamos como que todo el texto es nuevo, no queda otra opción
             smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"])
             #print "Revision", rev_parent_id, "not found"
             #sys.exit()
     
+    #borramos revisiones que están fuera del rango (y ya no nos interesan) pero que hemos cargado para calcular los len_diff correctamente
     revisions2 = {}
     for rev_id, rev_props in smwconfig.revisions.items():
         if rev_props["rev_timestamp"] >= smwconfig.preferences["startDate"] and rev_props["rev_timestamp"] <= smwconfig.preferences["endDate"]:
