@@ -189,7 +189,8 @@ def loadRevisions():
 
     conn, cursor = smwdb.createConnCursor()
 
-    cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id AND rev_timestamp>='%s' AND rev_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
+    #cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id AND rev_timestamp>='%s' AND rev_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
+    cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"])
     result = cursor.fetchall()
     for row in result:
         rev_id = int(row[0])
@@ -230,14 +231,22 @@ def loadRevisions():
         if rev_parent_id == 0: #es la primera revisión de esta página
             smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"])
         elif smwconfig.revisions.has_key(rev_parent_id):
-            smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"]) - len(smwconfig.revisions[rev_parent_id]["old_text"])
+            len_diff = len(rev_props["old_text"]) - len(smwconfig.revisions[rev_parent_id]["old_text"])
+            smwconfig.revisions[rev_id]["len_diff"] = len_diff > 0 and len_diff or 0 # only increments, decrements excluded
         else:
             #si la edición anterior no existe o fue borrada, contamos como que todo el texto es nuevo
-            #todo: pasa cuando se usan rangos -startdate y -enddate?
+            #todo: pasa cuando se usan rangos -startdate y -enddate? sí, se arregla cargando todas las revisiones en la query anterior, calculando len_diffs y luego borrando las revisiones que se salen del rango
             smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"])
             #print "Revision", rev_parent_id, "not found"
             #sys.exit()
-
+    
+    revisions2 = {}
+    for rev_id, rev_props in smwconfig.revisions.items():
+        if rev_props["rev_timestamp"] >= smwconfig.preferences["startDateMW"] and rev_props["rev_timestamp"] <= smwconfig.preferences["endDateMW"]:
+            revisions2[rev_id] = rev_props
+    smwconfig.revisions.clear()
+    smwconfig.revisions = revisions2 # overwriting, removing out-of-range revisions
+    
     smwdb.destroyConnCursor(conn, cursor)
 
 def loadUsers():
