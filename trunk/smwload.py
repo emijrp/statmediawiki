@@ -190,7 +190,7 @@ def loadRevisions():
     conn, cursor = smwdb.createConnCursor()
 
     #cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id AND rev_timestamp>='%s' AND rev_timestamp<='%s'" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"], smwconfig.preferences["startDateMW"], smwconfig.preferences["endDateMW"]))
-    cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"])
+    cursor.execute("SELECT rev_id, rev_page, rev_user, rev_user_text, rev_timestamp, rev_comment, rev_parent_id, old_text FROM %srevision, %stext WHERE old_id=rev_text_id" % (smwconfig.preferences["tablePrefix"], smwconfig.preferences["tablePrefix"]))
     result = cursor.fetchall()
     for row in result:
         rev_id = int(row[0])
