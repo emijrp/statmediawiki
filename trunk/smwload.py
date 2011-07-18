@@ -224,18 +224,17 @@ def loadRevisions():
             "old_text": old_text,
             "len_diff": 0,
         }
-    print "Loaded %s revisions" % len(smwconfig.revisions.keys())
 
     #len_diff, incremento de tamaño respecto a la versión anterior (si es negativo es decremento; aunque cuando es negativo ponemos 0 para no penalizar al usuario)
     for rev_id, rev_props in smwconfig.revisions.items():
         #que pasa con los rev_parent_id que apuntan a revisiones borradas? entran en la tercera rama del if
         rev_parent_id = rev_props["rev_parent_id"]
-        if rev_parent_id == 0: #esta es la primera revisión de esta página
+        if rev_parent_id == 0: #rev_id es la primera revisión de esta página
             smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"])
         elif smwconfig.revisions.has_key(rev_parent_id): #la revisión padre debe existir
             len_diff = len(rev_props["old_text"]) - len(smwconfig.revisions[rev_parent_id]["old_text"])
-            smwconfig.revisions[rev_id]["len_diff"] = len_diff > 0 and len_diff or 0 # only increments, decrements excluded
-        else: #si la edición anterior no existe o fue borrada, contamos como que todo el texto es nuevo, no queda otra opción
+            smwconfig.revisions[rev_id]["len_diff"] = len_diff > 0 and len_diff or 0 # only increments, decrements excluded, do not punish users
+        else: #si la revisión padre no existe o fue borrada, contamos como que todo el texto es nuevo, no queda otra opción
             smwconfig.revisions[rev_id]["len_diff"] = len(rev_props["old_text"])
             #print "Revision", rev_parent_id, "not found"
             #sys.exit()
@@ -247,6 +246,8 @@ def loadRevisions():
             revisions2[rev_id] = rev_props
     smwconfig.revisions.clear()
     smwconfig.revisions = revisions2 # overwriting, removing out-of-range revisions
+    
+    print "Loaded %s revisions" % len(smwconfig.revisions.keys())
     
     smwdb.destroyConnCursor(conn, cursor)
 
