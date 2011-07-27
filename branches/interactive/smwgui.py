@@ -76,8 +76,8 @@ import pylab
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki Interactive' # StatMediaWiki name
-VERSION = '0.1.1' # StatMediaWiki version
-HOMEPAGE = 'http://statmediawiki.forja.rediris.es' # StatMediaWiki homepage
+VERSION = '0.1.2' # StatMediaWiki version
+HOMEPAGE = 'http://statmediawiki.forja.rediris.es/index_en.html' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
 if PATH: os.chdir(PATH)
@@ -303,7 +303,7 @@ class App:
         helpmenu.add_command(label="StatMediaWiki homepage", command=lambda: webbrowser.open_new_tab(HOMEPAGE))
 
     def callback(self):
-        self.setStatus("Feature doesn't developed yet. Coming soon.")
+        self.setStatus("Feature not implemented for the moment. Contributions are welcome.")
 
     def setStatus(self, text):
         self.status.config(text=text)
