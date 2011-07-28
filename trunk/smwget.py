@@ -140,7 +140,9 @@ def getTotalRevisionsByCategoryByNamespace(category_props=None, namespace=0):
 
 def getTotalBytesByCategoryByNamespace(category_props=None, namespace=0):
     assert category_props
-    return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and page_id in category_props["pages"]])
+    pageids = [page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and page_id in category_props["pages"]]
+    return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in pageids])
+    #return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and page_id in category_props["pages"]])
 
 def getTotalRevisionsByPage(page_id=None):
     assert page_id
