@@ -555,7 +555,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
     elif type == "pages":
         usersSorted = smwget.getUsersSortedByTotalRevisionsInPage(page_id=page_props["page_id"])
         totalrevisions = smwget.getTotalRevisionsByPage(page_id=page_props["page_id"])
-        totalbytes = page_props["page_len"]
+        totalbytes = smwget.getTotalBytesByPage(page_id=page_props["page_id"]) # page_props["page_len"]
     elif type == "categories":
         usersSorted = smwget.getUsersSortedByTotalRevisionsInCategory(category_props=category_props)
         totalrevisions = smwget.getTotalRevisionsByCategory(category_props=category_props)
@@ -754,13 +754,13 @@ def generatePagesTable(type=None, user_props=None, category_props=None):
         numbytes = 0
         maxi = 0
         if type == "global":
-            numbytes = page_props["page_len"]
+            numbytes = smwget.getTotalBytesByPage(page_id=page_id) # page_props["page_len"]
             maxi = float(max([k for k, v in smwget.getPagesSortedByTotalBytes()] + [0]))
         elif type == "users":
             numbytes = smwget.getTotalBytesByUserInPage(user_text_=user_props["user_name_"], page_id=page_id)
             maxi = float(max([k for k, v in smwget.getPagesSortedByTotalBytesByUser(user_props=user_props)] + [0]))
         elif type == "categories":
-            numbytes = page_props["page_len"]
+            numbytes = smwget.getTotalBytesByPage(page_id=page_id) # page_props["page_len"]
             maxi = float(max([k for k, v in smwget.getPagesSortedByTotalBytesByCategory(category_props=category_props)] + [0]))
         acumbytes += numbytes
         percent = totalbytes > 0 and numbytes/(totalbytes/100.0) or 0
@@ -808,7 +808,7 @@ def generateCategoriesTable():
     for page_id, page_props in smwconfig.pages.items():
         if page_id in all_categorised_page_ids: #for the totals, only count categorised pages info
             totaledits += smwget.getTotalRevisionsByPage(page_id=page_id)
-            totalbytes += page_props["page_len"]
+            totalbytes += smwget.getTotalBytesByPage(page_id=page_id) # page_props["page_len"]
             totalvisits += page_props["page_counter"]
     totalpages = len(all_categorised_page_ids)
 
@@ -830,7 +830,7 @@ def generateCategoriesTable():
         for page_id, page_props in smwconfig.pages.items():
             if page_id in category_props["pages"]:
                 numedits += smwget.getTotalRevisionsByPage(page_id=page_id)
-                numbytes += page_props["page_len"]
+                numbytes += smwget.getTotalBytesByPage(page_id=page_id) # page_props["page_len"]
                 numvisits += page_props["page_counter"]
 
         numvisitspercent = 0
