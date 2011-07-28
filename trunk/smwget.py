@@ -39,19 +39,28 @@ def usersSortedDic():
 
 def getTotalBytes(redirects=True):
     if redirects:
-        return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items()])
+        pageids = set([page_id for page_id, page_props in smwconfig.pages.items()]) #dummy
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in pageids])
+        #return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items()])
     else:
-        return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if not page_props["page_is_redirect"]])
+        pageids = set([page_id for page_id, page_props in smwconfig.pages.items() if not page_props["page_is_redirect"]])
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in pageids])
+        #return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if not page_props["page_is_redirect"]])
 
 def getTotalBytesByCategory(category_props=None):
     assert category_props
-    return sum([smwconfig.pages[page_id]["page_len"] for page_id in category_props["pages"]])
+    return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in category_props["pages"]])
+    #return sum([smwconfig.pages[page_id]["page_len"] for page_id in category_props["pages"]])
 
 def getTotalBytesByNamespace(namespace=0, redirects=True):
     if redirects:
-        return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace])
+        pageids = set([page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace])
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in pageids])
+        #return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace])
     else:
-        return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]])
+        pageids = set([page_id for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]])
+        return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in pageids])
+        #return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]])
 
 def getTotalBytesByUser(user_id=None, user_text_=None): #fix add redirects=True, #fix cambiar por user_props
     if user_id:
