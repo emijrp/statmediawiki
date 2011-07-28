@@ -684,7 +684,7 @@ def generateUsersTable(type=None, page_props=None, category_props=None):
         note1in = 'in the page'
     elif type == "categories":
         note1in = 'in the category'
-    output += '<ul><li id="note1">Note 1: This figure can be greater than the total bytes %s, as byte erased are not discounted in this ranking.</li></ul>' % (note1in)
+    output += '<ul><li id="note1">Note 1: This figure can be different than the total bytes %s, as byte erased are not discounted in this ranking.</li></ul>' % (note1in)
 
     return output
 
