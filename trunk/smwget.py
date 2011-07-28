@@ -62,6 +62,10 @@ def getTotalBytesByNamespace(namespace=0, redirects=True):
         return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] in pageids])
         #return sum([page_props["page_len"] for page_id, page_props in smwconfig.pages.items() if page_props["page_namespace"] == namespace and not page_props["page_is_redirect"]])
 
+def getTotalBytesByPage(page_id=None):
+    assert page_id
+    return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_page"] == page_id])
+
 def getTotalBytesByUser(user_id=None, user_text_=None): #fix add redirects=True, #fix cambiar por user_props
     if user_id:
         return sum([rev_props["len_diff"] for rev_id, rev_props in smwconfig.revisions.items() if rev_props["rev_user"] == user_id and rev_props["len_diff"] > 0])
@@ -195,7 +199,7 @@ def getPagesByNamespace(namespace=0):
 def getPagesSortedByTotalBytes():
     pagesSorted = pagesSortedDic()
     for page_id, page_props in smwconfig.pages.items():
-        pagesSorted[page_id] = page_props["page_len"]
+        pagesSorted[page_id] = getTotalBytesByPage(page_id=page_id) #page_props["page_len"]
 
     list = [[v, k] for k, v in pagesSorted.items()]
     list.sort()
@@ -208,7 +212,7 @@ def getPagesSortedByTotalBytesByCategory(category_props=None):
     for page_id, page_props in smwconfig.pages.items():
         if page_id not in category_props["pages"]:
             continue
-        pagesSorted[page_id] = page_props["page_len"]
+        pagesSorted[page_id] = getTotalBytesByPage(page_id=page_id) #page_props["page_len"]
 
     list = [[v, k] for k, v in pagesSorted.items()]
     list.sort()

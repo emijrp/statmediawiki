@@ -385,7 +385,7 @@ def generateSummary(type, user_props=None, page_props=None, category_props=None)
         output += '<tr><td><b>Page is redirect:</b></td><td>%s</td></tr>\n' % (page_props["page_is_redirect"] and 'Yes' or 'No')
         output += '<tr><td><b>Total users:</b></td><td><a href="#topusers">%d</a></td></tr>\n' % (smwget.getTotalUsersByPage(page_id=page_props["page_id"]))
         output += '<tr><td><b>Total edits:</b></td><td>%d</td></tr>\n' % (smwget.getTotalRevisionsByPage(page_id=page_props["page_id"]))
-        output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>\n' % (page_props["page_len"])
+        output += '<tr><td><b>Total bytes:</b></td><td>%d</td></tr>\n' % (smwget.getTotalBytesByPage(page_id=page_props["page_id"])) #(page_props["page_len"])
         output += '<tr><td><b>Total visits:</b></td><td>%d</td></tr>\n' % (page_props["page_counter"])
     elif type == "categories":
         output += '<tr><td><b>Category:</b></td><td><a href="%s/%s/Category:%s">%s</a> (<a href="%s/index.php/Special:Relatedchanges/Category:%s">related changes</a>)</td></tr>\n' % (smwconfig.preferences["siteUrl"], smwconfig.preferences["subDir"], category_props["category_title_"], category_props["category_title"], smwconfig.preferences["siteUrl"], category_props["category_title_"])
