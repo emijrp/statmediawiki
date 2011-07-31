@@ -1,6 +1,6 @@
 This is the to-do wishlist ;-)
 
-
+* Generate work distribution by categories. This way we can observe how the different categories grew during time
 * Color cells in category ranking of the overall wiki report
 * Generate Pareto charts
 * Generate Pie charts
