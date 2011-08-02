@@ -76,7 +76,7 @@ import pylab
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki Interactive' # StatMediaWiki name
-VERSION = '0.1.2' # StatMediaWiki version
+VERSION = '0.1.3' # StatMediaWiki version
 HOMEPAGE = 'http://statmediawiki.forja.rediris.es/index_en.html' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
@@ -144,7 +144,7 @@ class App:
 
         # interface elements
         #description
-        self.desc=Label(self.master, text="%s (version %s)\nThis program is free software (GPL v3 or higher)." % (NAME, VERSION), font=("Arial", 7))
+        self.desc=Label(self.master, text="%s (version %s)\nThis program is free software (GPL v3 or higher)" % (NAME, VERSION), font=("Arial", 7))
         self.desc.grid(row=2, column=1, columnspan=2)
         #quick buttons
         self.button1 = Button(self.master, text="Load", command=self.loadDBFilename, width=12)
