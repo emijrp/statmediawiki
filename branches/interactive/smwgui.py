@@ -144,7 +144,7 @@ class App:
 
         # interface elements
         #description
-        self.desc=Label(self.master, text="%s (version %s)\nThis program is free software (GPL v3 or higher)" % (NAME, VERSION), font=("Arial", 7))
+        self.desc = Label(self.master, text="%s (version %s)\nThis program is free software (GPL v3 or higher)" % (NAME, VERSION), font=("Arial", 7))
         self.desc.grid(row=2, column=1, columnspan=2)
         #quick buttons
         self.button1 = Button(self.master, text="Load", command=self.loadDBFilename, width=12)
@@ -513,7 +513,7 @@ def askclose():
 if __name__ == "__main__":
     root = Tk()
     root.geometry('505x104+0+0')
-    root.title(NAME)
+    root.title('%s (version %s)' % (NAME, VERSION))
     root.protocol("WM_DELETE_WINDOW", askclose)
     #logo
     imagelogo = PhotoImage(file = 'logo.gif')
