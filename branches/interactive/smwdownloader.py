@@ -65,6 +65,9 @@ def downloadWikiaDump(wiki, filename):
         print "ERROR WHILE RETRIEVING DUMP FROM WIKIA"
 
 def downloadWikiTeamDump(wiki, filename):
+    #opción 7z e permite extraer sin directorios (consejo de underscore)
+    #hacer pruebas, ya que los dumps de Internet Archive irán con subdirectorios dentro del 7z
+    
     #verificar md5
     z7filename = '%s-history.xml.7z' % (wiki)
     url = 'http://wikiteam.googlecode.com/files/%s' % (z7filename)
@@ -121,3 +124,10 @@ def downloadWikiTeamList():
     projects.sort()
     
     return projects
+
+def downloadInternetArchiveList():
+    #todo
+    
+    #los dumps tendrán subdirectorio, probar 7z e a ver si puedo extraer/eliminar ficheros de dentro del subdirectorio
+    
+    pass
