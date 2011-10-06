@@ -7,6 +7,8 @@ This is the to-do wishlist ;-)
 * Generate dynamic charts
 * Generate deeper statistics, suggestions are welcome!
 
+* Although the tables can be copied/pasted in OpenOffice (indicating tabular as field separator), a link for CSV donwload would be better
 
+* Add .bib files to the papers descriptions
 
 [1] http://www.graphviz.org/Gallery.php
