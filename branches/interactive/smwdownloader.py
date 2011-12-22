@@ -31,7 +31,7 @@ def downloadProgress(block_count, block_size, total_size):
         downloaded = block_count *(block_size/1024/1024.0)
         percent = downloaded/(total_mb/100.0)
         if not random.randint(0,10):
-            print "%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent)
+            print "%.1f MB of %.1f MB downloaded (%.1f%%)" %(downloaded, total_mb, percent <= 100 and percent or 100)
         #sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
         #sys.stdout.flush()
     except:
@@ -106,6 +106,7 @@ def downloadWikimediaList():
     return projects
 
 def downloadWikiaList():
+    #fix, add  http://community.wikia.com/wiki/Hub:Big_wikis or any way to load most wikia wikis
     projects = ['answers', 'dc', 'efemerides', 'eq2', 'inciclopedia', 'familypedia', 'icehockey', 'lyrics', 'marveldatabase', 'memory-beta', 'memoryalpha', 'psychology', 'recipes', 'swfanon', 'starwars', 'uncyclopedia', 'vintagepatterns', 'wow']
     projects.sort()
 
@@ -128,6 +129,6 @@ def downloadWikiTeamList():
 def downloadInternetArchiveList():
     #todo
     
-    #los dumps tendrán subdirectorio, probar 7z e a ver si puedo extraer/eliminar ficheros de dentro del subdirectorio
+    #los dumps tendrán colección propia, probar 7z e a ver si puedo extraer/eliminar ficheros de dentro del subdirectorio
     
     pass

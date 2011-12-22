@@ -28,15 +28,16 @@ import tkFileDialog
 import pylab
 
 # Dependences:
-# python, python-tk, python-matplotlib
+# linux: python, python-tk, python-matplotlib
+# windows: (mirar correo que envié a manolo explicando como probarlo en windows)
 
 # TODO:
-# indicar % progreso al analizar el dump, en función de una estimación por el tamaño del fichero (depende si es 7z, bzip, etc [leer tamaño del .xml comprimido directamente si es posible])
+# indicar % progreso al parsear el dump, en función de una estimación por el tamaño del fichero (depende si es 7z, bzip, etc [leer tamaño del .xml comprimido directamente si es posible])
 # cargar todos los dumps de wikiteam (cuando hay más de 100 en google code, solo salen los más recientes), mostrar progreso también
 # almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
 ## pero al final tienes que carga la sesión/workplace que te interese, estamos en las mismas
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
-# capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module:summary invalida la gui y muestra los datos por consola
+# capturar parámetros por si se quiere ejecutar sin gui desde consola: smwgui.py --module=summary invalida la gui y muestra los datos por consola
 # hacer un listbox para los proyectos de wikimedia y wikia (almacenar en una tabla en un sqlite propia de smw? y actualizar cada poco?) http://download.wikimedia.org/backup-index.html http://community.wikia.com/wiki/Hub:Big_wikis http://community.wikia.com/index.php?title=Special:Newwikis&dir=prev&limit=500&showall=0 http://www.mediawiki.org/wiki/Sites_using_MediaWiki
 # Citizendium (interesantes gráficas http://en.citizendium.org/wiki/CZ:Statistics) no publican el historial completo, solo el current http://en.citizendium.org/wiki/CZ:Downloads
 # permitir descargar solo el historial de una página (special:Export tiene la pega de que solo muestra las últimas 1000 ediciones), con la Api te traes todo en bloques de 500 pero hay que hacer una función que llame a la API (en vez de utilizar pywikipediabot para no añadir una dependencia más)
@@ -44,7 +45,7 @@ import pylab
 # hay otros dumps a parte de los 7z que tienen información útil, por ejemplo los images.sql con metadatos de las fotos, aunque solo los publica wikipedia
 # usar getopt para capturar parámetros desde consola
 # i18n http://www.learningpython.com/2006/12/03/translating-your-pythonpygtk-application/
-# documentation
+# write documentation
 
 #diferenciar entre activity (edits) y newpages
 
@@ -53,29 +54,29 @@ import pylab
 # * ip geolocation: http://software77.net/geo-ip/?license
 # * análisis que permita buscar ciertas palabras en los comentarios de las ediciones
 # * mensajes entre usuarios (ediciones de usuarios en user talk:)
-# * autoría por páginas
+# * calcular autoría por páginas (colorear el texto actual?)
 #
 # Ideas para otros análisis que no usan dumps pero relacionados con wikis o wikipedia:
 # * el feed de donaciones
-# log de visitas de domas?
-# conectarse a irc y poder hacer estadisticas en vivo?
+# * log de visitas de domas?
+# * conectarse a irc y poder hacer estadisticas en vivo?
 #
 # embeber mejor las gráficas en Tk? http://matplotlib.sourceforge.net/examples/user_interfaces/embedding_in_tk.py así cuando se cierra SMW, se cerrarán las gráficas; sería hacer una clase como listbox, a la que se le pasa la figura f (las funciones que generan las gráficas deberían devolver la f, ahora no devuelven nada)
 #
 # otras ideas:
-#   mirar http://stats.wikimedia.org/reportcard/RC_2011_04_columns.html http://stats.wikimedia.org/reportcard/
-#   permitir exportar las columnas que nos interesen como CSV u otros formatos, exportar un rango de fechas de revisiones http://en.wikipedia.org/w/index.php?title=User_talk:Emijrp/Wikipedia_Archive&oldid=399534070#How_can_i_get_all_the_revisions_of_a_language_for_a_duration_.3F
-#   necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
-#   external links analysis: http://linkypedia.inkdroid.org/websites/9/users/
+# * mirar http://stats.wikimedia.org/reportcard/RC_2011_04_columns.html http://stats.wikimedia.org/reportcard/
+# * exporter: ventana que marcando los items (registros de la bbdd) que te interesa, los exporta desde la bbdd hacia un CSV u otros formatos, exportar un rango de fechas de revisiones http://en.wikipedia.org/w/index.php?title=User_talk:Emijrp/Wikipedia_Archive&oldid=399534070#How_can_i_get_all_the_revisions_of_a_language_for_a_duration_.3F
+# * al exportar con CSV podemos pasarle MINE
+# * necesidades de los investigadores http://www.mediawiki.org/wiki/Research_Data_Proposals
+# * external links analysis: http://linkypedia.inkdroid.org/websites/9/users/
 # que es más seguro hacer las cursor.execute, con ? o con %s ?
 # 
 # flipadas:
-# ampliar la información de un punto haciendo clic en él: http://matplotlib.sourceforge.net/examples/event_handling/data_browser.py
-# videos con matplotlib http://matplotlib.sourceforge.net/examples/animation/movie_demo.py
-# más ejemplos de matplotlib http://matplotlib.sourceforge.net/examples/index.html
-# mapas con R muy buenos http://flowingdata.com/2011/05/11/how-to-map-connections-with-great-circles/ http://www.webcitation.org/5zuFPrssa
+# * ampliar la información de un punto haciendo clic en él: http://matplotlib.sourceforge.net/examples/event_handling/data_browser.py
+# * videos con matplotlib http://matplotlib.sourceforge.net/examples/animation/movie_demo.py
+# * más ejemplos de matplotlib http://matplotlib.sourceforge.net/examples/index.html
+# * mapas con R muy buenos http://flowingdata.com/2011/05/11/how-to-map-connections-with-great-circles/ http://www.webcitation.org/5zuFPrssa
 #
-# exporter: ventana que marcando los items (registros de la bbdd) que te interesa, los exporta desde la bbdd hacia un CSV
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki Interactive' # StatMediaWiki name

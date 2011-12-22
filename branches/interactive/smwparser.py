@@ -47,7 +47,7 @@ def createDB(conn=None, cursor=None):
     #en comentarios cosas que se pueden añadir
     #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
-    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer)''')
+    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_internal_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer)''')
     #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics)
     cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp)''') 
     #page_namespace, page_size (last rev size), page_views
@@ -59,6 +59,8 @@ def generatePageTable(conn, cursor):
     #fix add namespace detector
     #fix add rev_id actual para cada pagina
     #fix use MAX(rev_timestamp) to detect last page touch?
+    #fix como añadir la última versión del texto de cada página si ya hemos leido el dump?
+    # solución: generar la tabla page a la vez que revision, almacenar el texto de la versión más reciente, si se encuentra otra versión más reciente, machacar el texto, meter también las propiedades que interesen para la versión actual de cada página (SÍ: rev_size, rev_internal_links, rev_external_links, rev_interwikis, rev_sections, rev_timestamp, rev_text_md5; NO: rev_comment)
     result = cursor.execute("SELECT rev_page AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount, MIN(rev_timestamp) AS page_creation_timestamp FROM revision WHERE 1 GROUP BY page_id")
     c = 0
     for page_id, page_title, page_editcount, page_creation_timestamp in result:
@@ -86,7 +88,7 @@ def generateAuxTables(conn=None, cursor=None):
 
 def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     if dumpfilename.endswith('.7z'):
-        s = subprocess.Popen('7z l %s' % dumpfilename, shell=True, stdout=subprocess.PIPE, bufsize=65535).stdout
+        s = subprocess.Popen('7z l %s' % dumpfilename, shell=True, stdout=subprocess.PIPE, bufsize=65535).stdout # fix, solo funciona en linux?
         sout = s.read()
         if not re.search(ur'(?im)Can not open file as archive', sout) and \
            not re.search(ur'(?im)1 files, 0 folders\n$', sout):
@@ -94,7 +96,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
             return 
             #os.rename(filename, '%s.corrupted' % filename)
     
-    if os.path.exists(dbfilename): #si existe lo borramos, pues el usuario ha marcado sobreescribir, sino no entraría aquí
+    if os.path.exists(dbfilename): #si existe lo borramos, pues el usuario ha marcado sobreescribir, sino no entraría aquí #fix, mejor renombrar?
         os.remove(dbfilename)
 
     conn = sqlite3.connect(dbfilename)
@@ -109,7 +111,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     t1=time.time()
     tt=time.time()
     
-    r_links = re.compile(ur'(?im)(\[\[[^\|\]]+?(\|[^\]\|]*?)?\]\])')
+    r_internal_links = re.compile(ur'(?im)(\[\[[^\|\]\r\n]+?(\|[^\|\]\r\n]*?)?\]\])')
     r_external_links = re.compile(ur'(?im)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
     # http://en.wikipedia.org/wiki/Special:SiteMatrix
     r_interwikis = re.compile(ur'(?im)(\[\[([a-z]{2,3}|simple|classical)(\-([a-z]{2,3}){1,2}|tara)?\:[^\[\]]+?\]\])')
@@ -128,13 +130,13 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         rev_text_md5 = hashlib.md5(x_text_encoded).hexdigest()
         rev_size = len(x_text_encoded)
         rev_comment = x.comment or ''
-        rev_links = len(re.findall(r_links, x_text_encoded)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
+        rev_internal_links = len(re.findall(r_internal_links, x_text_encoded)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
         rev_external_links = len(re.findall(r_external_links, x_text_encoded)) #external links http://en.wikipedia.org/wiki/User:Emijrp/External_Links_Ranking
         rev_interwikis = len(re.findall(r_interwikis, x_text_encoded))
-        rev_links -= rev_interwikis # removing interwikis from [[links]]
+        rev_internal_links -= rev_interwikis # removing interwikis from [[links]]
         rev_sections = len(re.findall(r_sections, x_text_encoded))
         
-        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_links, rev_external_links, rev_interwikis, rev_sections)
+        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_internal_links, rev_external_links, rev_interwikis, rev_sections)
         
         xmlbug = (rev_id, rev_title, rev_page, rev_user_text)
         if not None in xmlbug and not '' in xmlbug:
