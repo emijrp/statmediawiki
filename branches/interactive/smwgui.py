@@ -31,6 +31,8 @@ import pylab
 # python, python-tk, python-matplotlib
 
 # TODO:
+# indicar % progreso al analizar el dump, en función de una estimación por el tamaño del fichero (depende si es 7z, bzip, etc [leer tamaño del .xml comprimido directamente si es posible])
+# cargar todos los dumps de wikiteam (cuando hay más de 100 en google code, solo salen los más recientes), mostrar progreso también
 # almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
 ## pero al final tienes que carga la sesión/workplace que te interese, estamos en las mismas
 # corregir todas las rutas relativas y hacerlas bien (donde se guardan los dumps, los .dbs, etc)
@@ -51,6 +53,7 @@ import pylab
 # * ip geolocation: http://software77.net/geo-ip/?license
 # * análisis que permita buscar ciertas palabras en los comentarios de las ediciones
 # * mensajes entre usuarios (ediciones de usuarios en user talk:)
+# * autoría por páginas
 #
 # Ideas para otros análisis que no usan dumps pero relacionados con wikis o wikipedia:
 # * el feed de donaciones
