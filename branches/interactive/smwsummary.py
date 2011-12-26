@@ -87,13 +87,16 @@ def editSummaryUsage(cursor=None):
 
 def totalLinks(cursor=None):
     #fix recorrer la última revisión de cada página
-    """result = cursor.execute("SELECT SUM(rev_links), SUM(rev_external_links) FROM revision WHERE 1")
+    result = cursor.execute("SELECT SUM(page_internal_links), SUM(page_external_links), SUM(page_interwikis) FROM page WHERE 1")
     for row in result:
-        return row[0], row[1]"""
+        return row[0], row[1], row[2]
     return 0, 0, 0
 
 def totalSections(cursor=None):
     #fix recorrer la última revisión de cada página
+    result = cursor.execute("SELECT SUM(page_sections) FROM page WHERE 1")
+    for row in result:
+        return row[0]
     return 0
 
 def summary(cursor):
