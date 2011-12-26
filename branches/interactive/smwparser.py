@@ -90,17 +90,17 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     # Create table
     createDB(conn=conn, cursor=cursor)
 
-    limit = 1000
+    limit = 10000
     c = 0
     c_page = 0
     t1 = time.time()
     tt = time.time()
     
-    r_internal_links = re.compile(ur'(?im)(\[\[[^\|\]\r\n]+?(\|[^\|\]\r\n]*?)?\]\])')
-    r_external_links = re.compile(ur'(?im)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
+    r_internal_links = re.compile(ur'(?i)(\[\[[^\|\]\r\n]+?(\|[^\|\]\r\n]*?)?\]\])')
+    r_external_links = re.compile(ur'(?i)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
     # http://en.wikipedia.org/wiki/Special:SiteMatrix
-    r_interwikis = re.compile(ur'(?im)(\[\[([a-z]{2,3}|simple|classical)(\-([a-z]{2,3}){1,2}|tara)?\:[^\[\]]+?\]\])')
-    r_sections = re.compile(ur'(?im)^((?P<heading>={1,6})[^=]+\g<heading>[^=])')
+    r_interwikis = re.compile(ur'(?i)(\[\[([a-z]{2,3}|simple|classical)(\-([a-z]{2,3}){1,2}|tara)?\:[^\[\]]+?\]\])')
+    r_sections = re.compile(ur'(?i)^((?P<heading>={1,6})[^=]+\g<heading>[^=])')
     
     xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
     errors = 0
@@ -150,23 +150,22 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         rev_user_text = x.username
         rev_is_ipedit = x.ipedit and 1 or 0 #fix, las ediciones de MediaWiki default cuentan como IP?
         rev_timestamp = datetime.datetime(year=int(x.timestamp[0:4]), month=int(x.timestamp[5:7]), day=int(x.timestamp[8:10]), hour=int(x.timestamp[11:13]), minute=int(x.timestamp[14:16]), second=int(x.timestamp[17:19]))
-        x_text = x.text
         x_text_encoded = x.text.encode('utf-8')
         rev_text_md5 = hashlib.md5(x_text_encoded).hexdigest()
-        rev_size = len(x_text_encoded)
+        rev_size = len(x.text)
         rev_comment = x.comment or ''
-        rev_internal_links = len(re.findall(r_internal_links, x_text_encoded)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
-        rev_external_links = len(re.findall(r_external_links, x_text_encoded)) #external links http://en.wikipedia.org/wiki/User:Emijrp/External_Links_Ranking
-        rev_interwikis = len(re.findall(r_interwikis, x_text_encoded))
+        rev_internal_links = len(re.findall(r_internal_links, x.text)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
+        rev_external_links = len(re.findall(r_external_links, x.text)) #external links http://en.wikipedia.org/wiki/User:Emijrp/External_Links_Ranking
+        rev_interwikis = len(re.findall(r_interwikis, x.text))
         rev_internal_links -= rev_interwikis # removing interwikis from [[links]]
-        rev_sections = len(re.findall(r_sections, x_text_encoded))
+        rev_sections = len(re.findall(r_sections, x.text))
         
         #saving values if this revision is the first or the last of a page
         if not page_creation_timestamp or rev_timestamp < page_creation_timestamp:
             page_creation_timestamp = rev_timestamp
         if not page_last_timestamp or rev_timestamp > page_last_timestamp:
             page_last_timestamp = rev_timestamp
-            page_text = x_text
+            page_text = x.text
             page_internal_links = rev_internal_links
             page_external_links = 0
             page_interwikis = 0
@@ -177,6 +176,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         
         xmlbug = (rev_id, rev_title, rev_page, rev_user_text)
         if not None in xmlbug and not '' in xmlbug:
+            #print rev_id
             cursor.execute('INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
             c += 1
         else:
