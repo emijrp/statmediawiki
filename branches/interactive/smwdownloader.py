@@ -25,6 +25,8 @@ import random
 
 import smwparser
 
+#TODO: resumir descargas, cómo?
+
 def downloadProgress(block_count, block_size, total_size):
     try:
         total_mb = total_size/1024/1024.0

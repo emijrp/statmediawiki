@@ -48,8 +48,8 @@ def createDB(conn=None, cursor=None):
     #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
     cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_internal_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer)''')
-    #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics)
-    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp)''') 
+    #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_diff
+    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp, page_last_timestamp timestamp, page_text text)''') 
     #page_namespace, page_size (last rev size), page_views
     cursor.execute('''create table user (user_name text, user_is_ip integer, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
     #user_id (viene en el dump? 0 para ips), user_is_anonymous (ips)
@@ -58,9 +58,7 @@ def createDB(conn=None, cursor=None):
 def generatePageTable(conn, cursor):
     #fix add namespace detector
     #fix add rev_id actual para cada pagina
-    #fix use MAX(rev_timestamp) to detect last page touch?
-    #fix como añadir la última versión del texto de cada página si ya hemos leido el dump?
-    # solución: generar la tabla page a la vez que revision, almacenar el texto de la versión más reciente, si se encuentra otra versión más reciente, machacar el texto, meter también las propiedades que interesen para la versión actual de cada página (SÍ: rev_size, rev_internal_links, rev_external_links, rev_interwikis, rev_sections, rev_timestamp, rev_text_md5; NO: rev_comment)
+    #meter estos valores para cada página usando la última revisión del historial: rev_size, rev_internal_links, rev_external_links, rev_interwikis, rev_sections, rev_timestamp, rev_text_md5; NO: rev_comment
     result = cursor.execute("SELECT rev_page AS page_id, rev_title AS page_title, COUNT(*) AS page_editcount, MIN(rev_timestamp) AS page_creation_timestamp FROM revision WHERE 1 GROUP BY page_id")
     c = 0
     for page_id, page_title, page_editcount, page_creation_timestamp in result:
@@ -83,7 +81,8 @@ def generateUserTable(conn, cursor):
     print "GENERATED USER TABLE: %d" % (len(users))
 
 def generateAuxTables(conn=None, cursor=None):
-    generatePageTable(conn=conn, cursor=cursor)
+    print '#'*30, '\n', 'Generating auxiliar tables', '\n', '#'*30
+    #generatePageTable(conn=conn, cursor=cursor)
     generateUserTable(conn=conn, cursor=cursor)
 
 def parseMediaWikiXMLDump(dumpfilename, dbfilename):
@@ -105,29 +104,65 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     # Create table
     createDB(conn=conn, cursor=cursor)
 
-    limit = 10000
+    limit = 1000
     c = 0
-    i=0
-    t1=time.time()
-    tt=time.time()
+    c_page = 0
+    t1 = time.time()
+    tt = time.time()
     
     r_internal_links = re.compile(ur'(?im)(\[\[[^\|\]\r\n]+?(\|[^\|\]\r\n]*?)?\]\])')
     r_external_links = re.compile(ur'(?im)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
     # http://en.wikipedia.org/wiki/Special:SiteMatrix
     r_interwikis = re.compile(ur'(?im)(\[\[([a-z]{2,3}|simple|classical)(\-([a-z]{2,3}){1,2}|tara)?\:[^\[\]]+?\]\])')
-    r_sections = re.compile(ur'(?im)^((={1,6})[^=]+\2[^=])')
+    r_sections = re.compile(ur'(?im)^((?P<heading>={1,6})[^=]+\g<heading>[^=])')
     
     xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
     errors = 0
+    errors_page = 0
+    page_id = -1 #impossible value
+    page_title = ''
+    page_editcount = 0
+    page_creation_timestamp = ''
+    page_last_timestamp = ''
+    page_text = ''
     for x in xml.parse(): #parsing the whole dump
+        # Create page entry if needed
+        if page_id != -1 and page_id != x.id:
+            if page_id and page_title and page_editcount and page_creation_timestamp and page_last_timestamp: #page_text not needed, it can be a blanked page
+                #fix, si le llega una página duplicada, mete dos o sobreescribe?
+                cursor.execute('INSERT INTO page VALUES (?,?,?,?,?,?)', (page_id, page_title, page_editcount, page_creation_timestamp, page_last_timestamp, page_text))
+                #conn.commit()
+                c_page += 1
+            else:
+                print '#'*30, '\n', 'ERROR PAGE:' , page_id, page_title, page_editcount, page_creation_timestamp, page_last_timestamp, 'text (', len(page_text), 'bytes)', page_text[:100], '\n', '#'*30
+                errors_page += 1
+            #reset values
+            page_id = x.id
+            page_title = x.title
+            page_editcount = 0
+            page_creation_timestamp = ''
+            page_last_timestamp = ''
+            page_text = ''
+        
+        page_editcount += 1
         rev_id = int(x.revisionid)
         rev_title = x.title
         rev_page = x.id
+        if page_id == -1:
+            page_id = rev_page
         rev_user_text = x.username
         rev_is_ipedit = x.ipedit and 1 or 0 #fix, las ediciones de MediaWiki default cuentan como IP?
         rev_timestamp = datetime.datetime(year=int(x.timestamp[0:4]), month=int(x.timestamp[5:7]), day=int(x.timestamp[8:10]), hour=int(x.timestamp[11:13]), minute=int(x.timestamp[14:16]), second=int(x.timestamp[17:19]))
+        if not page_creation_timestamp or rev_timestamp < page_creation_timestamp:
+            page_creation_timestamp = rev_timestamp
+        
+        x_text = x.text
         x_text_encoded = x.text.encode('utf-8')
         rev_text_md5 = hashlib.md5(x_text_encoded).hexdigest()
+        if not page_last_timestamp or rev_timestamp > page_last_timestamp:
+            page_last_timestamp = rev_timestamp
+            page_text = x_text
+        
         rev_size = len(x_text_encoded)
         rev_comment = x.comment or ''
         rev_internal_links = len(re.findall(r_internal_links, x_text_encoded)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
@@ -141,21 +176,25 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         xmlbug = (rev_id, rev_title, rev_page, rev_user_text)
         if not None in xmlbug and not '' in xmlbug:
             cursor.execute('INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
-            i+=1
+            c += 1
         else:
             #print t
             errors += 1
-
-        c += 1
-        if c % limit == 0:
-            print 'Analysed %d revisions [%d revs/sec]' % (c, limit/(time.time()-t1))
+        
+        if (c+errors) % limit == 0:
+            print 'Analysed %d revisions [%d revs/sec]' % (c+errors, limit/(time.time()-t1))
             conn.commit()
             t1 = time.time()
+        
     conn.commit() #para cuando son menos de limit o el resto
-    print 'Total revisions [%d], correctly inserted [%d], errors [%d], time [%d secs, %2f minutes]' % (c, i, errors, time.time()-tt, (time.time()-tt)/60.0)
+    print 'Total revisions [%d], correctly inserted [%d], errors [%d]' % (c+errors, c, errors)
+    print 'Total pages [%d], correctly inserted [%d], errors [%d]' % (c_page+errors_page, c_page, errors_page)
+    print 'Total time [%d secs or %2f minutes or %2f hours]' % (time.time()-tt, (time.time()-tt)/60.0, (time.time()-tt)/3600.0)
 
     #tablas auxiliares
+    tt = time.time()
     generateAuxTables(conn=conn, cursor=cursor)
+    print time.time()-tt, 'seconds'
     
     cursor.close()
     conn.close()
