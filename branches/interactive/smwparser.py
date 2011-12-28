@@ -25,6 +25,7 @@ import sys
 import os
 import hashlib
 import tkMessageBox
+import zlib
 
 #TODO:
 #campos adicionales: número de enlaces, categorías, ficheros, plantillas, etc
@@ -49,7 +50,7 @@ def createDB(conn=None, cursor=None):
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
     cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_internal_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer)''')
     #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_diff
-    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp, page_last_timestamp timestamp, page_text text, page_internal_links integer, page_external_links integer, page_interwikis integer, page_sections integer)''') 
+    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp, page_last_timestamp timestamp, page_text blob, page_internal_links integer, page_external_links integer, page_interwikis integer, page_sections integer)''') 
     #page_namespace, page_size (last rev size), page_views
     cursor.execute('''create table user (user_name text, user_is_ip integer, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
     #user_id (viene en el dump? 0 para ips), user_is_anonymous (ips)
@@ -123,7 +124,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
                 #fix add namespace detector
                 #fix add rev_id actual para cada pagina
                 #meter estos valores para cada página usando la última revisión del historial: rev_size, rev_internal_links, rev_external_links, rev_interwikis, rev_sections, rev_timestamp, rev_text_md5; NO: rev_comment
-                cursor.execute('INSERT INTO page VALUES (?,?,?,?,?,?,?,?,?,?)', (page_id, page_title, page_editcount, page_creation_timestamp, page_last_timestamp, page_text, page_internal_links, page_external_links, page_interwikis, page_sections))
+                cursor.execute('INSERT OR IGNORE INTO page VALUES (?,?,?,?,?,?,?,?,?,?)', (page_id, page_title, page_editcount, page_creation_timestamp, page_last_timestamp, buffer(zlib.compress(page_text,9)), page_internal_links, page_external_links, page_interwikis, page_sections))
                 #conn.commit()
                 c_page += 1
             else:
@@ -165,7 +166,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
             page_creation_timestamp = rev_timestamp
         if not page_last_timestamp or rev_timestamp > page_last_timestamp:
             page_last_timestamp = rev_timestamp
-            page_text = x.text
+            page_text = x_text_encoded
             page_internal_links = rev_internal_links
             page_external_links = 0
             page_interwikis = 0
@@ -177,7 +178,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         xmlbug = (rev_id, rev_title, rev_page, rev_user_text)
         if not None in xmlbug and not '' in xmlbug:
             #print rev_id
-            cursor.execute('INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
+            cursor.execute('INSERT OR IGNORE INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
             c += 1
         else:
             #print t
