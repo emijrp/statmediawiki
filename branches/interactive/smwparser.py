@@ -26,6 +26,9 @@ import os
 import hashlib
 import tkMessageBox
 import zlib
+#import bz2 as zlib
+import cPickle
+import difflib
 
 #TODO:
 #campos adicionales: categorías, ficheros, plantillas, etc
@@ -43,7 +46,7 @@ def createDB(conn=None, cursor=None):
     #en comentarios cosas que se pueden añadir
     #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
-    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_internal_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer, rev_templates integer)''')
+    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_text_diff blob, rev_size integer, rev_comment text, rev_internal_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer, rev_templates integer)''')
     #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_diff
     cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp, page_last_timestamp timestamp, page_text blob, page_internal_links integer, page_external_links integer, page_interwikis integer, page_sections integer, page_templates integer)''') 
     #page_namespace, page_size (last rev size), page_views
@@ -86,7 +89,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     # Create table
     createDB(conn=conn, cursor=cursor)
 
-    limit = 10000
+    limit = 1000
     c = 0
     c_page = 0
     t1 = time.time()
@@ -113,6 +116,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     page_interwikis = 0
     page_sections = 0
     page_templates = 0
+    rev_last_text_for_diff = ''
     for x in xml.parse(): #parsing the whole dump
         # Create page entry if needed
         if page_id != -1 and page_id != x.id:
@@ -139,6 +143,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
             page_interwikis = 0
             page_sections = 0
             page_templates = 0
+            rev_last_text_for_diff = ''
         
         page_editcount += 1
         rev_id = int(x.revisionid)
@@ -151,6 +156,8 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         rev_timestamp = datetime.datetime(year=int(x.timestamp[0:4]), month=int(x.timestamp[5:7]), day=int(x.timestamp[8:10]), hour=int(x.timestamp[11:13]), minute=int(x.timestamp[14:16]), second=int(x.timestamp[17:19]))
         x_text_encoded = x.text.encode('utf-8')
         rev_text_md5 = hashlib.md5(x_text_encoded).hexdigest()
+        rev_text_diff = buffer(zlib.compress(cPickle.dumps(list(difflib.Differ().compare(rev_last_text_for_diff.splitlines(1), x_text_encoded.splitlines(1)))),9))
+        rev_last_text_for_diff = x_text_encoded
         rev_size = len(x.text)
         rev_comment = x.comment or ''
         rev_internal_links = len(re.findall(r_internal_links, x.text)) #fix enlaces internos (esto incluye los iws, descontarlos después?)
@@ -173,12 +180,12 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
             page_templates = rev_templates
         
         # create tuple
-        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_internal_links, rev_external_links, rev_interwikis, rev_sections, rev_templates)
+        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_text_diff, rev_size, rev_comment, rev_internal_links, rev_external_links, rev_interwikis, rev_sections, rev_templates)
         
         xmlbug = (rev_id, rev_title, rev_page, rev_user_text)
         if not None in xmlbug and not '' in xmlbug:
             #print rev_id
-            cursor.execute('INSERT OR IGNORE INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
+            cursor.execute('INSERT OR IGNORE INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
             c += 1
         else:
             #print t
