@@ -30,6 +30,8 @@ import pylab
 # Dependences:
 # linux: python, python-tk, python-matplotlib
 # windows: (mirar correo que envié a manolo explicando como probarlo en windows)
+#
+# meter el xmlreader.py y el dumpgenerator.py usando svn externals
 
 # TODO:
 # indicar % progreso al parsear el dump, en función de una estimación por el tamaño del fichero (depende si es 7z, bzip, etc [leer tamaño del .xml comprimido directamente si es posible])
