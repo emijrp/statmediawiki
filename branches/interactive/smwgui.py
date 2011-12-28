@@ -226,6 +226,12 @@ class App:
         globalactivitymenu.add_command(label="Day of week", command=lambda: self.analysis('global-activity-dow'))
         globalactivitymenu.add_command(label="Hourly", command=lambda: self.analysis('global-activity-hourly'))
         #end activity
+        #begin rankings
+        globalrankingsmenu = Menu(globalmenu)
+        globalmenu.add_cascade(label="Rankings", menu=globalrankingsmenu)
+        globalrankingsmenu.add_command(label="Pages by number of edits", command=lambda: self.analysis('global-rankings-pagesbyeditcount'))
+        globalrankingsmenu.add_command(label="Users by number of edits", command=lambda: self.analysis('global-rankings-usersbyeditcount'))
+        #end rankings
         globalmenu.add_command(label="GeoIP location", command=lambda: self.analysis('global-geoiplocation'))
         globalmenu.add_command(label="Pareto", command=lambda: self.analysis('global-pareto'))
         #end global
@@ -432,6 +438,13 @@ class App:
                 elif analysis == 'global-activity-hourly':
                     smwactivity.activityhourly(cursor=cursor, range='global', title=self.wiki)
                 pylab.show()
+            elif analysis.startswith('global-rankings'):
+                import smwlist
+                if analysis == 'global-rankings-pagesbyeditcount':
+                    print smwlist.listofpagesandedits(cursor=cursor, orderby='page_editcount', order='DESC')[:10]
+                elif analysis == 'global-rankings-usersbyeditcount':
+                    print smwlist.listofusersandedits(cursor=cursor, orderby='user_editcount', order='DESC')[:10]
+                #pylab.show()
             elif analysis == 'global-geoiplocation':
                 import smwgeolocation
                 smwgeolocation.GeoLocationGraph(cursor=cursor, range='global', title=self.wiki)

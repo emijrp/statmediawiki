@@ -23,10 +23,9 @@ def listofusers(cursor):
     users.sort()
     return users
 
-def listofusersandedits(cursor):
-    result = cursor.execute("SELECT user_name, user_editcount FROM user WHERE 1")
+def listofusersandedits(cursor, orderby='user_name', order='ASC', limit=-1, offset=0):
+    result = cursor.execute("SELECT user_name, user_editcount FROM user WHERE 1 ORDER BY %s %s LIMIT %s OFFSET %s" % (orderby, order, limit, offset))
     users = [[user_name, user_editcount] for user_name, user_editcount in result]
-    users.sort()
     return users
 
 def listofpages(cursor):
@@ -35,8 +34,7 @@ def listofpages(cursor):
     pages.sort()
     return pages
 
-def listofpagesandedits(cursor):
-    result = cursor.execute("SELECT page_title, page_editcount FROM page WHERE 1")
+def listofpagesandedits(cursor, orderby='page_title', order='ASC', limit=-1, offset=0):
+    result = cursor.execute("SELECT page_title, page_editcount FROM page WHERE 1 ORDER BY %s %s LIMIT %s OFFSET %s" % (orderby, order, limit, offset))
     pages = [[page_title, page_editcount] for page_title, page_editcount in result]
-    pages.sort()
     return pages

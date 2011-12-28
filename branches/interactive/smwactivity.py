@@ -41,9 +41,9 @@ def activity(cursor=None, range='', entity='', title='', subtitle='', color='', 
     if range == 'global':
         result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE 1 GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, ))
     elif range == 'user':
-        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE rev_username=? GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
+        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE rev_user_text=? GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
     elif range == 'page':
-        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE rev_page IN (SELECT page_id FROM page WHERE page_title=?) GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
+        result = cursor.execute("SELECT STRFTIME(?, rev_timestamp) AS timesplit, COUNT(*) AS count FROM revision WHERE rev_title=? GROUP BY timesplit ORDER BY timesplit ASC", (timesplit, entity))
     
     x, y = [], []
     for timesplit, count in result:
