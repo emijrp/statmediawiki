@@ -101,7 +101,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     r_external_links = re.compile(ur'(?i)\b(ftps?|git|gopher|https?|irc|mms|news|svn|telnet|worldwind)://')
     # http://en.wikipedia.org/wiki/Special:SiteMatrix
     r_interwikis = re.compile(ur'(?i)(\[\[([a-z]{2,3}|simple|classical)(\-([a-z]{2,3}){1,2}|tara)?\:[^\[\]]+?\]\])')
-    r_sections = re.compile(ur'(?i)^((?P<heading>={1,6})[^=]+\g<heading>[^=])')
+    r_sections = re.compile(ur'(?im)^(={1,6})[^=]+\1')
     
     xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
     errors = 0
@@ -168,9 +168,9 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
             page_last_timestamp = rev_timestamp
             page_text = x_text_encoded
             page_internal_links = rev_internal_links
-            page_external_links = 0
-            page_interwikis = 0
-            page_sections = 0
+            page_external_links = rev_external_links
+            page_interwikis = rev_interwikis
+            page_sections = rev_sections
         
         # create tuple
         t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_internal_links, rev_external_links, rev_interwikis, rev_sections)
