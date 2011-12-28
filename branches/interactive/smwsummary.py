@@ -87,10 +87,10 @@ def editSummaryUsage(cursor=None):
 
 def totalLinks(cursor=None):
     #fix recorrer la última revisión de cada página
-    result = cursor.execute("SELECT SUM(page_internal_links), SUM(page_external_links), SUM(page_interwikis) FROM page WHERE 1")
+    result = cursor.execute("SELECT SUM(page_internal_links), SUM(page_external_links), SUM(page_interwikis), SUM(page_templates) FROM page WHERE 1")
     for row in result:
-        return row[0], row[1], row[2]
-    return 0, 0, 0
+        return row[0], row[1], row[2], row[3]
+    return 0, 0, 0, 0
 
 def totalSections(cursor=None):
     #fix recorrer la última revisión de cada página
@@ -108,7 +108,7 @@ def summary(cursor):
     firstedit, fuser = firstEdit(cursor=cursor)
     lastedit, luser = lastEdit(cursor=cursor)
     summaries_by_reg, summaries_by_unreg = editSummaryUsage(cursor=cursor)
-    links, external_links, interwikis = totalLinks(cursor=cursor)
+    links, external_links, interwikis, template_transclusions = totalLinks(cursor=cursor)
     sections = totalSections(cursor=cursor)
     
     output = '%s\nGlobal summary\n%s\n\n' % ('-'*60, '-'*60)
@@ -127,6 +127,7 @@ def summary(cursor):
     output += 'Links      = %d (internal links)\n' % (links)
     output += '             %d (external links)\n' % (external_links)
     output += '             %d (interwiki links)\n' % (interwikis)
+    output += '             %d (template transclusions)\n' % (template_transclusions)
     output += 'Sections   = %d\n' % (sections)
     
     output += '\n\n%s\nOther\n%s\n\n' % ('-'*60, '-'*60)

@@ -43,22 +43,22 @@ def createDB(conn=None, cursor=None):
     #en comentarios cosas que se pueden añadir
     #algunas ideas de http://git.libresoft.es/WikixRay/tree/WikiXRay/parsers/dump_sax_research.py
     cursor.execute('''create table image (img_name text)''') #quien la ha subido? eso no está en el xml, sino en pagelogging...
-    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_internal_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer)''')
+    cursor.execute('''create table revision (rev_id integer, rev_title text, rev_page integer, rev_user_text text, rev_is_ipedit integer, rev_timestamp timestamp, rev_text_md5 text, rev_size integer, rev_comment text, rev_internal_links integer, rev_external_links integer, rev_interwikis integer, rev_sections integer, rev_templates integer)''')
     #rev_is_minor, rev_is_redirect, rev_highwords (bold/italics/bold+italics), rev_diff
-    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp, page_last_timestamp timestamp, page_text blob, page_internal_links integer, page_external_links integer, page_interwikis integer, page_sections integer)''') 
+    cursor.execute('''create table page (page_id integer, page_title text, page_editcount integer, page_creation_timestamp timestamp, page_last_timestamp timestamp, page_text blob, page_internal_links integer, page_external_links integer, page_interwikis integer, page_sections integer, page_templates integer)''') 
     #page_namespace, page_size (last rev size), page_views
-    cursor.execute('''create table user (user_name text, user_is_ip integer, user_editcount integer)''') #fix, poner si es ip basándonos en ipedit?
+    cursor.execute('''create table user (user_name text, user_is_ip integer, user_editcount integer, user_first_timestamp timestamp, user_last_timestamp timestamp)''') #fix, poner si es ip basándonos en ipedit?
     #user_id (viene en el dump? 0 para ips), user_is_anonymous (ips)
     conn.commit()
 
 def generateUserTable(conn, cursor):
-    result = cursor.execute("SELECT rev_user_text AS user_name, rev_is_ipedit AS user_is_ip, COUNT(*) AS user_editcount FROM revision WHERE 1 GROUP BY user_name")
+    result = cursor.execute("SELECT rev_user_text AS user_name, rev_is_ipedit AS user_is_ip, COUNT(*) AS user_editcount, MIN(rev_timestamp) AS user_first_timestamp, MAX(rev_timestamp) AS user_last_timestamp FROM revision WHERE 1 GROUP BY user_name")
     users = []
-    for user_name, user_is_ip, user_editcount in result:
-        users.append([user_name, user_is_ip, user_editcount])
+    for user_name, user_is_ip, user_editcount, user_first_timestamp, user_last_timestamp in result:
+        users.append([user_name, user_is_ip, user_editcount, user_first_timestamp, user_last_timestamp])
 
-    for user_name, user_is_ip, user_editcount in users:
-        cursor.execute('INSERT INTO user VALUES (?,?,?)', (user_name, user_is_ip, user_editcount))
+    for user_name, user_is_ip, user_editcount, user_first_timestamp, user_last_timestamp in users:
+        cursor.execute('INSERT INTO user VALUES (?,?,?,?,?)', (user_name, user_is_ip, user_editcount, user_first_timestamp, user_last_timestamp))
     conn.commit()
 
     print "GENERATED USER TABLE: %d" % (len(users))
@@ -97,6 +97,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     # http://en.wikipedia.org/wiki/Special:SiteMatrix
     r_interwikis = re.compile(ur'(?i)(\[\[([a-z]{2,3}|simple|classical)(\-([a-z]{2,3}){1,2}|tara)?\:[^\[\]]+?\]\])')
     r_sections = re.compile(ur'(?im)^(={1,6})[^=]+\1')
+    r_templates = re.compile(ur'(?im)(^|[^\{])\{\{[^\{\}\|]+[\}\|]') # {{T1|...}} or {{T1}}
     
     xml = xmlreader.XmlDump(dumpfilename, allrevisions=True)
     errors = 0
@@ -111,6 +112,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
     page_external_links = 0
     page_interwikis = 0
     page_sections = 0
+    page_templates = 0
     for x in xml.parse(): #parsing the whole dump
         # Create page entry if needed
         if page_id != -1 and page_id != x.id:
@@ -119,7 +121,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
                 #fix add namespace detector
                 #fix add rev_id actual para cada pagina
                 #meter estos valores para cada página usando la última revisión del historial: rev_size, rev_internal_links, rev_external_links, rev_interwikis, rev_sections, rev_timestamp, rev_text_md5; NO: rev_comment
-                cursor.execute('INSERT OR IGNORE INTO page VALUES (?,?,?,?,?,?,?,?,?,?)', (page_id, page_title, page_editcount, page_creation_timestamp, page_last_timestamp, buffer(zlib.compress(page_text,9)), page_internal_links, page_external_links, page_interwikis, page_sections))
+                cursor.execute('INSERT OR IGNORE INTO page VALUES (?,?,?,?,?,?,?,?,?,?,?)', (page_id, page_title, page_editcount, page_creation_timestamp, page_last_timestamp, buffer(zlib.compress(page_text,9)), page_internal_links, page_external_links, page_interwikis, page_sections, page_templates))
                 #conn.commit()
                 c_page += 1
             else:
@@ -136,6 +138,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
             page_external_links = 0
             page_interwikis = 0
             page_sections = 0
+            page_templates = 0
         
         page_editcount += 1
         rev_id = int(x.revisionid)
@@ -155,6 +158,7 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         rev_interwikis = len(re.findall(r_interwikis, x.text))
         rev_internal_links -= rev_interwikis # removing interwikis from [[links]]
         rev_sections = len(re.findall(r_sections, x.text))
+        rev_templates = len(re.findall(r_templates, x.text))
         
         #saving values if this revision is the first or the last of a page
         if not page_creation_timestamp or rev_timestamp < page_creation_timestamp:
@@ -166,14 +170,15 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
             page_external_links = rev_external_links
             page_interwikis = rev_interwikis
             page_sections = rev_sections
+            page_templates = rev_templates
         
         # create tuple
-        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_internal_links, rev_external_links, rev_interwikis, rev_sections)
+        t = (rev_id, rev_title, rev_page, rev_user_text, rev_is_ipedit, rev_timestamp, rev_text_md5, rev_size, rev_comment, rev_internal_links, rev_external_links, rev_interwikis, rev_sections, rev_templates)
         
         xmlbug = (rev_id, rev_title, rev_page, rev_user_text)
         if not None in xmlbug and not '' in xmlbug:
             #print rev_id
-            cursor.execute('INSERT OR IGNORE INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
+            cursor.execute('INSERT OR IGNORE INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', t)
             c += 1
         else:
             #print t
