@@ -28,20 +28,15 @@ import tkMessageBox
 import zlib
 
 #TODO:
-#campos adicionales: número de enlaces, categorías, ficheros, plantillas, etc
+#campos adicionales: categorías, ficheros, plantillas, etc
 #capturar los namespaces del comienzo del XML y meter un campo namespace en la tabla page
 
 #fix filtrar Mediawiki default (que aparece como ip)
 #todo añadir un campo a la base de datos como último apso, para indicar que todo el parseo fue bien (esto sirve para avisar al usuario cuando hace #Load que el fichero está "corrupto" y debe reparsear)
 
 """
-
 regexps para el parser
-#imágenes y ficheros
-#categorías
-#iws
 re.compile(ur"#\s*(REDIRECT|local name)\s*\[\[[^\|\]]+?(\|[^\|\]]*?)?\]\]")
-
 """
 
 def createDB(conn=None, cursor=None):
