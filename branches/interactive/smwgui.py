@@ -82,7 +82,7 @@ import pylab
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki Interactive' # StatMediaWiki name
-VERSION = '0.1.5' # StatMediaWiki version
+VERSION = '0.1.6' # StatMediaWiki version
 HOMEPAGE = 'http://statmediawiki.forja.rediris.es/index_en.html' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
@@ -298,6 +298,11 @@ class App:
         othermenu = Menu(menu)
         menu.add_cascade(label="Other", menu=othermenu)
         othermenu.add_command(label="Domas visits logs", command=self.callback)
+        panvandalismcorpus = Menu(menu)
+        othermenu.add_cascade(label="PAN Wikipedia Vandalism Corpus", menu=panvandalismcorpus)
+        panvandalismcorpus.add_command(label="Webis-WVC-2007", command=self.callback)
+        panvandalismcorpus.add_command(label="PAN-WVC-10", command=self.callback)
+        panvandalismcorpus.add_command(label="PAN-WVC-11", command=self.callback)
         othermenu.add_command(label="Wikimedia Fundraising", command=self.callback)
         #end others
 

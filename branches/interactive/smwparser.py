@@ -156,7 +156,9 @@ def parseMediaWikiXMLDump(dumpfilename, dbfilename):
         rev_timestamp = datetime.datetime(year=int(x.timestamp[0:4]), month=int(x.timestamp[5:7]), day=int(x.timestamp[8:10]), hour=int(x.timestamp[11:13]), minute=int(x.timestamp[14:16]), second=int(x.timestamp[17:19]))
         x_text_encoded = x.text.encode('utf-8')
         rev_text_md5 = hashlib.md5(x_text_encoded).hexdigest()
-        rev_text_diff = buffer(zlib.compress(cPickle.dumps(list(difflib.Differ().compare(rev_last_text_for_diff.splitlines(1), x_text_encoded.splitlines(1)))),9))
+        #rev_text_diff = buffer(zlib.compress(cPickle.dumps(list(difflib.Differ().compare(rev_last_text_for_diff.splitlines(1), x_text_encoded.splitlines(1)))),9))
+        #el join es vacío '' porque los splitlines(1) adjuntan el \n final a cada línea
+        rev_text_diff = buffer(zlib.compress(''.join(list(difflib.Differ().compare(rev_last_text_for_diff.splitlines(1), x_text_encoded.splitlines(1)))),9))
         rev_last_text_for_diff = x_text_encoded
         rev_size = len(x.text)
         rev_comment = x.comment or ''
