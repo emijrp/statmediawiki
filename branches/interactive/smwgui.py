@@ -82,7 +82,7 @@ import pylab
 # dispenser coord dumps: http://toolserver.org/~dispenser/dumps/
 
 NAME = 'StatMediaWiki Interactive' # StatMediaWiki name
-VERSION = '0.1.6' # StatMediaWiki version
+VERSION = '0.1.7' # StatMediaWiki version
 HOMEPAGE = 'http://statmediawiki.forja.rediris.es/index_en.html' # StatMediaWiki homepage
 LINUX = platform.system().lower() == 'linux'
 PATH = os.path.dirname(__file__)
@@ -300,8 +300,8 @@ class App:
         othermenu.add_command(label="Domas visits logs", command=self.callback)
         panvandalismcorpus = Menu(menu)
         othermenu.add_cascade(label="PAN Wikipedia Vandalism Corpus", menu=panvandalismcorpus)
-        panvandalismcorpus.add_command(label="Webis-WVC-2007", command=self.callback)
-        panvandalismcorpus.add_command(label="PAN-WVC-10", command=self.callback)
+        panvandalismcorpus.add_command(label="Webis-WVC-2007", command=self.callback) # capturar los datos de las revisiones usando la API https://en.wikipedia.org/w/index.php?title=Wikipedia:Bot_requests&oldid=468578863#Bot_to_retrieve_previous_versions_of_an_article.
+        panvandalismcorpus.add_command(label="PAN-WVC-10", command=self.callback) #cargar los datos de los subdirectorios part01
         panvandalismcorpus.add_command(label="PAN-WVC-11", command=self.callback)
         othermenu.add_command(label="Wikimedia Fundraising", command=self.callback)
         #end others
