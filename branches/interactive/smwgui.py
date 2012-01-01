@@ -201,6 +201,11 @@ class App:
         downloadermenu.add_command(label="Wikia", command=lambda: self.downloader('wikia'))
         downloadermenu.add_command(label="WikiTeam", command=lambda: self.downloader('wikiteam'))
         downloadermenu.add_command(label="Citizendium", command=lambda: self.downloader('citizendium'))
+        downloadermenu.add_command(label="OmegaWiki", command=lambda: self.callback)
+        downloadermenu.add_command(label="OSDev", command=lambda: self.callback)
+        downloadermenu.add_command(label="Wikifur", command=lambda: self.callback)
+        downloadermenu.add_command(label="Wikivoyage", command=lambda: self.callback)
+        downloadermenu.add_command(label="RationalWiki", command=lambda: self.callback)
         #end downloader
 
         #begin preprocessor
