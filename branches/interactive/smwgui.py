@@ -34,6 +34,9 @@ import pylab
 # meter el xmlreader.py y el dumpgenerator.py usando svn externals
 
 # TODO:
+#
+# el nltk.downloader() usa tkinter y tiene una abuena interfaz con barra de progreso, pestañas y todo, mirar cómo está hecho
+#
 # indicar % progreso al parsear el dump, en función de una estimación por el tamaño del fichero (depende si es 7z, bzip, etc [leer tamaño del .xml comprimido directamente si es posible])
 # cargar todos los dumps de wikiteam (cuando hay más de 100 en google code, solo salen los más recientes), mostrar progreso también
 # almacenar sesiones o algo parecido para evitar tener que darle a preprocessing para que coja el proyecto, cada vez que arranca el programa
