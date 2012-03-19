@@ -22,6 +22,7 @@ import thread
 import webbrowser
 
 from Tkinter import *
+import ttk
 import tkMessageBox
 import tkSimpleDialog
 import tkFileDialog
@@ -164,9 +165,12 @@ class App:
         self.button3.grid(row=0, column=2)
         self.button4 = Button(self.master, text="Exit", command=askclose, width=12)
         self.button4.grid(row=1, column=2)
+        #progressbar
+        self.progressbar = ttk.Progressbar(self.master, orient=HORIZONTAL, mode='determinate')
+        self.progressbar.grid(row=3, column=2, columnspan=1, sticky=W+E)
         #statusbar
         self.status = Label(self.master, text="Welcome! %s is ready for work" % (NAME), bd=1, justify=LEFT, relief=SUNKEN)
-        self.status.grid(row=3, column=0, columnspan=3, sticky=W+E)
+        self.status.grid(row=3, column=0, columnspan=2, sticky=W+E)
         #self.status.config(text="AA")
 
         #create a menu
