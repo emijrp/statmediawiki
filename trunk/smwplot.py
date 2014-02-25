@@ -69,7 +69,7 @@ def printLinesGraph(title, filename, labels, headers, rows):
     gp = Gnuplot.Gnuplot()
     #gp(' set term png')
     gp(' set encoding %s' % smwconfig.preferences['codification_'])
-    gp(' set data style lines')
+    gp(' set style data lines')
     gp(' set grid ytics mytics')
     gp(' set key left top')
     #gp(' set line_width 8')
