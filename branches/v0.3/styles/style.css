@@ -1,0 +1,101 @@
+body {
+    background: #ffffff;
+    color: #060606;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px;
+}
+h1 {
+    padding: 2px 5px;
+    border: 1px solid #c0c0c0;
+    color: #002070;
+    background-color: #dddddd;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+h2 {
+    padding: 2px 5px;
+    border: 1px solid #c0c0c0;
+    color: #002070;
+    background-color: #dddddd;
+    font-size: 14px;
+}
+
+table.sections{
+    clear: both;
+    float: right;
+    width: 100px;
+    border: 0px;
+    text-align: center;
+}
+
+/* Pretty table from Wikipedia: http://es.wikipedia.org/wiki/MediaWiki:Common.css */
+table.prettytable {
+    margin: 1em 1em 1em 1em;
+    padding: 0.5em;
+    font-size: 95%;
+    background-color: #f9f9f9;
+    border: 1px #aaa solid;
+    border-collapse: collapse;
+    text-align: center;
+}
+table.prettytable th, table.prettytable td {
+    border: 1px #aaa solid;
+    padding: 0.2em;
+}
+table.prettytable th {
+    background-color: #f2f2f2;
+    text-align: center;
+}
+table.prettytable caption {
+    margin-left: inherit;
+    margin-right: inherit;
+}
+/* end pretty table */
+
+table.sections {
+    width: 150px;
+    position: absolute;
+    right: 0px;
+}
+
+table.downloads {
+    width: 150px;
+    position: absolute;
+    right: 0px;
+}
+
+table.summary {
+    text-align: left;
+    border: 0px;
+}
+
+span.showhide {
+    float: right;
+}
+/*
+estilo para los párrafos, tablas...
+*/
+
+div.download-link {
+    font-size: 100%;
+}
+
+p{
+    margin-top: 0px;
+}
+
+img{
+    border: 0px;
+}
+
+/* cellcolors para porcentajes */
+/* los colores van de peor puntuación 0 a máxima 10-11 */
+/* de rojo pasando por verde hasta azul */
+td.cellcolor0 { background-color: #B22222 }
+td.cellcolor1 { background-color: #CD5C5C }
+td.cellcolor2 { background-color: #FFA07A }
+td.cellcolor3 { background-color: #7FFFD4 }
+td.cellcolor4 { background-color: #3CB371 }
+td.cellcolor5, td.cellcolor6 { background-color: #2E8B57 }
+td.cellcolor7, td.cellcolor8, td.cellcolor9, td.cellcolor10 { background-color: #4682B4 } /* the last two are the same */
