@@ -170,6 +170,11 @@ def printGraphCombinedWorkDistribution(type, fileprefix, title, headers, rows):
     filename = "%s/graphs/%s/%s_combined_work_distribution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
     printCombinedLinesGraph(title=title, filename=filename, labels=labels, headers=headers, rows=rows)
 
+def printGraphAccumulatedWorkDistribution(type, fileprefix, title, headers, rows):
+    labels = ["Date (YYYY-MM-DD)", "Bytes"]
+    filename = "%s/graphs/%s/%s_accumulated_work_distribution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
+    printCombinedLinesGraph(title=title, filename=filename, labels=labels, headers=headers, rows=rows)
+
 def printGraphContentEvolution(type, fileprefix, title, headers, rows):
     labels = ["Date (YYYY-MM-DD)", "Bytes"]
     filename = "%s/graphs/%s/%s_content_evolution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
