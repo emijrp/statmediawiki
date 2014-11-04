@@ -21,10 +21,10 @@ import sys
 import smwconfig
 
 def createConnCursor():
-    conn = MySQLdb.connect(db=smwconfig.preferences["dbName"], read_default_file='~/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
+    conn = MySQLdb.connect(db="my_wiki_test", host="127.0.0.1" ,user="root", passwd="123456", use_unicode=False)
     cursor = conn.cursor()
     try:
-        conn = MySQLdb.connect(db=smwconfig.preferences["dbName"], read_default_file='~/.my.cnf', use_unicode=False) #pedir ruta absoluta del fichero cnf? #todo
+        conn = MySQLdb.connect(db="my_wiki_test", host="127.0.0.1" ,user="root", passwd="123456", use_unicode=False)
         cursor = conn.cursor()
     except:
         print "Hubo un error al conectarse a la base de datos"

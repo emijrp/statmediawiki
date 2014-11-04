@@ -54,6 +54,39 @@ def printFilledcurvesGraph(title, filename, labels, headers, rows):
     #gp.hardcopy(filename=filename, terminal="png")
     gp.close()
 
+def printFilledcurvesGraphFocused(title, filename, labels, headers, rows):
+    xticsperiod = ""
+    c = 0
+    fecha = smwconfig.preferences["startDateFocused"]
+    fechaincremento=datetime.timedelta(minutes=1)
+    while fecha <= smwconfig.preferences["endDateFocused"]:
+        if fecha.minute in [0, 30]:
+            xticsperiod += '"%s" %s,' % (fecha.strftime("%H:%M"), c)
+        fecha += fechaincremento
+        c += 1
+    xticsperiod = xticsperiod[:len(xticsperiod)-1]
+
+    gp = Gnuplot.Gnuplot()
+    #gp(' set term png')
+    gp(' set encoding %s' % smwconfig.preferences['codification_'])
+    gp(' set yrange [0:100]')
+    gp(' set key under nobox')
+    gp(' set title "%s"' % title.encode(smwconfig.preferences['codification']))
+    gp(' set xlabel "%s"' % labels[0].encode(smwconfig.preferences['codification']))
+    gp(' set ylabel "%s"' % labels[1].encode(smwconfig.preferences['codification']))
+    gp(' set xtics rotate by 90')
+    gp(' set xtics (%s)' % (xticsperiod.encode(smwconfig.preferences['codification'])))
+    plots = []
+    c = 0
+    for row in rows:
+        plots.append(Gnuplot.PlotItems.Data(row, with_="filledcurve", title=headers[c].encode(smwconfig.preferences['codification']))) #steps, filledcurve, ?
+        c += 1
+    gp(' set term png')
+    gp(' set output "%s"' % (filename))
+    gp.plot(*plots)
+    #gp.hardcopy(filename=filename, terminal="png")
+    gp.close()
+
 def printLinesGraph(title, filename, labels, headers, rows):
     xticsperiod = ""
     c = 0
@@ -62,6 +95,42 @@ def printLinesGraph(title, filename, labels, headers, rows):
     while fecha <= smwconfig.preferences["endDate"]:
         if fecha.day in [1, 15]:
             xticsperiod += '"%s" %s,' % (fecha.strftime("%Y-%m-%d"), c)
+        fecha += fechaincremento
+        c += 1
+    xticsperiod = xticsperiod[:len(xticsperiod)-1]
+
+    gp = Gnuplot.Gnuplot()
+    #gp(' set term png')
+    gp(' set encoding %s' % smwconfig.preferences['codification_'])
+    gp(' set style data lines')
+    gp(' set grid ytics mytics')
+    gp(' set key left top')
+    #gp(' set line_width 8')
+    gp(' set title "%s"' % title.encode(smwconfig.preferences['codification']))
+    gp(' set xlabel "%s"' % labels[0].encode(smwconfig.preferences['codification']))
+    gp(' set ylabel "%s"' % labels[1].encode(smwconfig.preferences['codification']))
+    gp(' set mytics 2')
+    gp(' set xtics rotate by 90')
+    gp(' set xtics (%s)' % xticsperiod.encode(smwconfig.preferences['codification']))
+    plots = []
+    c = 0
+    for row in rows:
+        plots.append(Gnuplot.PlotItems.Data(row, with_="lines", title=headers[c+1].encode(smwconfig.preferences['codification'])))
+        c += 1
+    gp(' set term png')
+    gp(' set output "%s"' % (filename))
+    gp.plot(*plots)
+    #gp.hardcopy(filename=filename, terminal="png")
+    gp.close()
+
+def printLinesGraphFocused(title, filename, labels, headers, rows):
+    xticsperiod = ""
+    c = 0
+    fecha = smwconfig.preferences["startDateFocused"]
+    fechaincremento=datetime.timedelta(minutes=1)
+    while fecha <= smwconfig.preferences["endDateFocused"]:
+        if fecha.minute in [0, 30]:
+            xticsperiod += '"%s" %s,' % (fecha.strftime("%H:%M"), c)
         fecha += fechaincremento
         c += 1
     xticsperiod = xticsperiod[:len(xticsperiod)-1]
@@ -165,6 +234,11 @@ def printGraphWorkDistribution(type, fileprefix, title, headers, rows):
     filename = "%s/graphs/%s/%s_work_distribution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
     printFilledcurvesGraph(title=title, filename=filename, labels=labels, headers=headers, rows=rows)
 
+def printGraphWorkDistributionFocused(type, fileprefix, title, headers, rows):
+    labels = ["Hour (HH-MM)", "Percent"]
+    filename = "%s/graphs/%s/%s_work_distribution_focused.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
+    printFilledcurvesGraphFocused(title=title, filename=filename, labels=labels, headers=headers, rows=rows)
+
 def printGraphCombinedWorkDistribution(type, fileprefix, title, headers, rows):
     labels = ["Date (YYYY-MM-DD)", "Bytes"]
     filename = "%s/graphs/%s/%s_combined_work_distribution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
@@ -175,10 +249,20 @@ def printGraphAccumulatedWorkDistribution(type, fileprefix, title, headers, rows
     filename = "%s/graphs/%s/%s_accumulated_work_distribution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
     printCombinedLinesGraph(title=title, filename=filename, labels=labels, headers=headers, rows=rows)
 
+def printGraphPercentualAccumulatedWorkDistribution(type, fileprefix, title, headers, rows):
+    labels = ["Date (YYYY-MM-DD)", "Bytes"]
+    filename = "%s/graphs/%s/%s_percentual_accumulated_work_distribution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
+    printFilledcurvesGraph(title=title, filename=filename, labels=labels, headers=headers, rows=rows)
+
 def printGraphContentEvolution(type, fileprefix, title, headers, rows):
     labels = ["Date (YYYY-MM-DD)", "Bytes"]
     filename = "%s/graphs/%s/%s_content_evolution.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
     printLinesGraph(title=title, filename=filename, labels=labels, headers=headers, rows=rows)
+
+def printGraphContentEvolutionFocused(type, fileprefix, title, headers, rows):
+    labels = ["Hour (HH-MM)", "Bytes"]
+    filename = "%s/graphs/%s/%s_content_evolution_focused.png" % (smwconfig.preferences["outputDir"], type, fileprefix)
+    printLinesGraphFocused(title=title, filename=filename, labels=labels, headers=headers, rows=rows)
 
 def printGraphTimeActivity(type, fileprefix, title, headers, rows):
     filename = "%s/graphs/%s/%s_activity.png" % (smwconfig.preferences["outputDir"], type, fileprefix)

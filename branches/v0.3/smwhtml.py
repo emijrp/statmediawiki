@@ -24,13 +24,18 @@ def getSections(type=None):
     output = '<table class="prettytable sections">'
     output += '<tr><th><b>Sections</b></th></tr>'
     output += '<tr><td><a href="#contentevolution">Content evolution</a></td></tr>'
+    output += '<tr><td><a href="#contentevolutionfocused">Content evolution focused</a></td></tr>'
     output += '<tr><td><a href="#activity">Activity</a></td></tr>'
     if type == "pages" or type == "categories":
         output += '<tr><td><a href="#workdistribution">Work distribution</a></td></tr>'
     if type == "pages" or type == "categories":
+        output += '<tr><td><a href="#workdistributionfocused">Work distribution focused</a></td></tr>'
+    if type == "pages" or type == "categories":
         output += '<tr><td><a href="#combinedworkdistribution">Combined work distribution</a></td></tr>'
     if type == "pages" or type == "categories":
         output += '<tr><td><a href="#accumulatedworkdistribution">Accumulated work distribution</a></td></tr>'
+    if type == "pages" or type == "categories":
+        output += '<tr><td><a href="#percentualaccumulatedworkdistribution">Percentual accumulated work distribution</a></td></tr>'
     if type != "users":
         output += '<tr><td><a href="#topusers">Top users</a></td></tr>'
     if type != "pages":

@@ -17,6 +17,7 @@
 
 import re
 import os
+import datetime
 
 #version info
 CURRENT_VERSION = '1.1'
@@ -35,16 +36,19 @@ preferences["codification"] = 'iso-8859-1' # 'iso-8859-1' makes history bytes eq
 preferences['codification_'] = re.sub('-', '_', preferences["codification"]) # for Gnuplot
 preferences["outputDir"] = 'output'
 preferences["indexFilename"] = 'index.html'
-preferences["siteName"] = ''
-preferences["siteUrl"] = ''
+preferences["siteName"] = 'wikitest'
+preferences["siteUrl"] = 'http://localhost/mediawiki'
 preferences["subDir"] = 'index.php' #MediaWiki subdir, usually "index.php" in http://osl.uca.es/wikihaskell/index.php/Main_Page
-preferences["dbName"] = ''
+preferences["dbName"] = 'my_wiki_test'
 preferences["tablePrefix"] = '' #Usually empty
 #dates, we use datetime python objects, the rows in MediaWiki dbs uses this format yyyymmddhhmmss http://www.mediawiki.org/wiki/Manual:Timestamp
 preferences["startDate"] = '' #auto, start point for date range
-preferences["endDate"] = '' #auto, end point for date range
+preferences["endDate"] = datetime.datetime(2009, 11, 15, 00, 01) #auto, end point for date range
 preferences["startDateMW"] = ''
 preferences["endDateMW"] = ''
+#WARNING: the focused dates can produce a big amunt of charge on the system, the longer distance between dates, the bigger charge on the system
+preferences["startDateFocused"] = datetime.datetime(2009, 10, 1, 07, 00) #CANNOT be auto, start point for "Focused" graphs
+preferences["endDateFocused"] = datetime.datetime(2009, 10, 1, 12, 01) #CANNOT be auto, end point for "Focused" graphs
 #enddates
 
 preferences["currentPath"] = os.path.dirname(__file__)
