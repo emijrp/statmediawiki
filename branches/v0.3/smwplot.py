@@ -60,7 +60,7 @@ def printFilledcurvesGraphFocused(title, filename, labels, headers, rows):
     fecha = smwconfig.preferences["startDateFocused"]
     fechaincremento=datetime.timedelta(minutes=1)
     while fecha <= smwconfig.preferences["endDateFocused"]:
-        if fecha.minute in [0, 30]:
+        if fecha.minute in [0, 15, 30, 45]:
             xticsperiod += '"%s" %s,' % (fecha.strftime("%H:%M"), c)
         fecha += fechaincremento
         c += 1
@@ -129,7 +129,7 @@ def printLinesGraphFocused(title, filename, labels, headers, rows):
     fecha = smwconfig.preferences["startDateFocused"]
     fechaincremento=datetime.timedelta(minutes=1)
     while fecha <= smwconfig.preferences["endDateFocused"]:
-        if fecha.minute in [0, 30]:
+        if fecha.minute in [0, 15, 30, 45]:
             xticsperiod += '"%s" %s,' % (fecha.strftime("%H:%M"), c)
         fecha += fechaincremento
         c += 1

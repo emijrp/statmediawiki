@@ -146,7 +146,7 @@ def generateWorkDistributionFocused(type, fileprefix, page_props=None, category_
         usersCountPercent[user_text_] = []
         usersCountPercent2[user_text_] = []
     days = 0
-    while fecha < smwconfig.preferences["endDateFocused"]: #fix es < o <= ? (en contentevol pasa lo mismo)
+    while fecha < smwconfig.preferences["endDateFocused"]:
         usersCountThisDay = {}
         #initialize dic
         for firstrevisiondate, user_text_ in usersSortedByEdittime:
@@ -244,7 +244,7 @@ def generateCombinedWorkDistribution(type, fileprefix, page_props=None, category
                 rev_page = rev_props["rev_page"]
                 if type == "pages" or type == "categories":     
                     if rev_props["len_diff"] > 0:
-                        usersCountThisDay[rev_props["rev_user_text_"]] = rev_props["len_diff"]
+                        usersCountThisDay[rev_props["rev_user_text_"]] += rev_props["len_diff"]
                        #print 'Valor: {}' .format(usersCountThisDay[rev_props["rev_user_text_"]])
                        #raw_input("")
 
