@@ -43,7 +43,7 @@ preferences["dbName"] = 'my_wiki_test'
 preferences["tablePrefix"] = '' #Usually empty
 #dates, we use datetime python objects, the rows in MediaWiki dbs uses this format yyyymmddhhmmss http://www.mediawiki.org/wiki/Manual:Timestamp
 preferences["startDate"] = '' #auto, start point for date range
-preferences["endDate"] = datetime.datetime(2009, 11, 15, 00, 01) #auto, end point for date range
+preferences["endDate"] = datetime.datetime(2010, 2, 15, 00, 01) #auto, end point for date range
 preferences["startDateMW"] = ''
 preferences["endDateMW"] = ''
 #WARNING: the focused dates can produce a big amunt of charge on the system, the longer distance between dates, the bigger charge on the system

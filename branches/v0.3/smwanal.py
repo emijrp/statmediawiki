@@ -202,9 +202,9 @@ def generateWorkDistributionFocused(type, fileprefix, page_props=None, category_
 
     title = ""
     if type == "pages":
-        title = "Accumulative work distribution in %s" % page_props["full_page_title"]
+        title = "Work distribution focused in %s" % page_props["full_page_title"]
     elif type == "categories":
-        title = "Accumulative work distribution in category %s" % category_props["category_title"]
+        title = "Work distribution focused in category %s" % category_props["category_title"]
 
     smwplot.printGraphWorkDistributionFocused(type=type, fileprefix=fileprefix,
                                    title=title, headers=headers,
@@ -352,6 +352,14 @@ def generatePercentualAccumulatedWorkDistribution(type, fileprefix, page_props=N
 
     fecha = smwconfig.preferences["startDate"]
     fechaincremento = datetime.timedelta(days=1)
+    totalbytes = 0
+    if type == "global":
+        totalbytes = smwget.getTotalBytes()
+    elif type == "pages":
+        totalbytes = smwget.getTotalBytesByPage(page_id=page_props["page_id"]) # page_props["page_len"]
+    elif type == "categories":
+        totalbytes = smwget.getTotalBytesByCategory(category_props=category_props)
+    print 'Total bytes = {}' .format(totalbytes)
     usersCount = {}
     usersCountPercent = {}
     usersCountPercent2 = {}
@@ -393,7 +401,7 @@ def generatePercentualAccumulatedWorkDistribution(type, fileprefix, page_props=N
     #the percent for every day for every user, respects to the total bytes acumulatted until that day
     for i in range(days):
         subtotal = sum([count[i] for user_text_, count in usersCount.items()])
-        [usersCountPercent[user_text_].append(subtotal and count[i]/(subtotal/100.0) or 0) for user_text_, count in usersCount.items()]
+        [usersCountPercent[user_text_].append(subtotal and count[i]/(totalbytes/100.0) or 0) for user_text_, count in usersCount.items()]
     
     #the accumulated percent for every user using the order of the list by datetime
     for i in range(days):
@@ -417,9 +425,9 @@ def generatePercentualAccumulatedWorkDistribution(type, fileprefix, page_props=N
 
     title = ""
     if type == "pages":
-        title = "Accumulative work distribution in %s" % page_props["full_page_title"]
+        title = "Percentual accumulative work distribution in %s" % page_props["full_page_title"]
     elif type == "categories":
-        title = "Accumulative work distribution in category %s" % category_props["category_title"]
+        title = "Percentual accumulative work distribution in category %s" % category_props["category_title"]
         
     smwplot.printGraphPercentualAccumulatedWorkDistribution(type=type, fileprefix=fileprefix,
                                    title=title, headers=headers,
