@@ -20,7 +20,7 @@ import os
 import datetime
 
 #version info
-CURRENT_VERSION = '1.1'
+CURRENT_VERSION = '1.3'
 
 #data
 categories = {}
