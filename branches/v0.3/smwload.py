@@ -153,10 +153,13 @@ def loadImages():
     print "Loaded %s images" % len(smwconfig.images.keys())
     smwdb.destroyConnCursor(conn, cursor)
 
+from collections import defaultdict
+
 def loadNamespaces():
     smwconfig.namespaces.clear() #reset
     #fix: debería cargarlos de la bbdd u otro sitio
     smwconfig.namespaces = {-2: "Media", -1: "Special", 0: "Main", 1: "Talk", 2: "User", 3: "User talk", 4: "Project", 5: "Project talk", 6: "File", 7: "File talk", 8: "MediaWiki", 9: "MediaWiki talk", 10: "Template", 11: "Template talk", 12: "Help", 13: "Help talk", 14: "Category", 15: "Category talk"}
+    smwconfig.namespaces = defaultdict(lambda: "Unnamed namespace", smwconfig.namespaces)
 
 def loadPages():
     smwconfig.pages.clear() #reset

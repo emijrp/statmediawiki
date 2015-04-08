@@ -64,7 +64,10 @@ def fillCategoryids():
             smwconfig.categories[category_title_]["category_id"] = md5.new(category_title_.encode('utf-8')).hexdigest()
 
 def fillFullpagetitles():
+    for i in smwconfig.namespaces:
+        print i
     for page_id, page_props in smwconfig.pages.items():
+        print page_id, page_props
         smwconfig.pages[page_id]["full_page_title"] = page_props["page_namespace"] == 0 and page_props["page_title"] or '%s:%s' % (smwconfig.namespaces[page_props["page_namespace"]], page_props["page_title"])
         smwconfig.pages[page_id]["full_page_title_"] = re.sub(' ', '_', smwconfig.pages[page_id]["full_page_title"])
 
@@ -153,10 +156,13 @@ def loadImages():
     print "Loaded %s images" % len(smwconfig.images.keys())
     smwdb.destroyConnCursor(conn, cursor)
 
+from collections import defaultdict
+
 def loadNamespaces():
     smwconfig.namespaces.clear() #reset
     #fix: debería cargarlos de la bbdd u otro sitio
     smwconfig.namespaces = {-2: "Media", -1: "Special", 0: "Main", 1: "Talk", 2: "User", 3: "User talk", 4: "Project", 5: "Project talk", 6: "File", 7: "File talk", 8: "MediaWiki", 9: "MediaWiki talk", 10: "Template", 11: "Template talk", 12: "Help", 13: "Help talk", 14: "Category", 15: "Category talk"}
+    smwconfig.namespaces = defaultdict(lambda: "Unnamed namespace", smwconfig.namespaces)
 
 def loadPages():
     smwconfig.pages.clear() #reset
